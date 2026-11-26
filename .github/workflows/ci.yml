@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.11", "3.13"]
+        python: ["3.12", "3.13"]
     env:
       MATERIAL_PRIVATE_DIR: _nicht_vorhanden
       PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"

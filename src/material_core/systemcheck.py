@@ -35,7 +35,7 @@ TOOLS: list[dict] = [
         "key": "python",
         "level": "basis",
         "binaries": ["python3"],
-        "purpose": "Laufzeit (3.11 oder neuer)",
+        "purpose": "Laufzeit (3.12 oder neuer)",
         "packages": {"pacman": ["python"], "apt": ["python3"], "dnf": ["python3"], "zypper": ["python3"]},
         "hint": "https://www.python.org/downloads/",
     },
@@ -215,9 +215,9 @@ def detect_manager() -> str | None:
 
 
 def _python_ok() -> tuple[bool, str]:
-    found = next((shutil.which(n) for n in ("python3.14", "python3.13", "python3.12", "python3.11", "python3") if shutil.which(n)), None)
+    found = next((shutil.which(n) for n in ("python3.14", "python3.13", "python3.12", "python3") if shutil.which(n)), None)
     version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    return sys.version_info >= (3, 11), f"{found or sys.executable} (laeuft unter {version})"
+    return sys.version_info >= (3, 12), f"{found or sys.executable} (laeuft unter {version})"
 
 
 def check_tools() -> list[dict]:

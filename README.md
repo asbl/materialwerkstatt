@@ -15,7 +15,7 @@ per Quarto nach LaTeX/PDF gerendert. Das Repository buendelt vier Werkzeuge:
 
 ## Voraussetzungen
 
-- Python 3.11 oder neuer
+- Python 3.12 oder neuer
 - Quarto
 - LaTeX mit `pdflatex`
 - `rsvg-convert` (Einheitskreis-/Skizzen-PDFs) und `pdftocairo` (TikZ-SVG-Assets)

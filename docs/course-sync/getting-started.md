@@ -4,7 +4,7 @@ Diese Anleitung richtet sich an Personen, die `course-sync` noch nicht kennen.
 
 ## Voraussetzungen
 
-- Python 3.11 oder neuer
+- Python 3.12 oder neuer
 - Node.js mit `npx`
 - Git
 - optional: Moodle-Zugang mit H5P-Rechten

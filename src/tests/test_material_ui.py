@@ -219,7 +219,8 @@ def test_pdf_preview_resize_and_fullscreen(material_root):
         assert not page.locator(".editor-pane").evaluate("element => element.inert")
         page.set_viewport_size({"width": 800, "height": 900})
         assert not resizer.is_visible()
-        assert page.locator("#workspace").evaluate("node => getComputedStyle(node).gridTemplateColumns.split(' ').length") == 1
+        # Das Layout folgt der neuen Fensterbreite erst im naechsten Frame.
+        page.wait_for_function("getComputedStyle(document.querySelector('#workspace')).gridTemplateColumns.split(' ').length === 1")
         assert page.locator(".editor-pane").bounding_box()["width"] > 750
         # Schmal liegt der Index in der Schublade: Oeffnen aendert das Spaltenraster nicht.
         page.locator("#workspaceNavigation").click()

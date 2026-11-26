@@ -55,11 +55,11 @@ else
   SRC="$PREFIX/src"
 fi
 
-# Python fuer den Check: der erste Interpreter ab 3.11.
+# Python fuer den Check: der erste Interpreter ab 3.12.
 PYTHON=""
-for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
+for candidate in python3.14 python3.13 python3.12 python3; do
   if command -v "$candidate" >/dev/null 2>&1 \
-     && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+     && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' 2>/dev/null; then
     PYTHON="$(command -v "$candidate")"; break
   fi
 done
@@ -79,7 +79,7 @@ fi
 
 # 2. System-Check
 say "System-Check"
-[ -n "$PYTHON" ] || echo "Python 3.11 oder neuer wurde nicht gefunden."
+[ -n "$PYTHON" ] || echo "Python 3.12 oder neuer wurde nicht gefunden."
 CHECK_STATUS=0
 run_check || CHECK_STATUS=$?
 [ "$ONLY_CHECK" = 1 ] && exit "$CHECK_STATUS"
@@ -92,15 +92,15 @@ if [ "$CHECK_STATUS" != 0 ] && [ "$SYSTEM_PACKAGES" = 1 ]; then
     if [ "$ASSUME_YES" = 1 ]; then answer=j; else read -r -p "Ausfuehren? [j/N] " answer; fi
     if [ "$answer" = j ]; then eval "$COMMAND" || echo "Installation teilweise fehlgeschlagen." >&2; fi
     # Nach der Installation kann ein anderes Python vorhanden sein.
-    for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
+    for candidate in python3.14 python3.13 python3.12 python3; do
       if command -v "$candidate" >/dev/null 2>&1 \
-         && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+         && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' 2>/dev/null; then
         PYTHON="$(command -v "$candidate")"; break
       fi
     done
   fi
 fi
-[ -n "$PYTHON" ] || die "Python 3.11 oder neuer fehlt. Mit --system-pakete nachinstallieren oder manuell einrichten."
+[ -n "$PYTHON" ] || die "Python 3.12 oder neuer fehlt. Mit --system-pakete nachinstallieren oder manuell einrichten."
 "$PYTHON" -c 'import venv, ensurepip' 2>/dev/null || die "venv/ensurepip fehlt (Debian/Ubuntu: sudo apt install python3-venv python3-pip)."
 
 # 3. Virtuelle Umgebung und Paket

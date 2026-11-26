@@ -531,9 +531,9 @@ def _doctor_findings() -> list[tuple[str, bool, bool, str]]:
         findings.append((label, ok, required, hint))
 
     add(
-        f"Python {sys.version_info.major}.{sys.version_info.minor} (>= 3.11)",
-        sys.version_info >= (3, 11),
-        "Python 3.11 oder neuer installieren: https://www.python.org/downloads/",
+        f"Python {sys.version_info.major}.{sys.version_info.minor} (>= 3.12)",
+        sys.version_info >= (3, 12),
+        "Python 3.12 oder neuer installieren: https://www.python.org/downloads/",
     )
     from material_core import systemcheck
 
