@@ -213,6 +213,14 @@
       "family": "Material Insel",
       "weight": 400,
       "sha256": "ab1ada01405d5faa7601f9b66a0c18a96c43ecfc292af2d308a9ad2432c5de45"
+    },
+    {
+      "path": "static/bangers/Bangers-Regular.ttf",
+      "source": "bangers/Bangers-Regular.ttf",
+      "axes": {},
+      "family": "Bangers",
+      "weight": 400,
+      "sha256": "4160a7311de9342674cce9160cde9fcbb30f48190397d86ff1b70b455af65824"
     }
   ]
 }

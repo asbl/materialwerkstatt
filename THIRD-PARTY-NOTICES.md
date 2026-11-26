@@ -16,6 +16,7 @@ bei Reserved Font Names verlangt; die Lizenz liegt jeweils daneben.
 | Acme | Juan Pablo del Peral |
 | Alice | The Alice Project Authors |
 | Baloo 2 | The Baloo 2 Project Authors |
+| Bangers (unveraendert) | The Bangers Project Authors |
 | Balsamiq Sans | The Balsamiq Sans Project Authors |
 | Barlow Semi Condensed | The Barlow Project Authors |
 | Bitter | The Bitter Project Authors |

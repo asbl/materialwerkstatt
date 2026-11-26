@@ -41,10 +41,6 @@ def test_bundled_faces_have_licenses_checksums_and_german_glyphs():
     ("worksheet-anime.typst", "Bangers", "MaterialCartoon-Regular"),
 ])
 def test_title_and_exercise_use_distinct_actual_faces(tmp_path, template, title_face, exercise_face):
-    # worksheet-anime verlangt "Bangers", das nicht mitgeliefert wird.
-    if title_face == "Bangers" and "Bangers" not in subprocess.run(
-            ["typst", "fonts"], capture_output=True, text=True).stdout.splitlines():
-        pytest.skip("Schrift Bangers ist nicht installiert (nicht mitgeliefert)")
     source = tmp_path / "ab_probe.qmd"
     source.write_text(
         f"---\ntitle: Größen und Maßstäbe\nformat:\n  typst:\n    template: {template}\n---\n\n"

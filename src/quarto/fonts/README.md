@@ -18,6 +18,8 @@ bearbeitet. Diese Fassungen stehen ebenfalls unter OFL 1.1; die ursprünglichen
 Copyrightvermerke bleiben in Fonts und Lizenzdateien erhalten.
 `static-manifest.json` dokumentiert Eingaben, Achsenwerte und Ausgabeprüfsummen.
 Zur Neuerzeugung ist FontTools erforderlich, zum Rendern nicht.
+Bangers (Überschriften der Anime-Vorlagen) liegt unter `static/` unverändert und unter dem
+Originalnamen: Die Schrift ist bereits statisch und reserviert keinen Namen.
 Acme heißt in der veränderten Fassung `Material Cartoon`, damit der reservierte
 Originalname nicht als Familienname verwendet wird. Barlow Semi Condensed heißt
 `Material Sport`, weil Typst Breitenangaben im Familiennamen normalisiert.

@@ -15,6 +15,9 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
 ROOT = Path(__file__).resolve().parent
+# Unveraendert mitgeliefert: schon statisch, ohne reservierten Namen, und die Vorlagen
+# verlangen den Originalnamen.
+UNMODIFIED = {"Bangers"}
 
 
 def build(families=None):
@@ -36,6 +39,13 @@ def build(families=None):
         destination = ROOT / "static" / source.parent.name
         destination.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source.parent / "OFL.txt", destination / "OFL.txt")
+        if family in UNMODIFIED:
+            target = destination / source.name
+            shutil.copyfile(source, target)
+            outputs.append({"path": target.relative_to(ROOT).as_posix(), "source": entry["path"], "axes": {},
+                            "family": family, "weight": original["OS/2"].usWeightClass,
+                            "sha256": hashlib.sha256(target.read_bytes()).hexdigest()})
+            continue
         weights = [600, 700] if "fvar" in original else [original["OS/2"].usWeightClass]
         for weight in weights:
             face = TTFont(source, recalcTimestamp=False)
