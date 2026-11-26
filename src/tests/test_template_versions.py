@@ -1,4 +1,6 @@
 from pathlib import Path
+import sys
+import os
 import shutil
 import subprocess
 
@@ -240,3 +242,11 @@ def test_build_update_does_not_overwrite_edits_during_question(versions):
     with pytest.raises(ValueError, match="während"):
         review_before_build(versions.root, source, interactive=True, ask=answer)
     assert source.read_text() == changed
+
+
+def test_pruefung_laeuft_ohne_git_repo(tmp_path):
+    (tmp_path / "src/quarto/template-releases").mkdir(parents=True)
+    result = subprocess.run([sys.executable, "-m", "material_core.template_versions", "check", "--root", str(tmp_path)],
+                            capture_output=True, text=True,
+                            env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1])})
+    assert result.returncode == 0, result.stderr

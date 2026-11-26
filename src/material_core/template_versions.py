@@ -609,10 +609,18 @@ def main():
     parser.add_argument("--root", type=Path, default=Path.cwd())
     args = parser.parse_args()
     versions = TemplateVersions(args.root)
+    # Ein eigener Inhaltsordner ist in der Regel selbst kein Git-Repo.
+    versioned = (versions.root / ".git").exists()
     if args.command == "migrate":
-        result = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.qmd"],
-                                cwd=versions.root, check=True, capture_output=True)
-        paths = [versions.root / name for name in dict.fromkeys(result.stdout.decode().split("\0"))
+        if versioned:
+            result = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.qmd"],
+                                    cwd=versions.root, check=True, capture_output=True)
+            names = result.stdout.decode().split("\0")
+        else:
+            names = [path.relative_to(versions.root).as_posix() for path in versions.root.rglob("*.qmd")
+                     if not any(part == "build" or part.startswith(".")
+                                for part in path.relative_to(versions.root).parts)]
+        paths = [versions.root / name for name in dict.fromkeys(names)
                  if name and (versions.root / name).is_file()]
         print(canonical(versions.migrate(paths, write=args.write)))
     else:
@@ -621,15 +629,16 @@ def main():
                 versions.load(versions.relative(path))
             for path in (versions.root / store / "contexts").glob("*.json"):
                 versions.context(versions.relative(path))
-        changes = subprocess.run(["git", "diff", "HEAD", "--name-only", "--diff-filter=MD", "--", STORE, local_store()],
-                                 cwd=versions.root, check=True, capture_output=True, text=True)
+        # Ohne Git (Inhaltsordner) bleiben die Pruefsummen oben; geaenderte Releases erkennt Git nur im Programm-Repo.
+        changed = subprocess.run(["git", "diff", "HEAD", "--name-only", "--diff-filter=MD", "--", STORE, local_store()],
+                                 cwd=versions.root, check=True, capture_output=True, text=True).stdout if versioned else ""
         def moved_to_private(line):
             # Freigaben nicht eingebauter Vorlagen wanderten in den privaten Speicher: dort vorhanden = nicht veraendert.
             if not line.startswith(STORE + "/"):
                 return False
             return (versions.root / local_store() / line[len(STORE) + 1:]).exists()
 
-        immutable_changes = [line for line in changes.stdout.splitlines()
+        immutable_changes = [line for line in changed.splitlines()
                              if ("/layouts/" in line or "/contexts/" in line or re.search(r"/v[1-9][0-9]*\.json$", line))
                              and not moved_to_private(line)]
         if immutable_changes:
