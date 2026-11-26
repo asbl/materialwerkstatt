@@ -95,7 +95,9 @@ def test_failed_slide_render_restores_existing_deck(material_root, monkeypatch):
 
 
 @pytest.mark.parametrize('template, succeeds', [('worksheet-retro.typst', True), ('slide-retro.typst', False)])
-def test_pdf_survives_optional_worksheet_deck_failure(material_root, monkeypatch, template, succeeds):
+@pytest.mark.parametrize('failure', ['structure', 'dependency'])
+def test_pdf_survives_optional_worksheet_deck_failure(material_root, monkeypatch, template, succeeds, failure):
+    from excalideck.generator import DeckDependencyError
     from excalideck.outline import parse_outline
 
     source = material_root / 'blatt.qmd'
@@ -110,6 +112,8 @@ def test_pdf_survives_optional_worksheet_deck_failure(material_root, monkeypatch
         return subprocess.CompletedProcess(command, 0, stdout='PDF fertig')
 
     def rebuild(path):
+        if failure == 'dependency':
+            raise DeckDependencyError('Excaligen fehlt.')
         parse_outline(path)
         pytest.fail('Die verschachtelte Überschrift muss der Folienparser ablehnen.')
 
@@ -118,13 +122,14 @@ def test_pdf_survives_optional_worksheet_deck_failure(material_root, monkeypatch
     monkeypatch.setattr(runtime.services.slides, 'rebuild', rebuild)
     renderer.worker(source)
     state = renderer.state_payload()
+    reason = 'Excaligen fehlt' if failure == 'dependency' else 'Nicht abgeschlossene Spalten'
     assert state['ok'] is succeeds
     if succeeds:
         assert state['pdf'].endswith('.pdf')
         assert 'zusätzliche Folien konnten nicht erzeugt werden' in state['message']
-        assert any('Nicht abgeschlossene Spalten' in warning for warning in state['detail']['warnings'])
+        assert any(reason in warning for warning in state['detail']['warnings'])
     else:
-        assert 'Nicht abgeschlossene Spalten' in state['message']
+        assert reason in state['message']
 
 
 def test_render_plain_pdf_does_not_create_slides(material_root, monkeypatch):

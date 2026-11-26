@@ -110,7 +110,8 @@ say "Richte virtuelle Umgebung ein ($PREFIX/venv)"
 mkdir -p "$PREFIX"
 [ -x "$PREFIX/venv/bin/python" ] || "$PYTHON" -m venv "$PREFIX/venv"
 "$PREFIX/venv/bin/pip" install --quiet --upgrade pip
-"$PREFIX/venv/bin/pip" install --quiet -e "$SRC"
+# Extra "deck": Arbeitsblatt- und Folienvorlagen erzeugen beim Rendern auch Folien.
+"$PREFIX/venv/bin/pip" install --quiet -e "${SRC}[deck]"
 
 # 4. Projekt einrichten (.env, H5P-Libraries, Playwright-Browser) und Doctor
 say "Projekt einrichten"

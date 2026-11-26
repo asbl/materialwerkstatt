@@ -519,6 +519,7 @@ PYTHON_PACKAGE_MODULES = [
     ("playwright", "Moodle-Upload"),
     ("fitz", "PDF-Verarbeitung (pymupdf)"),
     ("numpy", "Zeichnungen"),
+    ("excaligen", "Folien (Extra deck)"),
     ("yaml", "Build-Konfiguration (PyYAML)"),
 ]
 
@@ -556,7 +557,7 @@ def _doctor_findings() -> list[tuple[str, bool, bool, str]]:
     add(
         "Python-Pakete installiert (inv setup)",
         not missing_modules,
-        "pip install -e . im Repo-Root ausfuehren (oder inv setup)"
+        "pip install -e '.[deck]' im Repo-Root ausfuehren (oder inv setup)"
         + (f"; fehlt: {', '.join(missing_modules)}" if missing_modules else ""),
     )
     add(
@@ -607,8 +608,8 @@ def _project_python() -> str:
 
 
 def _pip_install_editable(schulportal: bool = False, entwicklung: bool = False) -> None:
-    """Installiert das Projekt; `entwicklung` mit Testwerkzeugen, `schulportal` mit src/sph_login."""
-    target = ".[dev]" if entwicklung else "."
+    """Installiert das Projekt mit Folien-Extra; `entwicklung` mit Testwerkzeugen, `schulportal` mit src/sph_login."""
+    target = ".[deck,dev]" if entwicklung else ".[deck]"
     packages = ["-e", target] + (["-e", "src/sph_login"] if schulportal else [])
     venv_pip = CODE_DIR / ".venv" / "bin" / "pip"
     if venv_pip.exists():
@@ -642,7 +643,7 @@ def setup(ctx, skip_h5p: bool = False, skip_playwright: bool = False, schulporta
     if workspace.installed():
         print("1/4 Paketinstallation: Python-Pakete kommen vom Paketmanager.")
     else:
-        print(f"1/4 Installiere Python-Paket (pip install -e '{'.[dev]' if entwicklung else '.'}'"
+        print(f"1/4 Installiere Python-Paket (pip install -e '{'.[deck,dev]' if entwicklung else '.[deck]'}'"
               + (" -e src/sph_login" if schulportal else "") + ") ...")
         _pip_install_editable(schulportal, entwicklung)
     env_path = ROOT_DIR / ".env"

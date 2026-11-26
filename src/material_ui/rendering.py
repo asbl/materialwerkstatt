@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
+from excalideck.generator import DeckDependencyError
 from material_core.builds import BuildFailure
 from material_core.render_inputs import render_content
 from material_core.layout import check_layout
@@ -208,13 +209,13 @@ class RenderService:
             if render_content(self.documents.read(source)["text"], source) == render_content(snapshot["text"], source) and template_slide_design(snapshot["text"])[0]:
                 try:
                     deck, _ = self.slides.rebuild(source)
-                except ValueError as error:
+                except (ValueError, DeckDependencyError) as error:
                     from material_core.metadata import template_value
 
                     if not Path(template_value(snapshot["text"])).name.startswith("worksheet-"):
                         raise
-                    # A worksheet PDF remains usable when its optional deck
-                    # cannot represent the document's richer structure.
+                    # A worksheet PDF remains usable when its optional deck cannot be
+                    # built: richer structure than slides allow, or a missing dependency.
                     slide_warning = f"PDF erstellt; zusätzliche Folien konnten nicht erzeugt werden: {error}"
             detail = render_detail(self.config.relative(source) or str(source), "ok", result.stdout, result.returncode, result.command)
             detail["source_revision"] = result.source_revision

@@ -88,12 +88,13 @@ cd material-datenbank
 # git clone <inhalts-repo> unterricht
 # git clone <kurs-repo> unterricht/kurse
 # Ohne diese Ordner laufen Werkzeuge und Tests unveraendert; `unterricht/` ist gitignoriert.
-inv setup      # pip install -e ., .env anlegen, H5P-Libraries, Playwright-Browser
+inv setup      # pip install -e '.[deck]', .env anlegen, H5P-Libraries, Playwright-Browser
 # Zum Mitarbeiten (Testwerkzeuge): inv setup --entwicklung bzw. ./install.sh --entwicklung
 inv doctor     # Umgebungspruefung mit Installationshinweisen
 ```
 
-Manuell statt `inv setup`: `pip install -e .` im Repo-Root. Optional fuer die
+Manuell statt `inv setup`: `pip install -e '.[deck]'` im Repo-Root (`deck`: Folien aus
+Arbeitsblatt- und Folienvorlagen). Optional fuer die
 Schulportal-Anmeldung bei Moodle-Zielen: `inv setup --schulportal` bzw.
 `pip install -e src/sph_login`. Fuer H5P-Kurse
 zusaetzlich `inv kurse.update-h5p-libraries`; fuer Moodle-Uploads `.env.example`
