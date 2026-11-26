@@ -1,0 +1,24 @@
+{
+  "id": "office",
+  "name": "Office-Import (DOCX)",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": ["repo-read", "state-write"],
+  "pythonEntry": "register",
+  "defaultEnabled": false,
+  "provides": ["docx-converter"],
+  "systemRequirements": [
+    {
+      "key": "pandoc",
+      "binaries": ["pandoc"],
+      "purpose": "DOCX nach Markdown",
+      "packages": {"pacman": ["pandoc-cli"], "apt": ["pandoc"], "dnf": ["pandoc"], "zypper": ["pandoc"]}
+    },
+    {
+      "key": "libreoffice",
+      "binaries": ["libreoffice"],
+      "purpose": "DOCX nach PDF",
+      "packages": {"pacman": ["libreoffice-fresh"], "apt": ["libreoffice"], "dnf": ["libreoffice"], "zypper": ["libreoffice"]}
+    }
+  ]
+}

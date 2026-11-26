@@ -8,7 +8,8 @@ in separaten privaten Repos und sind nicht Teil dieses Projekts.
 
 ```sh
 git clone <repo-url> && cd material-datenbank
-inv setup && inv doctor
+inv setup --entwicklung && inv doctor
+# Die Tests der optionalen Plugins brauchen zusaetzlich pandoc, libreoffice, tesseract und ghostscript.
 MATERIAL_PRIVATE_DIR=_nicht_vorhanden inv test   # Tests ohne private Vorlagen
 ```
 

@@ -13,6 +13,8 @@ import pymupdf
 import yaml
 
 from .config import ROOT, Fach
+from material_ui.plugins.ocr import engine
+
 from .extract import EMPTY_PAGE_CHARS, OcrError, _ocr_page, cache_path, load_pages, ocr_language
 from .notes import load_notes
 from .scan import file_hash, save_manifest
@@ -173,24 +175,7 @@ def skip_reason(doc: dict, settings: Settings, profile: Profile) -> str | None:
 
 
 def ghostscript(src: Path, dst: Path, profile: Profile) -> None:
-    q = profile.qualitaet
-    dict_ps = (
-        f"<< /ColorImageDict << /QFactor {q} /Blend 1 /HSamples [1 1 1 1] /VSamples [1 1 1 1] >> "
-        f"/GrayImageDict << /QFactor {q} /Blend 1 /HSamples [1 1 1 1] /VSamples [1 1 1 1] >> >> setdistillerparams"
-    )
-    command = [
-        "gs", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.5",
-        f"-sOutputFile={dst}", "-dColorConversionStrategy=/LeaveColorUnchanged",
-        "-dDownsampleColorImages=true", "-dDownsampleGrayImages=true",
-        f"-dColorImageResolution={profile.dpi}", f"-dGrayImageResolution={profile.dpi}",
-        "-dColorImageDownsampleThreshold=1.0", "-dGrayImageDownsampleThreshold=1.0",
-        "-dColorImageDownsampleType=/Bicubic", "-dGrayImageDownsampleType=/Bicubic",
-        "-dAutoFilterColorImages=false", "-dAutoFilterGrayImages=false",
-        "-dColorImageFilter=/DCTEncode", "-dGrayImageFilter=/DCTEncode",
-        "-dDetectDuplicateImages=true", "-dSubsetFonts=true", "-dCompressFonts=true",
-        "-c", dict_ps, "-f", str(src),
-    ]
-    subprocess.run(command, check=True, capture_output=True, timeout=1800)
+    engine.shrink_pdf(src, dst, dpi=profile.dpi, qfactor=profile.qualitaet)
 
 
 # ------------------------------------------------------------------ quality gates

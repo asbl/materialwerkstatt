@@ -24,7 +24,7 @@ CODE_DIR = SRC_DIR.parent
 ROOT_DIR = workspace.root()
 sys.path.insert(0, str(SRC_DIR))
 import foerder_online  # noqa: E402  (liegt in src/)
-import onlyoffice_import  # noqa: E402  (liegt in src/)
+from material_core.import_helpers import slugify  # noqa: E402
 import pdf_erschliessung  # noqa: E402  (liegt in src/)
 from material_core.builds import BuildFailure, BuildService
 from material_core.filesystem import atomic_write_text, text_revision
@@ -556,7 +556,7 @@ def _doctor_findings() -> list[tuple[str, bool, bool, str]]:
     add(
         "Python-Pakete installiert (inv setup)",
         not missing_modules,
-        "pip install -e '.[dev]' im Repo-Root ausfuehren (oder inv setup)"
+        "pip install -e . im Repo-Root ausfuehren (oder inv setup)"
         + (f"; fehlt: {', '.join(missing_modules)}" if missing_modules else ""),
     )
     add(
@@ -606,9 +606,10 @@ def _project_python() -> str:
     return str(venv_python) if venv_python.exists() else sys.executable
 
 
-def _pip_install_editable(schulportal: bool = False) -> None:
-    """Installiert das Projekt; `schulportal` fuegt das optionale Paket src/sph_login hinzu."""
-    packages = ["-e", ".[dev]"] + (["-e", "src/sph_login"] if schulportal else [])
+def _pip_install_editable(schulportal: bool = False, entwicklung: bool = False) -> None:
+    """Installiert das Projekt; `entwicklung` mit Testwerkzeugen, `schulportal` mit src/sph_login."""
+    target = ".[dev]" if entwicklung else "."
+    packages = ["-e", target] + (["-e", "src/sph_login"] if schulportal else [])
     venv_pip = CODE_DIR / ".venv" / "bin" / "pip"
     if venv_pip.exists():
         _run([str(venv_pip), "install", *packages], cwd=CODE_DIR)
@@ -617,31 +618,33 @@ def _pip_install_editable(schulportal: bool = False) -> None:
         _run([sys.executable, "-m", "pip", "install", *packages], cwd=CODE_DIR)
     except CalledProcessError:
         raise SystemExit(
-            "pip install -e '.[dev]' ist gescheitert. Ist die Python-Umgebung 'externally managed'\n"
+            f"pip install -e '{target}' ist gescheitert. Ist die Python-Umgebung 'externally managed'\n"
             "(PEP 668, z. B. Arch Linux, Debian 12+)? Dann ein virtuelles Environment anlegen:\n"
             "  python3 -m venv .venv\n"
-            "  .venv/bin/pip install -e '.[dev]'\n"
+            f"  .venv/bin/pip install -e '{target}'\n"
             "Anschliessend setup wiederholen und Tasks ueber .venv/bin/inv ... aufrufen."
         ) from None
 
 
 @task(
     name="setup",
-    optional=["skip-h5p", "skip-playwright", "schulportal"],
+    optional=["skip-h5p", "skip-playwright", "schulportal", "entwicklung"],
     help={
         "skip-h5p": "H5P-Libraries nicht herunterladen",
         "skip-playwright": "Playwright-Browser nicht installieren",
         "schulportal": "Optional: Schulportal-Anmeldung (src/sph_login) fuer Moodle-Ziele installieren",
+        "entwicklung": "Zusaetzlich die Testwerkzeuge installieren (pip-Extra dev)",
     },
 )
-def setup(ctx, skip_h5p: bool = False, skip_playwright: bool = False, schulportal: bool = False) -> None:
+def setup(ctx, skip_h5p: bool = False, skip_playwright: bool = False, schulportal: bool = False,
+          entwicklung: bool = False) -> None:
     """Projekt einmalig einrichten: Python-Paket, .env, H5P-Libraries, Playwright, dann doctor."""
     if workspace.installed():
         print("1/4 Paketinstallation: Python-Pakete kommen vom Paketmanager.")
     else:
-        print("1/4 Installiere Python-Paket (pip install -e '.[dev]'"
+        print(f"1/4 Installiere Python-Paket (pip install -e '{'.[dev]' if entwicklung else '.'}'"
               + (" -e src/sph_login" if schulportal else "") + ") ...")
-        _pip_install_editable(schulportal)
+        _pip_install_editable(schulportal, entwicklung)
     env_path = ROOT_DIR / ".env"
     if not env_path.exists() and (CODE_DIR / ".env.example").is_file():
         shutil.copy(CODE_DIR / ".env.example", env_path)
@@ -1086,15 +1089,18 @@ def import_onlyoffice(
     no_validate: bool = False,
 ) -> None:
     """Onlyoffice-DOCX seitenstabil nach QMD importieren."""
+    _require_plugin("office")
+    from material_ui.plugins.office import converter
+
     source_path = _source_path(source)
     ziel_pfad = _source_path(ziel)
     if source_path is None or ziel_pfad is None:
         raise FileNotFoundError(source or ziel)
-    sources = onlyoffice_import._docx_sources(source_path)
+    sources = converter._docx_sources(source_path)
     if not sources:
         raise SystemExit(f"Keine DOCX-Dateien gefunden: {source_path}")
     for docx in sources:
-        result = onlyoffice_import.import_docx(
+        result = converter.import_docx(
             docx,
             ziel_pfad,
             overwrite=overwrite,
@@ -1122,7 +1128,7 @@ def _verlinse_importierte_pdfs(qmd_ordner: Path, ziel_rel: str, trocken: bool) -
         quelle = import_block.get("source") if isinstance(import_block, dict) else None
         if not isinstance(quelle, str) or not quelle.endswith(".docx"):
             continue
-        slug = onlyoffice_import.slugify(Path(quelle).stem)
+        slug = slugify(Path(quelle).stem)
         pdf = ziel_dir / f"{slug}.pdf"
         if not pdf.is_file():
             continue
@@ -1713,6 +1719,10 @@ def build_prune(_ctx, aelter_als: int | None = None, trocken: bool = False) -> N
 def wissen_update(_ctx, fach: str | None = None, no_index: bool = False, ocr: bool = False,
                   komprimieren: bool = False, bilder: bool = False) -> None:
     """Scan ressourcen/quellen/<fach>/, extract texts, refresh the index. --ocr reads scans, --komprimieren shrinks PDFs, --bilder extracts images."""
+    if ocr:
+        _require_plugin("ocr", "tesseract")
+    if komprimieren:
+        _require_plugin("ocr", "ghostscript")
     from wissensbasis import pipeline
 
     pipeline.update(fach, reindex=not no_index, ocr_all=ocr, compress=komprimieren, extract_images=bilder)
@@ -1742,6 +1752,7 @@ def wissen_status(_ctx, fach: str | None = None) -> None:
 @task(name="wissen-ocr", optional=["fach", "match", "limit"])
 def wissen_ocr(_ctx, fach: str | None = None, match: str | None = None, limit: int | None = None) -> None:
     """OCR scanned documents (flagged needs_ocr); --match narrows by path, --limit caps the document count."""
+    _require_plugin("ocr", "tesseract")
     from wissensbasis import pipeline
 
     pipeline.ocr(fach, match, int(limit) if limit else None)
@@ -1751,6 +1762,7 @@ def wissen_ocr(_ctx, fach: str | None = None, match: str | None = None, limit: i
 def wissen_komprimieren(_ctx, fach: str | None = None, match: str | None = None, limit: int | None = None,
                         trocken: bool = False, erneut: bool = False) -> None:
     """Shrink PDFs (profile per Quellenart), test quality, replace the original and update hashes. --trocken changes nothing."""
+    _require_plugin("ocr", "ghostscript", "tesseract")
     from wissensbasis import pipeline
 
     pipeline.compress(fach, match, int(limit) if limit else None, dry_run=trocken, again=erneut)
@@ -2041,7 +2053,7 @@ def plugin_list(_ctx) -> None:
         if manifest is None:
             rows.append(("-", "fehlerhaft", "-", "-", error or ""))
             continue
-        enabled = store.is_enabled(manifest.id, default=manifest.source in {"builtin", "project"})
+        enabled = store.is_enabled(manifest.id, default=manifest.active_by_default)
         rows.append((manifest.id, manifest.source, "aktiv" if enabled else "aus", manifest.version, manifest.name))
     if not rows:
         print("Keine Plugins gefunden.")
@@ -2058,12 +2070,39 @@ def _set_plugin_enabled(plugin_id: str, enabled: bool) -> None:
     if not ID_PATTERN.fullmatch(plugin_id or ""):
         raise ValueError(f"Ungültige Plugin-ID: {plugin_id!r}")
     with _marketplace().operation_lock():
-        known = {manifest.id for manifest, _error in discover_manifests(tuple(project_plugin_paths(ROOT_DIR))) if manifest is not None}
+        known = {manifest.id: manifest for manifest, _error in discover_manifests(tuple(project_plugin_paths(ROOT_DIR))) if manifest is not None}
         if plugin_id not in known:
             raise ValueError(f"Unbekanntes Plugin: {plugin_id}")
         _plugin_enabled_store().set_enabled(plugin_id, enabled)
     print(f"{plugin_id} ist jetzt {'aktiviert' if enabled else 'deaktiviert'}. "
           "Der Material-UI-Server muss neu gestartet werden.")
+    if enabled:
+        _print_missing_programs(known[plugin_id])
+
+
+def _print_missing_programs(manifest) -> None:
+    from material_core import systemcheck
+
+    tools = [systemcheck.requirement_tool(manifest.id, item) for item in manifest.system_requirements]
+    absent = systemcheck.missing(systemcheck.check_tools(tools))
+    if not absent:
+        return
+    print("Noch fehlende Programme: " + ", ".join(tool["key"] for tool in absent))
+    plan = systemcheck.install_plan(absent, systemcheck.detect_manager())
+    if command := systemcheck.install_command(plan):
+        print(f"  {command}")
+    for key, hint in plan["manual"]:
+        print(f"  {key}: {hint}")
+
+
+def _require_plugin(plugin_id: str, *keys: str) -> None:
+    """Bricht verstaendlich ab, wenn das Plugin aus ist oder ihm eines der genannten Programme fehlt."""
+    from material_core import plugin_state
+
+    try:
+        plugin_state.require(plugin_id, *keys)
+    except plugin_state.PluginUnavailable as error:
+        raise SystemExit(str(error)) from None
 
 
 @task(name="plugin-enable", positional=["plugin_id"])

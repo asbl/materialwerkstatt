@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import onlyoffice_import
 import pdf_erschliessung
 from material_core.filesystem import atomic_write_bytes, atomic_write_text
+from material_core.import_helpers import pdf_pages, slugify
 from material_ui.assets import yaml_string
 from material_ui.documents import DocumentService
 from material_ui.tags import subject_folder_names
@@ -104,7 +104,7 @@ def guess_title(text: str, filename: str) -> str:
 def _media_rel(slug: str) -> Path:
     """Medienordner-Pfad relativ zum jeweiligen qmd -- im Staging *und* am endgueltigen
     Zielort identisch, damit die von Pandoc erzeugten Bildverweise nach dem Kopieren
-    weiter stimmen (siehe _extract_docx)."""
+    weiter stimmen (siehe extract_markdown im Plugin office)."""
     return Path("assets") / slug / "media"
 
 
@@ -112,33 +112,6 @@ def _staged_paths(staging_dir: Path, slug: str) -> tuple[Path, Path]:
     """Einzige Quelle fuer die Staging-Pfade von PDF und Medien, von stage_office_upload
     und office_staging_record gleichermassen genutzt, damit sie nicht auseinanderlaufen."""
     return staging_dir / f"{slug}-original.pdf", staging_dir / _media_rel(slug)
-
-
-def _extract_docx(source: Path, cwd: Path, media_rel: Path) -> str:
-    """Rohe Pandoc-Ausgabe (inkl. moeglichem YAML-Block aus den DOCX-Kerneigenschaften).
-
-    `--extract-media` bekommt bewusst einen relativen Pfad und laeuft mit `cwd=cwd`:
-    Mit einem absoluten Pfad schreibt Pandoc auch absolute Bildverweise in den
-    Markdown-Body (empirisch verifiziert), die nach dem Verschieben des Medienordners
-    an den endgueltigen Ablageort (assets/<slug>/media neben dem Ziel-qmd) ins Leere
-    zeigen wuerden. Mit einem relativen Pfad bleibt der Verweis auch nach dem Kopieren
-    gueltig, weil Quelle und Ziel dieselbe relative Struktur haben.
-    """
-    completed = subprocess.run(
-        [
-            onlyoffice_import.PANDOC,
-            str(source),
-            "-t",
-            "markdown+yaml_metadata_block",
-            "--wrap=none",
-            f"--extract-media={media_rel.as_posix()}",
-        ],
-        cwd=cwd,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout.strip()
 
 
 def _extract_pdf_text(source: Path) -> str:
@@ -162,7 +135,7 @@ def _frontmatter_title(raw_docx_markdown: str) -> str:
     return str(value).strip() if value else ""
 
 
-def stage_office_upload(payload: bytes, filename: str, *, root: Path) -> OfficeStagingRecord:
+def stage_office_upload(payload: bytes, filename: str, *, root: Path, docx_converter=None) -> OfficeStagingRecord:
     """Laedt ein PDF/DOCX hoch, extrahiert Text und schlaegt Metadaten vor.
 
     Die Originaldatei und der Extraktions-Zwischenstand liegen unter
@@ -178,22 +151,27 @@ def stage_office_upload(payload: bytes, filename: str, *, root: Path) -> OfficeS
     if not payload:
         raise InvalidInput("Die hochgeladene Datei ist leer.")
 
+    if suffix == ".docx" and docx_converter is None:
+        raise InvalidInput(
+            "DOCX-Import braucht das Plugin „office“ (inv plugin-enable office, danach den Server neu starten). "
+            "PDF-Dateien lassen sich auch ohne importieren."
+        )
     root = root.resolve()
     _prune_expired(root)
     token = secrets.token_hex(24)
     staging_dir = _staging_dir(token, root)
     staging_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
 
-    slug = onlyoffice_import.slugify(Path(filename).stem)
+    slug = slugify(Path(filename).stem)
     staged_pdf, media_dir = _staged_paths(staging_dir, slug)
 
     try:
         if suffix == ".docx":
             upload_path = staging_dir / "upload.docx"
             atomic_write_bytes(upload_path, payload)
-            converted = onlyoffice_import._convert_docx_to_pdf(upload_path, staging_dir)
+            converted = docx_converter.to_pdf(upload_path, staging_dir)
             shutil.move(str(converted), staged_pdf)
-            raw_markdown = _extract_docx(upload_path, staging_dir, _media_rel(slug))
+            raw_markdown = docx_converter.to_markdown(upload_path, staging_dir, _media_rel(slug))
             upload_path.unlink(missing_ok=True)
             title_hint = _frontmatter_title(raw_markdown)
             parts = split_frontmatter(raw_markdown)
@@ -204,17 +182,20 @@ def stage_office_upload(payload: bytes, filename: str, *, root: Path) -> OfficeS
             title_hint = ""
             if not text or len(text.strip()) < 20:
                 raise InvalidInput(
-                    "Diese PDF hat keine erkennbare Textebene. Bitte zuerst `inv wissen-ocr` auf die Datei anwenden "
+                    "Diese PDF hat keine erkennbare Textebene. Bitte zuerst `inv wissen-ocr` (Plugin „ocr“) auf die Datei anwenden "
                     "und das OCR-Ergebnis erneut importieren."
                 )
     except subprocess.CalledProcessError as error:
         shutil.rmtree(staging_dir, ignore_errors=True)
         raise InvalidInput(f"Konvertierung fehlgeschlagen: {error.stderr or error}") from error
+    except FileNotFoundError as error:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+        raise InvalidInput(f"Konvertierung fehlgeschlagen, Programm oder Datei fehlt: {error.filename or error}") from error
     except Exception:
         shutil.rmtree(staging_dir, ignore_errors=True)
         raise
 
-    pages = onlyoffice_import._pdf_pages(staged_pdf)
+    pages = pdf_pages(staged_pdf)
     checksum = pdf_erschliessung.pruefsumme(staged_pdf)
     manifest = pdf_erschliessung.manifest_laden(root)
     existing = manifest["eintraege"].get(checksum)

@@ -403,8 +403,12 @@ entfernen. Rechtsklick auf ein Thema (auch im Pfad) öffnet die Tag-Verwaltung.
 
 Ein Plugin ist ein Ordner mit `plugin.json` (ID `[a-z0-9-]+`, identisch zum Ordnernamen,
 `name`, `version`, `minAppApi`, `capabilities` aus `network-outbound`/`repo-read`/`state-write`,
-optional `pythonEntry` als Funktionsname in `__init__.py`, `jsEntry`, `styles`, `icons`)
-plus Python- und Frontenddateien. Suchorte in dieser Reihenfolge (doppelte IDs entfallen):
+optional `pythonEntry` als Funktionsname in `__init__.py`, `jsEntry`, `styles`, `icons`,
+`defaultEnabled`, `systemRequirements`) plus Python- und Frontenddateien.
+`"defaultEnabled": false` laesst auch ein eingebautes Plugin erst nach `inv plugin-enable` laufen.
+`systemRequirements` ist eine Liste `{key, binaries, purpose, packages?, hint?}` mit den
+Systemprogrammen, die nur dieses Plugin braucht (`packages`: Paketnamen je `pacman`, `apt`, `dnf`,
+`zypper`); der System-Check (`inv doctor`, `install.sh`) prueft sie nur bei aktiviertem Plugin. Suchorte in dieser Reihenfolge (doppelte IDs entfallen):
 eingebaut unter `src/material_ui/plugins/<id>/`, installierte Distributionen ueber die
 Entry-Point-Gruppe `material_ui.plugins`, Benutzerverzeichnis
 `~/.local/share/material-ui/plugins/<id>/` sowie projektbegleitend — test- und
@@ -412,8 +416,8 @@ umgebungsweise ersetzt `MATERIAL_UI_PLUGIN_PATHS` (os.pathsep-Liste) alle Suchor
 
 Der Host laedt aktivierende Plugins beim Start: Registerfehler eines Plugins landen als
 Statuseintrag `error` mit Meldung in `GET /api/plugins`, ohne den Start des Kerns zu
-stoppen. Eingebaute Plugins sind standardmaessig aktiv, extern installierte erst nach
-Bestaetigung; der Zustand liegt dauerhaft unter `.material-ui/plugins.json` und wirkt erst
+stoppen. Eingebaute Plugins sind standardmaessig aktiv (ausser mit `defaultEnabled: false`),
+extern installierte erst nach Bestaetigung; der Zustand liegt dauerhaft unter `.material-ui/plugins.json` und wirkt erst
 nach einem Serverneustart (`inv plugin-list`, `inv plugin-enable <id>`, `inv
 plugin-disable <id>` oder `POST /api/plugins/<id>/enabled`, Antwort `restartRequired`).
 Plugins erhalten einen versionierten Plugin-Kontext: `register_routes(blueprint)` ohne
@@ -727,10 +731,19 @@ Chat-Knopf aus, wenn das Plugin nicht geladen ist. Abschaltbar über
 - Tests: `src/tests/test_chat_improvements.py` und `test_chat_features.py` (Backend), `test_chat_frontend_modules.py`
   (Node, reine Module), `test_chat_browser.py` (Playwright).
 
+## Office-Plugin (`office`) und OCR-Plugin (`ocr`)
+
+Beide sind ab Werk aus. `office` kapselt LibreOffice und Pandoc (`plugins/office/converter.py`),
+stellt dem Plugin `importe` das Interface `docx-converter` bereit und ist Voraussetzung fuer
+`inv import-onlyoffice`. `ocr` kapselt die Aufrufe von Tesseract und Ghostscript
+(`plugins/ocr/engine.py`); die Wissensbasis nutzt sie, und `inv wissen-ocr`,
+`wissen-komprimieren` sowie `wissen-update --ocr/--komprimieren` verlangen das aktivierte Plugin.
+Der Zustand wird ausserhalb des Servers ueber `material_core/plugin_state.py` gelesen.
+
 ## Importe-Plugin (`importe`)
 
 Das eingebaute Plugin `importe` liefert die Import-Workflows Office (PDF/DOCX →
-QMD-Arbeitsblatt) und Aufgabenbild (Zwischenablage-Bild → Code): Backend
+QMD-Arbeitsblatt; DOCX nur mit aktivem Plugin `office`) und Aufgabenbild (Zwischenablage-Bild → Code): Backend
 `plugins/importe/office_import.py`, `task_image_import.py`, `office_routes.py` und
 `task_image_routes.py` (Endpunkte unter `/api/document/import/office/…` und
 `/api/document/import/task-image/…`, unverändert stabil, inkl. der Bild-Route

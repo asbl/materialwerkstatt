@@ -34,8 +34,7 @@ class PluginHost:
                 self.load_errors[f"unbenannt-{len(self.load_errors)}"] = error
 
     def is_enabled(self, manifest: PluginManifest) -> bool:
-        # Eingebaute und projektlokale (bewusst abgelegte, private) Plugins sind vorab aktiv.
-        return self.enabled_store.is_enabled(manifest.id, default=manifest.source in {"builtin", "project"})
+        return self.enabled_store.is_enabled(manifest.id, default=manifest.active_by_default)
 
     def state_dir(self, manifest: PluginManifest) -> Path:
         return self.config.root / ".material-ui" / "plugins" / manifest.id

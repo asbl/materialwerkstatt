@@ -11,7 +11,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import onlyoffice_import
+from material_ui.plugins.office import converter
 import project_tasks
 from quarto_render_guard import MANAGED_RENDER_VARIABLE, main, managed_render_environment
 
@@ -47,8 +47,8 @@ def test_task_runner_authorizes_quarto_subprocess_only(monkeypatch, tmp_path, ac
 
 def test_import_runner_authorizes_quarto_subprocess(monkeypatch, tmp_path):
     calls = []
-    monkeypatch.setattr(onlyoffice_import.subprocess, "run", lambda command, **kwargs: calls.append(kwargs))
-    onlyoffice_import._run([onlyoffice_import.QUARTO, "render", "blatt.qmd"], cwd=tmp_path)
+    monkeypatch.setattr(converter.subprocess, "run", lambda command, **kwargs: calls.append(kwargs))
+    converter._run([converter.QUARTO, "render", "blatt.qmd"], cwd=tmp_path)
     assert calls[-1]["env"][MANAGED_RENDER_VARIABLE] == "1"
 
 

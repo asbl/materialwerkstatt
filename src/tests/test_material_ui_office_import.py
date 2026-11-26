@@ -37,6 +37,10 @@ def no_course_runtime_prewarm(monkeypatch):
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(material_app, "ROOT", tmp_path)
+    # DOCX braucht das ab Werk ausgeschaltete Plugin office.
+    state = tmp_path / ".material-ui" / "plugins.json"
+    state.parent.mkdir(exist_ok=True)
+    state.write_text(json.dumps({"enabled": {"office": True}}), encoding="utf-8")
     app = material_app.create_app()
     app.config.update(TESTING=True)
     with app.app_context():
@@ -118,6 +122,24 @@ def test_upload_rejects_pdf_without_text_layer(client, tmp_path):
 def test_upload_rejects_unsupported_extension(client, tmp_path):
     response = upload(client, tmp_path, b"Hallo", "notiz.txt")
     assert response.status_code == 400
+
+
+def test_without_office_plugin_docx_is_refused_and_pdf_still_works(tmp_path, monkeypatch):
+    monkeypatch.setattr(material_app, "ROOT", tmp_path)
+    app = material_app.create_app()
+    app.config.update(TESTING=True)
+    try:
+        host = app.extensions["material_runtime"].plugins
+        assert host.states["office"] == host.states["ocr"] == "disabled"
+        assert host.states["importe"] == "loaded"
+        client = app.test_client()
+        response = upload(client, tmp_path, b"PK", "blatt.docx")
+        assert response.status_code == 400
+        assert "plugin-enable office" in response.get_json()["error"]["message"]
+        pdf_path = write_pdf(tmp_path / "quelle.pdf", "Klasse 6, Mathematik: Bruchrechnung. Aufgabe 1.")
+        assert upload(client, tmp_path, pdf_path.read_bytes(), "bruch.pdf").status_code == 200
+    finally:
+        app.extensions["material_runtime"].close()
 
 
 def test_upload_docx_extracts_markdown_and_title(client, tmp_path):

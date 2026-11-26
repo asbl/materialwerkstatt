@@ -1,23 +1,22 @@
+"""DOCX-Konvertierung mit LibreOffice (PDF) und Pandoc (Markdown)."""
 from __future__ import annotations
 
 import argparse
-import re
 import shutil
 import subprocess
 import tempfile
-import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
 from quarto_render_guard import managed_render_environment
 from material_core import workspace
+from material_core.import_helpers import pdf_pages, slugify
 
 
 ROOT_DIR = workspace.root()
 LIBREOFFICE = "libreoffice"
 PANDOC = "pandoc"
 QUARTO = "quarto"
-PDFINFO = "pdfinfo"
 
 
 @dataclass(frozen=True)
@@ -29,13 +28,6 @@ class ImportResult:
     source_pages: int
     rendered_pdf: Path | None
     rendered_pages: int | None
-
-
-def slugify(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value)
-    ascii_value = normalized.encode("ascii", "ignore").decode("ascii").lower()
-    ascii_value = re.sub(r"[^a-z0-9]+", "-", ascii_value).strip("-")
-    return ascii_value or "onlyoffice-import"
 
 
 def _relative_to_root(path: Path) -> str:
@@ -51,19 +43,6 @@ def _run(command: list[str], *, cwd: Path = ROOT_DIR, quiet: bool = False) -> No
     if command[:2] == [QUARTO, "render"]:
         options["env"] = managed_render_environment()
     subprocess.run(command, cwd=cwd, check=True, stdout=stdout, **options)
-
-
-def _pdf_pages(path: Path) -> int:
-    completed = subprocess.run(
-        [PDFINFO, str(path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    match = re.search(r"^Pages:\s+(\d+)\s*$", completed.stdout, re.MULTILINE)
-    if not match:
-        raise RuntimeError(f"Kann Seitenzahl nicht ermitteln: {path}")
-    return int(match.group(1))
 
 
 def _convert_docx_to_pdf(source: Path, output_dir: Path) -> Path:
@@ -86,6 +65,33 @@ def _convert_docx_to_pdf(source: Path, output_dir: Path) -> Path:
             return candidates[0]
         raise FileNotFoundError(pdf_path)
     return pdf_path
+
+
+def extract_markdown(source: Path, cwd: Path, media_rel: Path) -> str:
+    """Rohe Pandoc-Ausgabe (inkl. moeglichem YAML-Block aus den DOCX-Kerneigenschaften).
+
+    `--extract-media` bekommt bewusst einen relativen Pfad und laeuft mit `cwd=cwd`:
+    Mit einem absoluten Pfad schreibt Pandoc auch absolute Bildverweise in den
+    Markdown-Body (empirisch verifiziert), die nach dem Verschieben des Medienordners
+    an den endgueltigen Ablageort (assets/<slug>/media neben dem Ziel-qmd) ins Leere
+    zeigen wuerden. Mit einem relativen Pfad bleibt der Verweis auch nach dem Kopieren
+    gueltig, weil Quelle und Ziel dieselbe relative Struktur haben.
+    """
+    completed = subprocess.run(
+        [
+            PANDOC,
+            str(source),
+            "-t",
+            "markdown+yaml_metadata_block",
+            "--wrap=none",
+            f"--extract-media={media_rel.as_posix()}",
+        ],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.strip()
 
 
 def _write_page_stable_qmd(
@@ -194,7 +200,7 @@ def _validate_pages(qmd_path: Path, slug: str, source_pages: int) -> tuple[Path,
     rendered_pdf = _relocate_render_artifacts(qmd_path, slug)
     if rendered_pdf is None:
         raise FileNotFoundError(qmd_path.parent / f"{slug}.pdf")
-    rendered_pages = _pdf_pages(rendered_pdf)
+    rendered_pages = pdf_pages(rendered_pdf)
     if rendered_pages != source_pages:
         raise RuntimeError(
             f"Seitenzahl stimmt nicht: {qmd_path} erzeugt {rendered_pages}, "
@@ -229,7 +235,7 @@ def import_docx(
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         converted_pdf = _convert_docx_to_pdf(source, tmp_dir)
-        source_pages = _pdf_pages(converted_pdf)
+        source_pages = pdf_pages(converted_pdf)
         # Das konvertierte PDF liegt neben der DOCX-Quelle (ueblicherweise im
         # _eingang) und wird von dort per `inv pdf-erschliessen` in die
         # Wissensbasis unter wissen/ verschoben.
