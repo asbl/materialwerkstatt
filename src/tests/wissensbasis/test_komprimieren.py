@@ -237,3 +237,13 @@ def test_moved_compressed_pdf_keeps_id_and_status(project):
     after = doc_of("umbenannt.pdf")
     assert after["id"] == before["id"] and after["sha256"] == before["sha256"]
     assert after["komprimierung"]["status"] == "komprimiert"
+
+
+def test_zwischendateien_sind_versteckt_und_enden_auf_pdf(tmp_path):
+    from wissensbasis import komprimieren
+
+    source = tmp_path / "Buch Band 1.PDF"
+    for kind in ("", "repariert-"):
+        target = komprimieren._temporary(source, kind)
+        assert target.name.startswith(komprimieren.TEMP_PREFIX) and target.suffix == ".pdf"
+        assert target.parent == source.parent and target != source

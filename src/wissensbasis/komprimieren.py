@@ -388,7 +388,7 @@ def compress_document(
             doc["komprimierung"] = {"status": reason, "profil": name}
         return reason, {}
     source = ROOT / doc["pfad"]
-    temporary = source.with_name(f"{TEMP_PREFIX}{source.name}.tmp")
+    temporary = _temporary(source)
     repaired: Path | None = None
     try:
         before = source.stat().st_size
@@ -435,10 +435,18 @@ def compress_document(
             repaired.unlink(missing_ok=True)
 
 
+def _temporary(source: Path, kind: str = "") -> Path:
+    """Versteckte Zwischendatei neben der Quelle.
+
+    Sie muss auf `.pdf` enden: Ubuntus AppArmor-Profil erlaubt qpdf nur solche Dateien.
+    """
+    return source.with_name(f"{TEMP_PREFIX}{kind}{source.stem}.tmp.pdf")
+
+
 def _repair(source: Path) -> Path | None:
     if not shutil.which("qpdf"):
         return None
-    target = source.with_name(f"{TEMP_PREFIX}repariert-{source.name}.tmp")
+    target = _temporary(source, "repariert-")
     result = subprocess.run(["qpdf", str(source), str(target)], capture_output=True, timeout=600)
     if result.returncode in (0, 3) and target.exists():  # 3 = repaired with warnings
         return target

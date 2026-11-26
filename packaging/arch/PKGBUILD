@@ -2,7 +2,7 @@
 # Vor der Veroeffentlichung im AUR: pkgver an den Tag anpassen und `updpkgsums` ausfuehren.
 
 pkgname=materialwerkstatt
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Unterrichtsmaterial mit Quarto: lokale Web-Oberflaeche, Arbeitsblaetter, H5P-Kurse"
 arch=('any')
