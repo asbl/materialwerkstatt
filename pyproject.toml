@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "material-datenbank"
+version = "0.1.0"
+description = "Unterrichtsmaterial-Werkzeuge: Quarto-Arbeitsblaetter, Material-UI und course-sync (H5P-Kurse fuer Moodle)."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Andreas Siebel" },
+]
+keywords = ["quarto", "latex", "education", "h5p", "moodle", "teaching-materials"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Web Environment",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Education",
+]
+requires-python = ">=3.11"
+dependencies = [
+  "Flask>=3.1,<4",
+  "markdown-it-py>=3,<5",
+  "invoke>=2.2,<4",
+  "playwright>=1.45,<2",
+  "PyYAML>=6,<7",
+  "ruamel.yaml>=0.18,<0.20",
+  "pymupdf>=1.24,<3",
+  "numpy>=1.26,<3",
+  "httpx>=0.27,<1",
+  "mcp>=2,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+]
+deck = [
+  "excaligen>=0.11,<1",
+  "fonttools[woff]>=4,<5",
+]
+# Schulportal-Hessen-Anmeldung fuer den Moodle-Upload (Kurse-Plugin, Zielart "schulportal").
+# Lokal installierbar mit: pip install -e src/sph_login
+schulportal = [
+  "sph-login>=0.1,<0.2",
+]
+kalender = [
+  "caldav>=1.3,<4",
+  "recurring-ical-events>=3,<4",
+]
+
+[project.scripts]
+material-ui = "material_ui.desktop:main"
+course-sync = "course_sync.main:main"
+
+[tool.setuptools]
+py-modules = ["quarto_render_guard"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["course_sync*", "material_ui*", "wissensbasis*", "material_core*", "excalideck*"]
+
+[tool.setuptools.package-data]
+"course_sync.classes" = ["templates/*.html"]
+"material_ui" = ["templates/*.html", "static/*", "plugins/*/plugin.json", "plugins/*/assets/*"]
+"material_core" = ["*.json"]
+
+
+[tool.pytest.ini_options]
+# src/quarto/_local/tests: Tests privater Vorlagen (ignorierter Ordner, fehlt in oeffentlichen Klonen)
+testpaths = ["src/tests", "src/quarto/_local/tests"]
+pythonpath = ["src"]
+# /tmp ist auf diesem Rechner ein tmpfs (RAM): pytest-tmp_path darf nicht dorthin,
+# sonst fuellt ein kompletter Lauf (jede Test-Fixture seedet ~200 MB .h5p-runtime)
+# den Arbeitsspeicher. Basetemp liegt daher auf Platte im Repo (gitignored).
+addopts = "--basetemp=.pytest-basetemp"
+tmp_path_retention_policy = "failed"
+tmp_path_retention_count = 1

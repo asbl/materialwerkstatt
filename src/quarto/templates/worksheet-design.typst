@@ -1,0 +1,173 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let wave-rule = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 10\" preserveAspectRatio=\"none\"><path d=\"M0 5 Q25 0 50 5 T100 5 T150 5 T200 5 T250 5 T300 5 T350 5 T400 5 T450 5 T500 5 T550 5 T600 5\" fill=\"none\" stroke=\"#b23227\" stroke-width=\"1.4\"/></svg>"
+
+#let student-header-offset = if student-fields-in-header and design-compact { 1mm } else { 0mm }
+
+#let student_fields = if student-fields-in-header { () => none } else { student_fields }
+
+#set page(
+  paper: "a4",
+  margin: if design-compact {
+    (top: 14mm, bottom: 12mm, left: 12mm, right: 12mm)
+  } else {
+    (top: 18mm, bottom: 16mm, left: 15mm, right: 15mm)
+  },
+  header-ascent: 3mm,
+  header: context {
+    if counter(page).get().first() == 1 and student-fields-in-header {
+      move(dy: student-header-offset, student_fields_row())
+    } else if counter(page).get().first() > 1 {
+      grid(columns: (1fr, auto),
+        grid(columns: (auto, 45mm), column-gutter: 3pt, align: bottom,
+          text(size: 8pt, fill: primary)[Name:],
+          line(length: 100%, stroke: 0.5pt + primary),
+        ),
+        text(size: 8pt, fill: primary)[#design-name],
+      )
+    }
+  },
+  footer: context {
+    if design-wave {
+      image(bytes(wave-rule), width: 100%, height: 2.4mm, fit: "stretch")
+      v(2pt)
+      grid(columns: (1fr, auto),
+        text(size: 8pt, fill: primary)[$if(thema)$Logbuch: $thema$$endif$],
+        align(right, text(size: 8pt, fill: primary)[Seite #counter(page).display() von #counter(page).final().first()]),
+      )
+    } else {
+      line(length: 100%, stroke: 0.6pt + primary)
+      v(2pt)
+      align(right,
+        text(size: 8pt, fill: primary)[#counter(page).display()],
+      )
+    }
+  },
+)
+#set text(font: body-font, size: calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt), lang: "de", fill: ink)
+#set par(justify: false, leading: 0.65em)
+#set raw(block: true)
+#show raw.where(block: true): block.with(fill: light-gray, inset: if design-compact { 6pt } else { 8pt }, radius: design-radius)
+#show link: set text(fill: primary)
+#show heading: it => block(above: if design-compact { 6pt } else if design-wave { 8pt } else { 10pt }, below: if design-compact { 4pt } else if design-wave { 4pt } else { 6pt }, sticky: true)[
+  #rect(fill: if design-pixel { design-accent } else { primary-light },
+    stroke: if design-pixel {
+      (top: 0.6pt + ink, left: 0.6pt + ink, bottom: 2pt + ink, right: 2pt + ink)
+    } else { (left: 3pt + primary) },
+    radius: design-radius, inset: (x: 8pt, y: if design-compact { 4pt } else if design-wave { 4pt } else { 6pt }))[
+    #let hsize = if it.level == 1 {
+        if design-compact { 14pt } else if design-wave { 15pt } else { 16pt }
+      } else {
+        if design-compact { 11pt } else { 12pt }
+      }
+    #if design-wave and it.level == 1 {
+      // Typst splits headings at punctuation and inline formatting.
+      // Read the number from the first text node and preserve the remaining content.
+      let parts = if it.body.has("children") { it.body.children } else { (it.body,) }
+      let first = parts.first()
+      let htext-str = if first.func() == text { first.text } else { "" }
+      let ms = if htext-str == "" { none } else { htext-str.match(regex("^([0-9]+) *(.*)")) }
+      if ms != none {
+        let caps = ms.captures
+        grid(columns: (auto, 1fr), column-gutter: 6pt, align: horizon)[
+          #circle(radius: 6.5pt, fill: primary, inset: 0pt)[
+            #align(center + horizon, text(font: body-font, size: 9pt, weight: "bold", fill: white,
+              top-edge: "cap-height", bottom-edge: "baseline")[#caps.at(0)])
+          ]
+        ][
+          #text(font: heading-font, size: hsize, weight: heading-weight, fill: if design-pixel { design-heading-ink } else { ink })[#text(caps.at(1, default: ""))#parts.slice(1).join()]
+        ]
+      } else {
+        text(font: heading-font, size: hsize, weight: heading-weight, fill: if design-pixel { design-heading-ink } else { ink })[#it.body]
+      }
+    } else {
+      text(font: heading-font, size: hsize, weight: heading-weight, fill: if design-pixel { design-heading-ink } else { ink })[#it.body]
+    }
+  ]
+]
+#set table(stroke: 0.5pt + rule-gray, inset: if design-compact { 4pt } else { 5pt })
+// Nur echte Kopfzeilen (table.header) einfärben; Tabellen ohne Kopfzeile bleiben schwarz.
+#show table: it => {
+  if it.children.any(c => c.func() == table.header) {
+    show table.cell.where(y: 0): set text(weight: "bold", fill: primary)
+    it
+  } else {
+    it
+  }
+}
+
+#let design_box(title, color, tint, body, motif: false, edge: none) = block(above: if design-compact { 4pt } else { 6pt }, below: if design-compact { 5pt } else { 8pt })[
+  #rect(width: 100%, fill: tint, radius: design-radius,
+    stroke: if design-pixel {
+      (top: 0.7pt + color, left: 0.7pt + color, bottom: 2pt + ink, right: 2pt + ink)
+    } else if edge == none {
+      0.7pt + color
+    } else {
+      (left: 0.7pt + color, right: 2.5pt + edge)
+    }, inset: if design-compact { 5pt } else { 7pt })[
+    #block(below: if design-compact { 2pt } else { 4pt })[
+      #text(font: heading-font, size: 11pt, weight: heading-weight, fill: color)[#title]
+    ]
+    #if motif {
+      grid(columns: (5mm, 1fr), column-gutter: 5pt,
+        image(bytes(design-motif), width: 5mm, height: 5mm, fit: "contain"),
+        body,
+      )
+    } else {
+      body
+    }
+  ]
+]
+#let class-five = design-name == "Fördermaterial · Klasse 5 (Retro)"
+#let infobox(title, body) = design_box(title, primary,
+  if class-five { rgb("#e3ebff") } else { primary-light }, body, motif: design-motif != "")
+#let tippbox(title, body) = design_box(title, tip,
+  if class-five { rgb("#ddf4e9") } else { primary-light }, body,
+  edge: if design-wave { design-accent } else { none })
+#let warnbox(title, body) = design_box(title, warn,
+  if class-five { rgb("#ffebd2") } else { primary-light }, body,
+  edge: if design-wave { design-accent } else { none })
+#let antwortkasten(height: 1cm) = block(above: if design-compact { 3pt } else { 4pt }, below: if design-compact { 5pt } else { 7pt })[
+  #rect(width: 100%, height: height, fill: rgb("#eeeeee"), stroke: none)
+]
+
+#let hinweis_gedreht(body) = block(above: if design-compact { 3pt } else { 5pt }, below: if design-compact { 4pt } else { 6pt })[
+  #text(size: 11pt)[#rotate(180deg)[#body]]
+]
+
+#let cover_title(title, subtitle, subtext, size) = [
+  #text(font: title-font, size: size, fill: primary, weight: title-weight)[#title]
+  #if subtitle != "" [#linebreak()#text(size: 11pt)[#subtitle]]
+  #if subtext != "" [#linebreak()#text(size: 11pt)[#subtext]]
+]
+
+#let cover_header(title, subtitle, subtext) = block(below: if design-compact { 6pt } else { 8pt })[
+  #rect(width: 100%, fill: primary-light, stroke: 1pt + primary,
+    radius: design-radius, inset: if design-compact { 7pt } else { 10pt })[
+    #if design-cover-motif != "" [
+      #grid(columns: (1fr, auto), column-gutter: 10pt, align: (left, right),
+        cover_title(title, subtitle, subtext, if design-compact { 18pt } else { 22pt }),
+        image(bytes(design-cover-motif), width: 14mm, fit: "contain"),
+      )
+    ] else [
+      #cover_title(title, subtitle, subtext, if design-compact { 18pt } else { 22pt })
+    ]
+  ]
+  #if design-wave {
+    v(1pt)
+    image(bytes(wave-rule), width: 100%, height: 2.4mm, fit: "stretch")
+  }
+]
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+$if(title)$
+#cover_header([$title$], [$if(subtitle)$$subtitle$$endif$], [])
+$endif$
+
+$body$

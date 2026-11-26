@@ -1,0 +1,26 @@
+{
+  "checksum": "f93cb2946aa279b12e6d3033c1da9a724df04bff679cde9b99611b1dda370e4e",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/slide-layout.typst": "21eb21a922f9408c6707a7b71dfe6123df81c99ec9c119538ef1685246fcf01b",
+    "templates/slide-retro.typst": "26ac4ceeda180e41366c14efd162083c536eeb9897ac57d44368b4db3a64225c"
+  },
+  "layout": "src/quarto/template-releases/layouts/8a74861967c345370232d7b921aee30c31a43d806d3332e4f12da5ff5ecbe9b7",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "slide-retro.typst",
+  "version": 1
+}

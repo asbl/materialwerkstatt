@@ -1,0 +1,15 @@
+{
+  "files": {},
+  "options": {
+    "include-in-header": [
+      {
+        "text": "#set image(height: 40mm, fit: \"contain\")\n"
+      }
+    ]
+  },
+  "original": {
+    "include-in-header": {
+      "text": "#set image(height: 40mm, fit: \"contain\")\n"
+    }
+  }
+}

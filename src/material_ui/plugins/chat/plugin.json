@@ -1,0 +1,25 @@
+{
+  "id": "chat",
+  "name": "Chat (KI-Assistent)",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": [
+    "network-outbound",
+    "state-write"
+  ],
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js",
+  "hostApis": [
+    "chat"
+  ],
+  "styles": [
+    "assets/chat-panel.css"
+  ],
+  "provides": [
+    "chat"
+  ],
+  "modules": [
+    "assets/chat-panel.js", "assets/markdown.js", "assets/diff.js",
+    "assets/tool-results.js", "assets/history.js", "assets/tex.js", "assets/quick-actions.js"
+  ]
+}

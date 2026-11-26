@@ -1,0 +1,11 @@
+Vendored third-party software in diesem Ordner
+==============================================
+
+h5p-cli-1.1.5.tgz
+  npm-Paket "h5p-cli", Version 1.1.5
+  Copyright (c) 2024 H5P Group
+  Lizenz: MIT (der vollstaendige Lizenztext liegt im Tarball unter package/LICENSE)
+
+h5p-webplayer/
+  Eigenentwicklung aus diesem Workspace, unterliegt der Projekt-Lizenz (MIT, siehe
+  LICENSE im Repo-Root).

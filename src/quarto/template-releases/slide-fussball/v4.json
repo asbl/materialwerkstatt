@@ -1,0 +1,52 @@
+{
+  "checksum": "64e3eda453c3b7ebb4bb2c4f98fd4d9d6ecd2dbdb88228f314c6c15f7ae5b696",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    },
+    "typst": {
+      "font-paths": [
+        "src/quarto/fonts/static",
+        "src/quarto/_local/fonts"
+      ]
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/checkup.lua": "b1a5c5acdf785d4776cb5580e3a8f2686ac8dd8fb5b12bdf7049ef16273f7be6",
+    "filters/exam.lua": "36d9f9f181c2c379a89b62300071c134bd1d649e218c38b15d484762c0c14373",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/slide-fussball.typst": "48a98dc46804e06b19947a0862fcc8e658a5fba35b910f97213f9a90d84b7dd2",
+    "templates/slide-layout.typst": "932e3886c55abb2b8b667b7705635efc3cc8ff7571e7e687f7451072ca63820a"
+  },
+  "layout": "src/quarto/template-releases/layouts/46bef4c73e010ef7f0de7113c4ea1658ab4306ba151eb4e5561ee5234ad6096e",
+  "note": "Neue Titel- und Überschriftentypografie; getrennte Schriftwahl und mindestens 0.65 em Zeilenabstand.",
+  "settings": {},
+  "slide-design": {
+    "accent": "#98b749",
+    "description": "Gestreifter Rasen, weiße Spielfeldlinien, Mittelkreis und klare Trainingsflächen.",
+    "font": "Noto Sans",
+    "id": "fussball",
+    "ink": "#20382b",
+    "label": "Fußball",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><rect x=\"2\" y=\"3\" width=\"60\" height=\"48\" rx=\"2\" fill=\"#22683e\"/><path d=\"M7 8h50v38H7zM32 8v38\" fill=\"none\" stroke=\"#fff\"/><circle cx=\"32\" cy=\"27\" r=\"11\" fill=\"#fff\"/><path d=\"m32 20 7 5-3 8h-8l-3-8z\" fill=\"#24372e\"/></svg>",
+    "paper": "#ecf4ed",
+    "primary": "#22683e",
+    "radius": 2,
+    "slide_background": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1600\" height=\"900\" viewBox=\"0 0 1600 900\"><rect width=\"1600\" height=\"900\" fill=\"#ecf4ed\"/><rect x=\"16\" y=\"16\" width=\"1568\" height=\"816\" rx=\"8\" fill=\"#22683e\" stroke=\"#22683e\" stroke-width=\"0\"/><rect x=\"16\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"212\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"408\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"604\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"800\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"996\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"1192\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"1388\" y=\"16\" width=\"98\" height=\"816\" rx=\"0\" fill=\"#98b749\" stroke=\"#98b749\" stroke-width=\"0\"/><rect x=\"32\" y=\"32\" width=\"1536\" height=\"120\" rx=\"4\" fill=\"white\" stroke=\"#20382b\" stroke-width=\"3\"/><rect x=\"32\" y=\"176\" width=\"1536\" height=\"644\" rx=\"4\" fill=\"white\" stroke=\"#20382b\" stroke-width=\"3\"/><rect x=\"8\" y=\"8\" width=\"1584\" height=\"824\" rx=\"0\" fill=\"none\" stroke=\"white\" stroke-width=\"2\"/><path d=\"M800 834v54M40 842H1560\" fill=\"none\" stroke=\"#22683e\" stroke-width=\"2\" /><circle cx=\"800\" cy=\"860\" r=\"24\" fill=\"none\" stroke=\"#22683e\" stroke-width=\"2\"/><path d=\"M32 846h110v40H32M1568 846h-110v40h110\" fill=\"none\" stroke=\"#22683e\" stroke-width=\"2\" /><rect x=\"24\" y=\"846\" width=\"630\" height=\"38\" rx=\"0\" fill=\"#ecf4ed\" stroke=\"#ecf4ed\" stroke-width=\"0\"/></svg>"
+  },
+  "template": "slide-fussball.typst",
+  "version": 4
+}

@@ -1,0 +1,24 @@
+{
+  "files": {
+    "src/quarto/template-releases/contexts/assets/b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "src/quarto/template-releases/contexts/assets/d5f2ce4f3f552dc2f2ce91b6a0c0d44e6d6f5933f5b3e586c387d45955ca134f.tex": "d5f2ce4f3f552dc2f2ce91b6a0c0d44e6d6f5933f5b3e586c387d45955ca134f"
+  },
+  "filter": "src/quarto/template-releases/contexts/assets/b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163.lua",
+  "options": {
+    "include-in-header": [
+      "src/quarto/template-releases/contexts/assets/d5f2ce4f3f552dc2f2ce91b6a0c0d44e6d6f5933f5b3e586c387d45955ca134f.tex"
+    ],
+    "keep-tex": true,
+    "mainfont": "TeX Gyre Heros",
+    "monofont": "TeX Gyre Cursor",
+    "papersize": "a4",
+    "pdf-engine": "lualatex",
+    "sansfont": "TeX Gyre Heros",
+    "toc": false
+  },
+  "original": {
+    "include-in-header": [
+      "sachkunde-header.tex"
+    ]
+  }
+}

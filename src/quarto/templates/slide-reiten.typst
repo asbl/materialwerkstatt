@@ -1,0 +1,10 @@
+#let slide-title-font = ("Material Bitter", "Noto Sans")
+#let slide-title-weight = "bold"
+#let slide-heading-font = ("Material Source Serif 4", "Noto Sans")
+#let slide-heading-weight = "semibold"
+#let primary = rgb("#815538")
+#let ink = rgb("#47372f")
+#let paper = rgb("#f7f0e7")
+#let background = image(bytes("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1600\" height=\"900\" viewBox=\"0 0 1600 900\"><rect width=\"1600\" height=\"900\" fill=\"#f7f0e7\"/><rect x=\"24\" y=\"24\" width=\"1552\" height=\"804\" rx=\"18\" fill=\"none\" stroke=\"#815538\" stroke-width=\"2\"/><rect x=\"32\" y=\"32\" width=\"1536\" height=\"120\" rx=\"14\" fill=\"white\" stroke=\"#b78a67\" stroke-width=\"3\"/><rect x=\"32\" y=\"176\" width=\"1536\" height=\"644\" rx=\"14\" fill=\"white\" stroke=\"#b78a67\" stroke-width=\"3\"/><path d=\"M44 44H1556V140H44ZM44 188H1556V808H44Z\" fill=\"none\" stroke=\"#815538\" stroke-width=\"1\" stroke-dasharray=\"6 7\"/><path d=\"M40 842H1560M40 882H1560\" fill=\"none\" stroke=\"#815538\" stroke-width=\"2\" /><path d=\"M712 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M768 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M824 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M880 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /></svg>"), width: 100%, height: 100%)
+#let slide-heading-ink = rgb("#47372f")
+$slide-layout.typst()$

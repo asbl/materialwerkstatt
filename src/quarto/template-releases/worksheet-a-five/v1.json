@@ -1,0 +1,27 @@
+{
+  "checksum": "e4a0d7fc75dfdef41a7471c206fe45795b940888bab9b8a3c272865303f8d3ff",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/exam-functions.typst": "c9e4bfc437c502c9f5d3554faf86572cbaca5a861984153c55e2a841950c2294",
+    "templates/worksheet-a-five-layout.typst": "ef7df9077911e5897ad940a93f3153b5ef4784d39727eca65e51c45906d7d28c",
+    "templates/worksheet-a-five.typst": "74136f19a80459384d278f0fffc33e771dc995632547ce995817dc515f31c2e9"
+  },
+  "layout": "src/quarto/template-releases/layouts/0f5c8c9019dd15019dbcac1af2d58d6224b065506569857e07c82a4c6687110a",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "worksheet-a-five.typst",
+  "version": 1
+}

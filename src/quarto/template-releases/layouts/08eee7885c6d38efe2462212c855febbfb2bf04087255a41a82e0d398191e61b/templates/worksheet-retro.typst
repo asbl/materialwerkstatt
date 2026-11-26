@@ -1,0 +1,23 @@
+#let primary = rgb("#7041ac")
+#let primary-light = rgb("#f2eafa")
+#let ink = rgb("#29213e")
+#let light-gray = rgb("#f2eafa")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Pixelify Sans", "CutePixel", "DejaVu Sans Mono", "Noto Sans")
+#let body-font = ("TeX Gyre Heros", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono", "Noto Sans Mono")
+#let design-name = "Retro"
+#let design-accent = rgb("#f5bb40")
+#let design-radius = 0pt
+#let design-pixel = true
+#let design-heading-ink = ink
+#let design-motif = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M18 2h8v8h8v8h-8v8h-8v-8h-8v-8h8z\" fill=\"#f5bb40\"/><path d=\"M43 27h6v6h6v6h-6v6h-6v-6h-6v-6h6z\" fill=\"#7041ac\"/></svg>"
+#let design-compact = false
+#let design-cover-motif = ""
+
+$exam-functions.typst()$
+
+$worksheet-design.typst()$

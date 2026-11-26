@@ -1,0 +1,22 @@
+{
+  "id": "importe",
+  "name": "Importe (Office, Aufgabenbilder)",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": [
+    "repo-read",
+    "state-write"
+  ],
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js",
+  "hostApis": [
+    "task-import"
+  ],
+  "dependsOn": {
+    "@chat": ">=0.1.0"
+  },
+  "modules": [
+    "assets/office-import.js",
+    "assets/task-image-import.js"
+  ]
+}

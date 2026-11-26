@@ -1,0 +1,29 @@
+{
+  "checksum": "06f5d8183580eaa5a700e533a97bbd401747f3336f4909a43c59e68bb09d8b34",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "templates/exam-functions.typst": "c9e4bfc437c502c9f5d3554faf86572cbaca5a861984153c55e2a841950c2294",
+    "templates/student-fields.typst": "450b928543efa61e75b4535b1cb3f6d5832c53e9fc9f0ebb33a500925c96239c",
+    "templates/worksheet-anime.typst": "9379e6211065b8b222a3696289e9f8c87b86a039282cd8d7e7d0886f95072d84",
+    "templates/worksheet-design.typst": "8f0da87c42e62f6643b777c4dbe17b199da0d6e7f2dc727638b000f6155c8c76"
+  },
+  "layout": "src/quarto/template-releases/layouts/a49a56803c67fed7d4478d7fe16e1e54a087c89d269b5ce1ad3137d710dee87a",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "worksheet-anime.typst",
+  "version": 2
+}

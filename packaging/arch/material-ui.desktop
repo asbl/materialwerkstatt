@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Materialwerkstatt
+Comment=Quarto-Materialien und H5P-Kurse bearbeiten
+Exec=material-ui %f
+Icon=material-ui
+Terminal=false
+StartupWMClass=material-ui
+Categories=Education;
+MimeType=text/x-quarto-markdown;text/x-mdx;

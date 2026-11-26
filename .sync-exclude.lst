@@ -1,0 +1,27 @@
+# Vom Datei-Sync (Nextcloud o. ae.) ausgeschlossene Pfade, gitignore-Format.
+# Der Nextcloud-Client (ab 3.2) liest diese Datei im Wurzelordner der
+# Ordnerverbindung; liegt der Sync-Root ueber dem Repo, die Muster zusaetzlich
+# im Sync-Client hinterlegen ("Ignorierte Dateien"). Siehe AGENTS.md.
+
+# Zentraler Build-Ordner: regenerierbar, zusammen mehrfach gigabytegross
+/build/
+**/build/
+
+# Grossdateien-Archiv: nicht regenerierbar, gehoert nicht in den Sync
+/archiv/
+
+# Quarto-Rueckstaende und Render-Verzeichnisse
+**/.quarto/
+**/*_files/
+
+# Lokale Umgebungen und Runtimes
+/.venv/
+/.h5p-runtime/
+**/node_modules/
+
+# Private UI-Daten enthalten DAV-Zugangsdaten und Kalenderdaten
+**/.material-ui/
+/.env
+
+# Schuelerdaten, Klausurauswertungen und persoenliche Foerderplaene
+/foerderempfehlungen/

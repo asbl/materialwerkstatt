@@ -1,0 +1,150 @@
+/* Schmale Fenster: Tablet- und Telefon-Anpassungen der Dialoge, Filter und Kopfzeile. */
+
+@media (max-width: 1000px) {
+  .preview-resizer,
+  .index-resizer {
+    display: none;
+  }
+
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+  .workspace,
+  .modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace {
+    height: auto;
+  }
+
+  .workspace.index-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .index-content {
+    max-height: 60vh;
+  }
+
+  .editor-pane,
+  .preview-pane {
+    min-height: 520px;
+  }
+
+  .modal-panel {
+    inset: 10px;
+  }
+
+  .app-header {
+    height: auto;
+  }
+
+  .facet-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Schmale Bildschirme und Tablets im Hochformat: kompaktere Kopfzeile,
+   einspaltige Filter und groessere Touch-Ziele. */
+@media (max-width: 700px) {
+  :root {
+    --fs-xs: 12px;
+    --fs-sm: 13px;
+    --fs-base: 15px;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .document-picker {
+    order: 3;
+    flex: 1 1 100%;
+  }
+
+  .header-actions {
+    order: 2;
+    margin-left: auto;
+    flex-wrap: nowrap;
+  }
+
+  /* Telefon: Marke und Navigation links, Status rechts, darunter Suche und Neu, zuletzt der Ansichtsumschalter. */
+  .app-header .view-switch {
+    order: 4;
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  .app-header .view-switch button {
+    flex: 1;
+    min-height: 40px;
+  }
+
+  .header-actions .status-badge {
+    flex: 0 1 auto;
+    max-width: none;
+  }
+
+  .header-actions .header-action,
+  .header-actions .status-badge,
+  .picker-row button,
+  .picker-row input {
+    min-height: 40px;
+  }
+
+
+  .facet-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-chips {
+    gap: 4px;
+  }
+
+  .chip,
+  .toolbar button,
+  .toolbar-toggle,
+  .facet-filters select,
+  .facet-filters input,
+  .index-header button {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  .toolbar {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .toolbar-toggle {
+    margin-left: 0;
+  }
+
+  .editor-pane,
+  .preview-pane {
+    min-height: 420px;
+  }
+
+  .index-content {
+    max-height: 45vh;
+  }
+
+  .modal-panel {
+    inset: 4px;
+  }
+
+  .modal-header,
+  .modal-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .modal-header button,
+  .modal-actions button {
+    min-height: 40px;
+  }
+}

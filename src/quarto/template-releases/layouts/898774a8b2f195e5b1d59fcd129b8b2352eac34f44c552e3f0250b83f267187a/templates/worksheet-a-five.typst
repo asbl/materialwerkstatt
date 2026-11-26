@@ -1,0 +1,16 @@
+// Neutral A5 landscape worksheet; derived skins override the variables below.
+#let primary = rgb("#1565c0")
+#let primary-light = rgb("#eaf3fb")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#f3f4f6")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#9ca3af")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Aptos Display", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono",)
+#let worksheet-skin = false
+#let worksheet-mascot = none
+
+$worksheet-a-five-layout.typst()$

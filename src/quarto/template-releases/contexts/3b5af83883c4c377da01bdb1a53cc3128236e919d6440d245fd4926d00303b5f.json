@@ -1,0 +1,9 @@
+{
+  "files": {},
+  "options": {
+    "aspectratio": 169,
+    "keep-tex": true,
+    "pdf-engine": "pdflatex"
+  },
+  "original": {}
+}

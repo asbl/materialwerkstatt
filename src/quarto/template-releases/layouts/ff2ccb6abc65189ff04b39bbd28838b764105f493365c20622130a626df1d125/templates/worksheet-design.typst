@@ -1,0 +1,133 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let student-header-offset = if student-fields-in-header and design-compact { 1mm } else { 0mm }
+
+#let student_fields = if student-fields-in-header { () => none } else { student_fields }
+
+#set page(
+  paper: "a4",
+  margin: if design-compact {
+    (top: 14mm, bottom: 12mm, left: 12mm, right: 12mm)
+  } else {
+    (top: 18mm, bottom: 16mm, left: 15mm, right: 15mm)
+  },
+  header-ascent: 3mm,
+  header: context {
+    if counter(page).get().first() == 1 and student-fields-in-header {
+      move(dy: student-header-offset, student_fields_row())
+    } else if counter(page).get().first() > 1 {
+      grid(columns: (1fr, auto),
+        grid(columns: (auto, 45mm), column-gutter: 3pt, align: bottom,
+          text(size: 8pt, fill: primary)[Name:],
+          line(length: 100%, stroke: 0.5pt + primary),
+        ),
+        text(size: 8pt, fill: primary)[#design-name],
+      )
+    }
+  },
+  footer: context {
+    line(length: 100%, stroke: 0.6pt + primary)
+    v(2pt)
+    align(right,
+      text(size: 8pt, fill: primary)[#counter(page).display()],
+    )
+  },
+)
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$$if(fontsize)$$fontsize$$else$if design-compact { 10pt } else { 10.5pt }$endif$$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: if design-compact { 0.45em } else { 0.55em })
+#set raw(block: true)
+#show raw.where(block: true): block.with(fill: light-gray, inset: if design-compact { 6pt } else { 8pt }, radius: design-radius)
+#show link: set text(fill: primary)
+#show heading: it => block(above: if design-compact { 6pt } else { 10pt }, below: if design-compact { 4pt } else { 6pt }, sticky: true)[
+  #rect(fill: if design-pixel { design-accent } else { primary-light },
+    stroke: if design-pixel {
+      (top: 0.6pt + ink, left: 0.6pt + ink, bottom: 2pt + ink, right: 2pt + ink)
+    } else { (left: 3pt + primary) },
+    radius: design-radius, inset: (x: 8pt, y: if design-compact { 4pt } else { 6pt }))[
+    #text(font: heading-font, size: if it.level == 1 {
+        if design-compact { 14pt } else { 16pt }
+      } else {
+        if design-compact { 11pt } else { 12pt }
+      },
+      weight: "bold", fill: if design-pixel { design-heading-ink } else { ink })[#it.body]
+  ]
+]
+#set table(stroke: 0.5pt + rule-gray, inset: if design-compact { 4pt } else { 5pt })
+// Nur echte Kopfzeilen (table.header) einfärben; Tabellen ohne Kopfzeile bleiben schwarz.
+#show table: it => {
+  if it.children.any(c => c.func() == table.header) {
+    show table.cell.where(y: 0): set text(weight: "bold", fill: primary)
+    it
+  } else {
+    it
+  }
+}
+
+#let design_box(title, color, tint, body, motif: false) = block(above: if design-compact { 4pt } else { 6pt }, below: if design-compact { 5pt } else { 8pt })[
+  #rect(width: 100%, fill: tint, radius: design-radius,
+    stroke: if design-pixel {
+      (top: 0.7pt + color, left: 0.7pt + color, bottom: 2pt + ink, right: 2pt + ink)
+    } else { 0.7pt + color }, inset: if design-compact { 5pt } else { 7pt })[
+    #block(below: if design-compact { 2pt } else { 4pt })[
+      #text(font: heading-font, size: 10pt, weight: "bold", fill: color)[#title]
+    ]
+    #if motif {
+      grid(columns: (5mm, 1fr), column-gutter: 5pt,
+        image(bytes(design-motif), width: 5mm, height: 5mm, fit: "contain"),
+        body,
+      )
+    } else {
+      body
+    }
+  ]
+]
+#let class-five = design-name == "Fördermaterial · Klasse 5 (Retro)"
+#let infobox(title, body) = design_box(title, primary,
+  if class-five { rgb("#e3ebff") } else { primary-light }, body, motif: true)
+#let tippbox(title, body) = design_box(title, tip,
+  if class-five { rgb("#ddf4e9") } else { primary-light }, body)
+#let warnbox(title, body) = design_box(title, warn,
+  if class-five { rgb("#ffebd2") } else { primary-light }, body)
+#let antwortkasten(height: 1cm) = block(above: if design-compact { 3pt } else { 4pt }, below: if design-compact { 5pt } else { 7pt })[
+  #rect(width: 100%, height: height, radius: design-radius,
+    stroke: if design-pixel {
+      (paint: rule-gray, thickness: 0.6pt, dash: "dashed")
+    } else { 0.6pt + primary })
+]
+
+#let hinweis_gedreht(body) = block(above: if design-compact { 3pt } else { 5pt }, below: if design-compact { 4pt } else { 6pt })[
+  #text(size: 9pt)[#rotate(180deg)[#body]]
+]
+
+#let cover_title(title, subtitle, subtext, size) = [
+  #text(font: heading-font, size: size, fill: primary, weight: "bold")[#title]
+  #if subtitle != "" [#linebreak()#text(size: 10pt)[#subtitle]]
+  #if subtext != "" [#linebreak()#text(size: 9pt)[#subtext]]
+]
+
+#let cover_header(title, subtitle, subtext) = block(below: if design-compact { 6pt } else { 8pt })[
+  #rect(width: 100%, fill: primary-light, stroke: 1pt + primary,
+    radius: design-radius, inset: if design-compact { 7pt } else { 10pt })[
+    #if design-cover-motif != "" [
+      #grid(columns: (1fr, auto), column-gutter: 10pt, align: (left, right),
+        cover_title(title, subtitle, subtext, if design-compact { 18pt } else { 22pt }),
+        image(bytes(design-cover-motif), width: 14mm, fit: "contain"),
+      )
+    ] else [
+      #cover_title(title, subtitle, subtext, if design-compact { 18pt } else { 22pt })
+    ]
+  ]
+]
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+$if(title)$
+#cover_header([$title$], [$if(subtitle)$$subtitle$$endif$], [])
+$endif$
+
+$body$

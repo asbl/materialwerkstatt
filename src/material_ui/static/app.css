@@ -1,0 +1,574 @@
+/* Material-UI Basis: Tokens, Grundelemente, Kopfzeile, Workspace-Raster, Rail und Index-Kopf.
+   Die Stylesheets werden in der Reihenfolge app*.css geladen (siehe templates/index.html);
+   die Aufteilung folgt dem urspruenglichen Aufbau, die Kaskade bleibt unveraendert. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f1f4f8;
+  --panel: #ffffff;
+  --text: #202327;
+  --muted: #66707c;
+  --border: #d8dde3;
+  /* Petrol aus dem Materialwerkstatt-Icon; im Dunkelmodus helles Tuerkis. */
+  --accent: #226b7b;
+  --accent-hover: #195361;
+  --accent-contrast: #ffffff;
+  --overlay: rgba(20, 24, 28, 0.58);
+  --danger: #b42318;
+  --danger-hover: #931b12;
+  --danger-contrast: #ffffff;
+  --success: #1f7a3f;
+  --kurs-badge: #7c3aed;
+  --token-highlight: #d7941d;
+  --token-frontmatter: #8750a1;
+  --token-command: #7b3f00;
+  --token-command-name: #b04d00;
+  --token-command-argument: #5c6f00;
+  --token-heading: #0f6b52;
+  --token-list: #9a5b12;
+  --token-inline: #7a4b00;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-base: 14px;
+  --fs-lg: 16px;
+
+  /* Abstaende (4er-Raster), Radien, Schatten und Fokusring: nur diese Stufen verwenden. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+  --shadow-1: 0 2px 8px color-mix(in srgb, var(--text) 8%, transparent);
+  --shadow-2: 0 8px 24px color-mix(in srgb, var(--text) 18%, transparent);
+  --shadow-3: 0 12px 36px color-mix(in srgb, var(--text) 26%, transparent);
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+  --bar-height: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181b;
+    --panel: #202327;
+    --text: #eceff3;
+    --muted: #a8b0bb;
+    --border: #3a4048;
+    --accent: #79c9bc;
+    --accent-hover: #9eddd2;
+    --accent-contrast: #102e2b;
+    --overlay: rgba(0, 0, 0, 0.62);
+    --danger: #ff8f83;
+    --danger-hover: #ffb0a8;
+    --danger-contrast: #2b0b08;
+    --success: #8fd6a8;
+    --kurs-badge: #bda2f7;
+    --token-highlight: #e8a94d;
+    --token-frontmatter: #c99be0;
+    --token-command: #e3b48a;
+    --token-command-name: #f5a870;
+    --token-command-argument: #c3d97a;
+    --token-heading: #7ad9b8;
+    --token-list: #e0a878;
+    --token-inline: #e3b48a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16181b;
+  --panel: #202327;
+  --text: #eceff3;
+  --muted: #a8b0bb;
+  --border: #3a4048;
+  --accent: #79c9bc;
+  --accent-hover: #9eddd2;
+  --accent-contrast: #102e2b;
+  --overlay: rgba(0, 0, 0, 0.62);
+  --danger: #ff8f83;
+  --danger-hover: #ffb0a8;
+  --danger-contrast: #2b0b08;
+  --success: #8fd6a8;
+  --kurs-badge: #bda2f7;
+  --token-highlight: #e8a94d;
+  --token-frontmatter: #c99be0;
+  --token-command: #e3b48a;
+  --token-command-name: #f5a870;
+  --token-command-argument: #c3d97a;
+  --token-heading: #7ad9b8;
+  --token-list: #e0a878;
+  --token-inline: #e3b48a;
+}
+
+* {
+  box-sizing: border-box;
+  accent-color: var(--accent);
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+  font: var(--fs-base)/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  position: relative;
+  z-index: 10;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  color: var(--accent);
+}
+
+.app-brand strong {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.header-actions .header-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 12px;
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  white-space: nowrap;
+}
+
+.header-actions .header-action:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+
+.header-actions .status-badge {
+  min-width: 0;
+  max-width: 260px;
+  min-height: 36px;
+}
+
+/* Ansichtsumschalter als Segment: eine Wahl, kein Zeilenumbruch, kein eigener Streifen. */
+.view-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+
+.view-switch button {
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.view-switch button:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.view-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.app-header > .header-action {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 8px 12px;
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  white-space: nowrap;
+}
+
+.app-header > .header-action:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+
+.app-header > #toggleFocusMode {
+  min-width: 36px;
+  padding: 8px;
+}
+
+.theme-options {
+  display: flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+
+.theme-options button.icon-button {
+  flex: 1;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.theme-options button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.header-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-menu .header-action {
+  min-width: 0;
+  padding: 8px;
+}
+
+.header-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 15;
+  display: grid;
+  gap: 4px;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-2);
+}
+
+.header-menu-panel[hidden] {
+  display: none;
+}
+
+.header-menu-panel button {
+  justify-content: flex-start;
+  background: transparent;
+  color: var(--text);
+  border-color: transparent;
+  white-space: nowrap;
+}
+
+.header-menu-panel button:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--index-width, 300px) minmax(0, var(--editor-share, 1fr)) minmax(0, var(--preview-share, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.editor-pane,
+.preview-pane,
+.workspace-index {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.workspace.index-collapsed {
+  grid-template-columns: 48px minmax(0, var(--editor-share, 1fr)) minmax(0, var(--preview-share, 1fr));
+}
+
+.workspace.focus-mode {
+  grid-template-columns: minmax(0, var(--editor-share, 1fr)) minmax(0, var(--preview-share, 1fr));
+}
+
+.workspace.focus-mode .workspace-index {
+  display: none;
+}
+
+.workspace-index {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.index-rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  width: 64px;
+  padding: var(--space-2) var(--space-1);
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--panel));
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+
+/* Rail-Knopf: Icon ueber einer kurzen Beschriftung, damit niemand Tooltips raten muss. */
+.index-rail-button {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 2px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-md);
+}
+
+.index-rail-button .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.rail-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+}
+
+.index-rail-button.rail-group-start {
+  margin-top: var(--space-2);
+}
+
+.index-rail-button.rail-group-start::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--space-2) / 2 - 1px);
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: var(--border);
+}
+
+.index-rail-button:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+
+.index-rail-button.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+}
+
+.workspace.index-collapsed .index-rail {
+  display: none;
+}
+
+.index-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.index-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 3;
+}
+
+.index-resizer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 3px;
+  width: 2px;
+  background: transparent;
+}
+
+.index-resizer:hover::after,
+.index-resizer:focus-visible::after,
+.index-resizer.active::after {
+  background: var(--accent);
+}
+
+.workspace.index-collapsed .index-resizer {
+  display: none;
+}
+
+.index-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--panel));
+}
+
+.index-header button {
+  min-width: 30px;
+}
+
+/* Kopf des Index: ruhig, damit der Titel der aktiven Ansicht im Vordergrund steht. */
+.index-header strong {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.index-header button.icon-button {
+  flex: 0 0 auto;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.index-header button.icon-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.index-collapsed #indexTitle,
+.index-collapsed #reloadIndex,
+#indexContent[hidden],
+#courseActivityPane[hidden] {
+  display: none;
+}
+
+.index-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px;
+  overflow: auto;
+  flex: 1;
+}
+
+.index-content h3 {
+  margin: 4px 0 8px;
+  font-size: var(--fs-md);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.index-content summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.folder-navigation summary h3 {
+  display: inline;
+}
+
+.workspace.kurs-mode .folder-navigation {
+  order: 2;
+}
+
+.editor-actions {
+  grid-row: 2;
+  min-width: 0;
+  max-height: 30vh;
+  overflow: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.advanced-options:has(#kursActions[hidden]) { display: none; }
+
+.advanced-options > summary {
+  cursor: pointer;
+  padding: 8px;
+  color: var(--muted);
+}
+
+.advanced-options #kursActions {
+  padding: 8px;
+}
+
+#newDocInFolder {
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}

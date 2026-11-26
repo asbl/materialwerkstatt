@@ -1,0 +1,388 @@
+/* Kalender-Plugin: Monatsansicht, Agenda und Statuszeile in der Seitenleiste. */
+
+:root {
+  --kal-1: #1f6f8b;
+  --kal-2: #a2543a;
+  --kal-3: #52796f;
+  --kal-4: #7a4b94;
+  --kal-5: #8a6d1f;
+  --kal-6: #9d3b52;
+  --kal-7: #3a5f9d;
+  --kal-8: #4f772d;
+}
+
+.plugin-view {
+  padding: 10px 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.kal-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.kal-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kal-month {
+  font-size: 0.95rem;
+}
+
+.kal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.kal-status {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.kal-status.error {
+  color: var(--danger, #c0392b);
+}
+
+.kal-status.empty {
+  color: var(--accent);
+}
+
+.kal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding-bottom: 2px;
+}
+
+.kal-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.kal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-height: 58px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: inherit;
+  text-align: left;
+}
+
+.kal-cell.outside {
+  opacity: 0.55;
+}
+
+.kal-cell.today {
+  border-color: var(--accent);
+}
+
+.kal-cell.today .kal-day-number {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.kal-day-number {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.kal-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kal-chip {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  border-radius: 4px;
+  padding: 1px 4px;
+  background: color-mix(in srgb, var(--kal-event, var(--accent)) 15%, var(--panel));
+  color: var(--text, inherit);
+  border-left: 2px solid var(--kal-event, var(--accent));
+  overflow-wrap: anywhere;
+}
+
+.kal-chip-time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kal-more {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.kal-daylist {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.kal-daylist h4,
+.kal-agenda-day {
+  display: flow-root;
+  margin: 10px 0 4px;
+  font-size: 0.85rem;
+}
+
+.kal-agenda-day.today {
+  color: var(--accent);
+}
+
+.kal-agenda-events {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.kal-agenda-entry {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 2px 8px;
+  align-items: baseline;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--kal-event, var(--accent));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--kal-event, var(--accent)) 8%, var(--panel));
+  padding: 6px 8px;
+  color: inherit;
+}
+
+.kal-agenda-time {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kal-agenda-title {
+  font-size: 0.85rem;
+}
+
+.kal-agenda-where {
+  grid-column: 2;
+  font-size: 0.75rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.kal-description {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.kal-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kal-account-summary,
+.kal-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kal-account-summary {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.kal-account-summary strong {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.kal-account-editor[hidden] {
+  display: none;
+}
+
+.kal-account-editor {
+  display: grid;
+  gap: 6px 10px;
+  margin-top: 10px;
+}
+
+.kal-account {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#kalSettingsModal .template-body {
+  overflow: auto;
+}
+
+.kal-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .kal-cell {
+    min-height: 46px;
+  }
+
+  .kal-chip-title {
+    display: none;
+  }
+
+  .kal-chip .kal-chip-time {
+    font-weight: 700;
+  }
+}
+
+.kal-fullscreen { position: fixed; inset: 12px; width: auto; max-width: none; max-height: none; overflow: auto; padding: 16px; }
+.kal-fullscreen .kal-cell { min-height: 105px; }
+.kal-quiet, .kal-header button { background: transparent; border: 0; box-shadow: none; color: var(--muted); padding: 4px 7px; font-size: .8rem; }
+.kal-quiet:hover, .kal-header button:hover { background: color-mix(in srgb, var(--accent) 10%, var(--panel)); color: var(--accent); }
+.kal-day-create-actions { float: right; display: inline-flex; }
+/* Navigation und Erstellen bleiben sichtbar; seltene Aktionen stehen unter Mehr. */
+.kal-header { justify-content: flex-start; gap: 10px; }
+.kal-nav { flex-wrap: wrap; }
+.kal-create-actions { display: flex; gap: 4px; margin-left: auto; }
+.kal-agenda-range { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; order: 1; padding-top: 8px; border-top: 1px solid var(--border); }
+.kal-agenda-range select, .kal-agenda-range input { width: auto; min-width: 0; max-width: 100%; font: inherit; }
+.kal-header button, .kal-tools summary { min-height: 36px; }
+.kal-create-actions button:first-child { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border-radius: 6px; }
+.kal-tools { color: var(--muted); font-size: .8rem; }
+.kal-tools summary { cursor: pointer; padding: 8px; border-radius: 6px; }
+.kal-tools summary:hover, .kal-tools[open] summary { background: color-mix(in srgb, var(--accent) 10%, var(--panel)); color: var(--accent); }
+.kal-tools[open] { flex-basis: 100%; order: 2; }
+.kal-tools[open] .kal-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.kal-tools summary:focus-visible, .kal-header button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kal-status { font-size: .72rem; }
+.kal-unit-hint { display: block; color: var(--muted); font-size: .75rem; margin-top: 3px; }
+.kal-group-row { display: grid; grid-template-columns: 1fr .6fr 1fr auto; gap: 6px; margin: 6px 0; }
+#kalEventModal, #kalCreateModal, #kalSettingsModal { z-index: 22; }
+.kal-fullscreen .kal-chip-title { display: inline; }
+#kalCreateModal form { display: grid; gap: 10px; max-height: calc(100vh - 180px); overflow: auto; padding: 16px; }
+.kal-event-title, button.kal-unit-hint {
+  border: 0; background: transparent; box-shadow: none; padding: 0;
+  text-align: left; font: inherit; color: inherit; cursor: pointer;
+}
+button.kal-unit-hint { display: block; color: var(--muted); font-size: .75rem; margin-top: 3px; }
+.kal-event-title:hover, button.kal-unit-hint:hover { color: var(--accent); text-decoration: underline; }
+
+/* Auch in schmalen Seitenleisten bleiben Plugin-Aktionen erreichbar. */
+.kal-actions > [data-plugin-calendar-action] { display: contents; }
+
+.kal-task { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 0; border-bottom: 1px solid var(--border, #ccc); }
+.kal-task > div { flex: 1; min-width: 12rem; }
+.kal-task small { display: block; opacity: .75; margin-top: .25rem; }
+.kal-task label { font-size: .85rem; }
+.kal-today-badge { position: absolute; top: 0; right: 0; background: var(--accent); color: var(--accent-contrast); border-radius: 1rem; padding: 0 .3rem; font-size: .7rem; }
+#viewButton-heute { position: relative; }
+
+/* Tagesplanung: Termine zuerst, kompakte Aufgabenaktionen. */
+.kal-today { container-type: inline-size; }
+.kal-today .kal-header h2 { margin: 0; }
+.kal-today [data-today-date] { margin: 4px 0 0; font-size: .85rem; }
+.kal-today [data-today-errors]:empty { display: none; }
+.kal-today-sync { font-size: .75rem; margin-top: 20px; }
+.kal-today-event-content { min-width: 0; overflow-wrap: anywhere; }
+.kal-today-event-meta { display: block; color: var(--muted); margin-top: 4px; }
+.kal-event-state { display: block; color: var(--accent); font-size: .75rem; font-weight: 600; margin-bottom: 3px; }
+.kal-event-current { border-left-width: 5px; }
+.kal-event-past { background: var(--panel); }
+.kal-event-past .kal-event-title { color: var(--muted); }
+.kal-task-group { margin: 12px 0; }
+.kal-task-group > summary { cursor: pointer; padding: 8px 0; font-weight: 600; }
+.kal-task-group h3 { font-size: .9rem; margin-bottom: 4px; }
+.kal-today .kal-task { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 6px 10px; padding: 8px 0; }
+.kal-today .kal-task > div { min-width: 0; }
+.kal-task-content { overflow-wrap: anywhere; }
+.kal-task-complete { width: 20px; height: 20px; margin: 8px; cursor: pointer; }
+.kal-task-completed .kal-event-title { text-decoration: line-through; color: var(--muted); }
+.kal-task-overdue .kal-task-deadline { color: var(--danger, #c0392b); font-weight: 600; }
+.kal-today .kal-task small { opacity: 1; color: var(--muted); line-height: 1.5; }
+.kal-task-actions { margin-top: 4px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; font-size: .8rem; }
+.kal-task-actions > button { font-size: inherit; }
+.kal-task-planned { color: var(--muted); }
+.kal-task-plan summary { cursor: pointer; padding: 6px 0; }
+.kal-task-plan label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kal-task-plan input { max-width: 100%; min-width: 0; }
+.kal-today .kal-create-actions { flex-wrap: wrap; }
+.kal-today .kal-task-actions > button { min-height: 30px; padding: 4px 8px; }
+
+.kal-calendar-picker {
+  color: var(--text);
+  background: var(--panel, #202428);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: min(560px, 90vw);
+  max-height: 80vh;
+  overflow: auto;
+}
+.kal-calendar-picker::backdrop { background: #0008; }
+.kal-calendar-options {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+.kal-calendar-picker label { display: flex; align-items: center; gap: 8px; }
+.kal-calendar-picker input[type="checkbox"] { width: auto; }
+
+/* Ferienkalender: Termine aus dem gewählten Ferienkalender */
+.kal-chip.kal-holiday {
+  background: color-mix(in srgb, var(--kal-event, var(--accent)) 18%, transparent);
+  border: 1px dashed var(--kal-event, var(--accent));
+  font-style: italic;
+}
+
+.kal-tools .kal-menu-status { flex-basis: 100%; margin: 4px 0 0; padding-top: 8px; border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+
+/* Umschalter zwischen heute und morgen auf der Heute-Seite */
+.kal-day-toggle { display: inline-flex; gap: 2px; margin-top: 6px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+.kal-day-toggle button { padding: 3px 10px; border-radius: 6px; font-size: .8rem; cursor: pointer; }
+.kal-day-toggle button.active { background: color-mix(in srgb, var(--accent) 14%, var(--panel)); color: var(--accent); font-weight: 600; }
+.kal-day-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Stundenblock des angezeigten Tages (Heute/Morgen) */
+.kal-lessons { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.kal-lesson { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--panel); padding: 4px 8px; font-size: .85rem; }
+.kal-lesson-time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.kal-lesson-meta { color: var(--muted); font-size: .75rem; }
+.kal-lesson-cancelled { opacity: .8; }
+.kal-lesson-cancelled .kal-event-title { text-decoration: line-through; color: var(--muted); }
+.kal-lesson-cancelled-tag { color: var(--danger, #c0392b); font-size: .75rem; font-weight: 600; }
+.kal-event-cancelled { background: var(--panel); }
+.kal-event-cancelled .kal-event-title { text-decoration: line-through; color: var(--muted); }
+button.kal-material-hint { margin-left: .9rem; }

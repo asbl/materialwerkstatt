@@ -1,0 +1,313 @@
+/* Arbeitsbereich: Editor-Pane, Tabs, Werkzeugleisten, Vorschau und PDF. */
+
+.editor-pane {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  overflow: hidden;
+}
+
+.document-tabs {
+  grid-row: 1;
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  padding: 4px 6px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  min-height: 0;
+}
+
+.document-tab {
+  display: flex;
+  align-items: center;
+  max-width: 220px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--bg) 70%, var(--panel));
+}
+
+.document-tab.active {
+  background: var(--panel);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.document-tab-button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.document-tab-button[aria-current="true"] {
+  font-weight: 600;
+}
+
+.document-tab-close {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.document-tab-close:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.document-tab-close .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.document-tab-menu {
+  position: fixed;
+  right: auto;
+  z-index: 100;
+}
+
+.toolbar {
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  padding: 6px var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Die Vorschau-Leiste ist so kompakt, dass Rendern, Besprechen, Notiz und PDF-Knoepfe
+   in der schmalen Spalte neben dem Editor in eine Zeile passen. */
+.preview-toolbar {
+  gap: var(--space-1);
+}
+
+.preview-toolbar button {
+  min-width: 0;
+  padding: 6px var(--space-2);
+}
+
+.preview-toolbar button.icon-button {
+  min-width: 32px;
+  padding: 6px;
+}
+
+.preview-toolbar .discussion-actions {
+  gap: 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 0;
+  background: var(--border);
+}
+
+#toolbar[hidden],
+#courseToolbar[hidden],
+#documentAdvanced[hidden],
+#newTargetFolderField[hidden],
+#documentInfo[hidden],
+#documentTabs[hidden],
+#editorShell[hidden],
+#editorStatus[hidden] {
+  display: none;
+}
+
+.toolbar-toggle {
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.header-menu-panel .toolbar-toggle {
+  margin: 0;
+  border-color: transparent;
+  cursor: pointer;
+}
+
+.toolbar-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.document-info {
+  grid-row: 3;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 8px;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.document-info.warning {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 7%, var(--panel));
+}
+
+.document-info a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.document-info a:hover {
+  text-decoration: underline;
+}
+
+.document-path {
+  color: var(--muted);
+}
+
+.preview-pane {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-resizer {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 10px;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 3;
+}
+
+.preview-resizer:hover,
+.preview-resizer:focus-visible,
+.preview-resizer.active {
+  background: var(--accent);
+}
+
+body.resizing-preview {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.resizing-preview iframe {
+  pointer-events: none;
+}
+
+#openPdfTab {
+  margin-left: auto;
+}
+
+body.pdf-fullscreen {
+  overflow: hidden;
+}
+
+.pdf-fullscreen .preview-pane {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  min-height: 0;
+  border: 0;
+}
+
+.pdf-fullscreen .preview-toolbar > :not(#togglePdfFullscreen) {
+  display: none;
+}
+
+.preview-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.pdf-rendering-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+}
+
+.pdf-rendering-overlay[hidden] {
+  display: none;
+}
+
+.pdf-empty-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 32px;
+  background: var(--panel);
+  color: var(--muted);
+  text-align: center;
+}
+
+.pdf-empty-state[hidden] {
+  display: none;
+}
+
+.pdf-rendering-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: pdf-rendering-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-rendering-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdf-rendering-spinner {
+    animation: none;
+  }
+}
+
+/* Laufende Einzelaktion (z. B. Präsentation neu bauen): Button bleibt
+   sichtbar aktiv, das Icon rotiert bis die Aktion abgeschlossen ist. */
+button[data-busy] {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+button[data-busy] svg {
+  animation: pdf-rendering-spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button[data-busy] svg {
+    animation: none;
+  }
+}

@@ -1,0 +1,22 @@
+#let primary = rgb("#815538")
+#let primary-light = rgb("#f7f0e7")
+#let ink = rgb("#47372f")
+#let light-gray = rgb("#f7f0e7")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Rye", "Noto Serif", "Noto Sans")
+#let body-font = ("TeX Gyre Heros", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono", "Noto Sans Mono")
+#let design-name = "Reiten"
+#let design-accent = rgb("#b78a67")
+#let design-radius = 6pt
+#let design-pixel = false
+#let design-motif = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M15 8q17-14 34 0l-4 9q-13-9-26 0L15 8zm4 9L13 38q0 14 12 14h5V41h-5l5-22m15-2 6 21q0 14-12 14h-5V41h5l-5-22\" fill=\"#b78a67\" stroke=\"#815538\" stroke-width=\"3\"/><path d=\"m18 29 6 2m-7 8 6 1m23-11-6 2m7 8-6 1\" stroke=\"#fff\" stroke-width=\"2\"/></svg>"
+#let design-compact = false
+#let design-cover-motif = ""
+
+$exam-functions.typst()$
+
+$worksheet-design.typst()$

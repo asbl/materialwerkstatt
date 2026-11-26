@@ -1,0 +1,9 @@
+{
+  "id": "lernstand",
+  "name": "Lernstand: Export und Veröffentlichung",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": ["repo-read", "state-write", "network-outbound"],
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js"
+}

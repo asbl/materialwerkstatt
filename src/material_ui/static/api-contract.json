@@ -1,0 +1,25 @@
+{
+ "apiVersion": 4,
+ "capabilities": [
+  "markdown-live-preview",
+  "document-slides",
+  "annotation-deck-revision",
+  "layout-diagnostics",
+  "render-metadata-awareness",
+  "slides-jobs",
+  "plugins",
+  "plugin-views",
+  "plugin-calendar-sources",
+  "plugin-calendar-actions",
+  "plugin-index-providers",
+  "plugin-search-providers",
+  "workspace-modes",
+  "path-resolvers",
+  "new-document-kinds",
+  "shortcut-kinds",
+  "worksheet-canvas-import",
+  "plugin-marketplace",
+  "plugin-services",
+    "workspace-settings"
+ ]
+}

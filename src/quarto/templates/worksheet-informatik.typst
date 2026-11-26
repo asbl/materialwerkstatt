@@ -1,0 +1,27 @@
+#let primary = rgb("#255577")
+#let primary-light = rgb("#edf4f9")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#edf4f9")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Material Space Grotesk", "Noto Sans")
+#let title-font = ("Material Space Grotesk", "Noto Sans")
+#let title-weight = "bold"
+#let heading-weight = "semibold"
+#show heading: set text(font: heading-font, weight: heading-weight)
+#let body-font = ("TeX Gyre Heros", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono", "Noto Sans Mono")
+#let design-name = "Informatik"
+#let design-accent = rgb("#4a8ac0")
+#let design-radius = 6pt
+#let design-pixel = false
+#let design-motif = ""
+#let design-compact = false
+#let design-wave = false
+#let design-cover-motif = ""
+
+$exam-functions.typst()$
+
+$worksheet-design.typst()$

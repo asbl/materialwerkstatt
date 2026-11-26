@@ -1,0 +1,82 @@
+// Alice Check-up v4. Eigene, geometrische Motive; keine fremden Bildassets.
+$for(header-includes)$
+$header-includes$
+$endfor$
+#let ink = rgb("#29253f")
+#let primary = rgb("#55427e")
+#let accent = rgb("#9e3155")
+#let paper = rgb("#f0edf7")
+#let primary-light = paper
+#let body-font = "Noto Sans"
+#set page(paper: "a4", margin: (x: 9mm, top: 8mm, bottom: 10mm),
+  footer: context align(right, text(size: 9pt, fill: primary)[#counter(page).display()]))
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$$if(fontsize)$$fontsize$$else$12pt$endif$$endif$, lang: "de", fill: ink)
+#set par(leading: 0.65em, spacing: 6pt)
+#set enum(tight: false, spacing: 6pt)
+#set heading(numbering: none)
+#show heading.where(level: 1): it => block(above: 9pt, below: 6pt, sticky: true)[#text(size: 12pt, weight: "bold", fill: primary)[#it.body]]
+#show heading.where(level: 2): it => block(above: 9pt, below: 5pt, sticky: true)[#text(size: 12pt, weight: "bold", fill: primary)[#it.body]]
+#show heading.where(level: 3): it => block(above: 10pt, below: 6pt, sticky: true)[#text(size: 12pt, weight: "bold", fill: primary)[#it.body]]
+#show math.equation: set text(size: 12pt)
+#show math.frac: set text(size: 14pt)
+#set table(stroke: none, inset: (x: 0pt, y: 3pt), column-gutter: 8pt)
+#let alice-mark() = box(width: 31mm, height: 11mm)[
+  // Weißes Kaninchen, Taschenuhr und Spielkarten als ruhiges Titelmotiv.
+  #place(dx: 0mm, dy: 4mm, ellipse(width: 7mm, height: 5mm, fill: white, stroke: 0.7pt + primary))
+  #place(dx: 1mm, dy: 0mm, rotate(-12deg, ellipse(width: 1.8mm, height: 6mm, fill: white, stroke: 0.7pt + primary)))
+  #place(dx: 4mm, dy: 0mm, rotate(12deg, ellipse(width: 1.8mm, height: 6mm, fill: white, stroke: 0.7pt + primary)))
+  #place(dx: 5.2mm, dy: 5.1mm, circle(radius: 0.35mm, fill: primary))
+  #place(dx: 11mm, dy: 1.5mm, circle(radius: 4mm, fill: white, stroke: 0.8pt + primary))
+  #place(dx: 14.2mm, dy: 0mm, rect(width: 1.6mm, height: 1.4mm, fill: primary, stroke: none))
+  #place(dx: 15mm, dy: 3mm, line(end: (0mm, 2.5mm), stroke: 0.7pt + primary))
+  #place(dx: 15mm, dy: 5.5mm, line(end: (2mm, 1mm), stroke: 0.7pt + accent))
+  #place(dx: 23mm, dy: 1mm, rotate(10deg, rect(width: 6mm, height: 9mm, radius: 1pt, fill: white, stroke: 0.6pt + primary)[#align(center, text(fill: accent, size: 12pt)[♦])]))
+]
+#let alice-header() = {
+  block(width: 100%, fill: paper, inset: (x: 8pt, y: 5pt), radius: 3pt)[
+    #grid(columns: (1fr, auto), align: horizon,
+      [#text(font: "Noto Serif", size: 17pt, weight: "bold", fill: primary)[$if(title)$$title$$else$Check-up$endif$]], alice-mark())
+  ]
+}
+// Kleine, eigene Piktogramme verbinden Regelkarte und Aufgabenbereich.
+#let alice-symbol(kind) = box(width: 7mm, height: 7mm)[
+  #if kind == "bottle" {
+    place(dx: 2.5mm, dy: 0mm, rect(width: 2mm, height: 2mm, stroke: 0.6pt + primary, fill: white))
+    place(dx: 1.2mm, dy: 2mm, rect(width: 4.6mm, height: 4.5mm, radius: 1pt, stroke: 0.7pt + primary, fill: white))
+    place(dx: 1.8mm, dy: 4mm, rect(width: 3.4mm, height: 1.8mm, stroke: none, fill: paper))
+  } else if kind == "key" {
+    place(dx: 0.5mm, dy: 0.5mm, circle(radius: 1.6mm, stroke: 0.8pt + primary, fill: none))
+    place(dx: 3.2mm, dy: 3.2mm, line(end: (2.8mm, 2.8mm), stroke: 0.9pt + primary))
+    place(dx: 4.6mm, dy: 4.6mm, line(end: (1.2mm, -1.2mm), stroke: 0.8pt + primary))
+  } else if kind == "clock" {
+    place(dx: 0.8mm, dy: 1mm, circle(radius: 2.6mm, stroke: 0.7pt + primary, fill: white))
+    place(dx: 3.4mm, dy: 2mm, line(end: (0mm, 1.6mm), stroke: 0.7pt + primary))
+    place(dx: 3.4mm, dy: 3.6mm, line(end: (1.6mm, 0.8mm), stroke: 0.7pt + primary))
+  } else {
+    place(dx: 1.5mm, dy: 0.5mm, rect(width: 4.5mm, height: 6mm, radius: 1pt, stroke: 0.7pt + primary, fill: white)[#align(center + horizon, text(size: 11pt, fill: primary)[♦])])
+  }
+]
+#let checkfigure(sketch, questions) = grid(columns: (56mm, 1fr), column-gutter: 5mm, align: horizon, [#sketch], [#questions])
+#let checksection(motif, topic, rules, tasks) = block(above: 9pt, below: 3pt, breakable: false)[
+  #grid(columns: (53mm, 1fr), column-gutter: 5mm,
+    block(width: 100%, fill: paper, radius: 3pt, inset: 7pt)[
+      #block(below: 4pt)[#alice-symbol(motif)]
+      #rules
+    ],
+    block[
+      #block(width: 100%, below: 6pt, inset: (bottom: 3pt), stroke: (bottom: 0.6pt + primary))[
+        #grid(columns: (auto, 1fr), column-gutter: 5pt, align: horizon,
+          alice-symbol(motif), text(font: "Noto Serif", weight: "bold", size: 13pt, fill: primary)[#topic])
+      ]
+      #tasks
+    ])
+]
+#let checkpage(..sections) = {
+  alice-header()
+  for section in sections.pos() { section }
+}
+// Mehrspaltige Aufgaben bleiben QMD-Tabellen; das Template entfernt Tabellenränder.
+$if(checkup-solutions)$
+#alice-header()
+$endif$
+$body$

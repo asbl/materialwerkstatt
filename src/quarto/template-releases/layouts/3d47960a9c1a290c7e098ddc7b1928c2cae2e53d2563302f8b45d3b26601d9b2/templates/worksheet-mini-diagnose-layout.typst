@@ -1,0 +1,45 @@
+// Reusable diagnosis layout: two landscape A5 copies on each A4 page.
+#let navy = rgb("#183b50")
+#let teal = rgb("#256b70")
+#let pale = rgb("#f1f6f6")
+#let edge = rgb("#cad9dc")
+#let mini_ab(body) = context {
+  set text(font: body-font, size: calc.max(11pt, text.size), fill: navy)
+  set par(leading: 0.45em, spacing: 5pt)
+  set math.equation(block: false)
+  show heading.where(level: 1): it => block(above: 0pt, below: 10pt, sticky: true)[
+    #text(size: calc.max(17pt, text.size), weight: "bold", it.body)
+    #v(1mm)
+    #line(length: 100%, stroke: 1pt + teal)
+  ]
+  show heading.where(level: 2): it => block(above: 14pt, below: 8pt, sticky: true)[
+    #text(size: calc.max(11pt, text.size), weight: "bold", fill: teal)[#it.body]
+  ]
+  block(height: 281mm, breakable: false)[
+    #place(top + center, dy: 140.5mm,
+      line(length: 100%, stroke: (paint: mid-gray, thickness: 0.5pt, dash: "dotted")))
+    #grid(columns: (1fr,), rows: (140.5mm, 140.5mm),
+      block(inset: (top: 1mm, bottom: 5mm))[#body],
+      block(inset: (top: 6mm))[#body])
+  ]
+}
+
+// Public Markdown shortcuts; no worksheet content belongs in this partial.
+#let mini_karte(number, title, height: 34mm, body) = context {
+  set par(leading: 0.6em, spacing: 4pt)
+  block(width: 100%, height: height, fill: pale, radius: 2mm, inset: 3mm)[
+    #grid(columns: (auto, 1fr, auto), gutter: 2mm, align: horizon,
+      text(fill: teal, weight: "bold", size: calc.max(12pt, text.size), number),
+      text(weight: "bold", title), text(size: calc.max(11pt, text.size), fill: teal)[S / ? / H])
+    #v(1mm)
+    #body
+  ]
+}
+#let mini_auswertung(..cells) = context {
+  show table.cell: set text(size: calc.max(11pt, text.size))
+  set par(leading: 0.45em, spacing: 3pt)
+  table(columns: (9mm, 88mm, 1fr), inset: (x: 2mm, y: 1.5mm),
+    align: left + top, stroke: 0.4pt + edge,
+    fill: (x, y) => if y == 0 or x == 0 { pale } else { none },
+    ..cells.pos())
+}

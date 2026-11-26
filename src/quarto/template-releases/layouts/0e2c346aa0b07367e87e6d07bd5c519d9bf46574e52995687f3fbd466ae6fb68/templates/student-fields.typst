@@ -1,0 +1,16 @@
+// Gemeinsame Schreibzeile im oberen Seitenrand, oberhalb des Titelkopfs.
+// Die 6 mm hohe Zeile lässt Platz für handschriftliche Namen; das Datum
+// bekommt eine eigene, mindestens 35 mm breite Linie auf A4 hochkant.
+#let student_fields_row(date: none) = {
+  set text(font: ("Aptos", "Noto Sans", "Liberation Sans"), size: 9.5pt, fill: black)
+  grid(
+    columns: (auto, 1fr, auto, 40mm),
+    rows: 6mm,
+    column-gutter: 2mm,
+    align: left + bottom,
+    [*Name:*], line(length: 100%, stroke: 0.6pt + black),
+    [*Datum:*], if date == none or date == "" or date == [] {
+      line(length: 100%, stroke: 0.6pt + black)
+    } else { date },
+  )
+}

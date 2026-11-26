@@ -1,0 +1,17 @@
+{
+  "id": "erinnerungen",
+  "name": "Desktop-Erinnerungen",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": [
+    "state-write"
+  ],
+  "dependsOn": {
+    "@calendar": ">=0.3.0"
+  },
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js",
+  "styles": [
+    "assets/erinnerungen.css"
+  ]
+}

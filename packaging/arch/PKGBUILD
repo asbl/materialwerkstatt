@@ -1,0 +1,90 @@
+# Paket "materialwerkstatt" (Material-UI, course-sync, Quarto-Werkzeuge) fuer Arch und Manjaro.
+# Vor der Veroeffentlichung im AUR: pkgver an den Tag anpassen und `updpkgsums` ausfuehren.
+
+pkgname=materialwerkstatt
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Unterrichtsmaterial mit Quarto: lokale Web-Oberflaeche, Arbeitsblaetter, H5P-Kurse"
+arch=('any')
+url="${MATERIALWERKSTATT_URL:-https://github.com/asbl/materialwerkstatt}"
+license=('MIT' 'OFL-1.1')
+depends=(
+  'python' 'python-flask' 'python-markdown-it-py' 'python-invoke' 'python-playwright' 'python-yaml'
+  'python-ruamel-yaml' 'python-pymupdf' 'python-numpy' 'python-httpx' 'python-mcp' 'python-fonttools'
+  'quarto' 'typst' 'texlive-basic' 'texlive-latex' 'texlive-latexrecommended' 'texlive-latexextra'
+  'texlive-fontsrecommended' 'texlive-luatex' 'texlive-pictures' 'texlive-langgerman'
+  'librsvg' 'poppler' 'git' 'noto-fonts'
+)
+makedepends=('nodejs' 'npm')
+optdepends=(
+  'chromium: eigenes App-Fenster und Browserexporte'
+  'libreoffice-fresh: Import von Word- und Office-Dateien'
+  'pandoc-cli: Import von Word- und Office-Dateien'
+  'tesseract: OCR in der Wissensbasis'
+  'tesseract-data-deu: deutsche OCR-Daten'
+  'ghostscript: PDFs der Wissensbasis komprimieren'
+  'qpdf: PDF-Nachbearbeitung'
+  'imagemagick: Bildkonvertierung beim Import'
+  'libnotify: Desktop-Benachrichtigungen'
+  'xdotool: Fenster in den Vordergrund holen (X11)'
+  'bubblewrap: Sandbox fuer Chat-Werkzeuge'
+  'nodejs: markdownlint'
+  'python-caldav: Kalender-Plugin (CalDAV)'
+  'python-recurring-ical-events: Kalender-Plugin (Serientermine)'
+)
+_excaligen=0.11.14
+source=(
+  "$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
+  "https://files.pythonhosted.org/packages/5e/36/293e49a3546fb75ea8dd125069c1b27abe1f4183eb0a0da8e2e78de73bd8/excaligen-$_excaligen-py3-none-any.whl"
+)
+noextract=("excaligen-$_excaligen-py3-none-any.whl")
+sha256sums=('SKIP' 'ca3da772eff2a4b47ca9e2fad7a35175ac3b305f342d7b3d57f4fa9339d15244')
+
+_tree() { find "$srcdir" -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/tasks.py' ';' -print -quit; }
+
+build() {
+  cd "$(_tree)/src/excalideck/present"
+  npm ci --no-audit --no-fund --cache "$srcdir/npm-cache"
+  npm run build
+}
+
+package() {
+  local tree dest="$pkgdir/usr/share/material-ui"
+  tree="$(_tree)"
+  install -d "$dest"
+  cp -a "$tree"/{src,tasks.py,_quarto.yml,pyproject.toml,.env.example,.markdownlint-cli2.yaml} "$dest/"
+  # Nicht zur Laufzeit noetig: Tests, Editor-Quellen und die Node-Pakete (bis auf die Schriften).
+  rm -rf "$dest/src/tests" "$dest/src/editor-app" "$dest/src/excalideck/present/node_modules" \
+    "$dest/src/excalideck/present/src"
+  find "$dest" -type d -name __pycache__ -prune -exec rm -rf '{}' +
+  local fonts=src/excalideck/present/node_modules/@excalidraw/excalidraw/dist/prod/fonts
+  install -d "$dest/$fonts"
+  cp -a "$tree/$fonts/." "$dest/$fonts/"
+  # excaligen ist nicht in den Repos: reines Python, liegt neben den eigenen Paketen.
+  python -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" \
+    "$srcdir/excaligen-$_excaligen-py3-none-any.whl" "$dest/src"
+  # Kennzeichen: Programm schreibgeschuetzt, Inhalte unter Dokumente/material.
+  touch "$dest/.system-install"
+  python -m compileall -q -s "$pkgdir" "$dest/src" >/dev/null || true
+
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/material-ui" <<'SH'
+#!/bin/sh
+exec /usr/bin/python3 -I /usr/share/material-ui/src/material_ui/desktop.py "$@"
+SH
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/course-sync" <<'SH'
+#!/bin/sh
+PYTHONPATH="/usr/share/material-ui/src${PYTHONPATH:+:$PYTHONPATH}" exec /usr/bin/python3 -m course_sync.main "$@"
+SH
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/material-inv" <<'SH'
+#!/bin/sh
+exec /usr/bin/python3 -m invoke --search-root /usr/share/material-ui "$@"
+SH
+  install -Dm644 "$tree/packaging/arch/material-ui.desktop" "$pkgdir/usr/share/applications/material-ui.desktop"
+  install -Dm644 "$tree/packaging/arch/material-ui-mime.xml" "$pkgdir/usr/share/mime/packages/material-ui-qmd.xml"
+  install -Dm644 "$tree/src/material_ui/static/favicon.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/material-ui.svg"
+  install -Dm644 "$tree/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 "$tree/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "$tree/THIRD-PARTY-NOTICES.md" "$pkgdir/usr/share/licenses/$pkgname/THIRD-PARTY-NOTICES.md"
+  python -c "import sys, zipfile; z = zipfile.ZipFile(sys.argv[1]); sys.stdout.buffer.write(z.read(next(n for n in z.namelist() if n.endswith('LICENSE'))))" \
+    "$srcdir/excaligen-$_excaligen-py3-none-any.whl" > "$pkgdir/usr/share/licenses/$pkgname/excaligen-LICENSE"
+}

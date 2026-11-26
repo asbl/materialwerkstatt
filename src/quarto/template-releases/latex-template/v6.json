@@ -1,0 +1,32 @@
+{
+  "checksum": "3eb6048197e474039788d9d8abea833985c0429f4626b34d1ddbbe8dfae5852f",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/exam.lua": "693cf4cf62bccc80de5beff0fed9a3a20cb6fbfabe3a6e59c060dc1a3c9157ea",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/exam-header.tex": "567ffdf8d1d7886d6558126c17eb9ac59b347e1f784aa81500f7f714a71c6a4e",
+    "templates/latex-template.tex": "ee601e248eeede970bcd781b1218f66418c76ec40ee7268f199206a58a82b52b"
+  },
+  "layout": "src/quarto/template-releases/layouts/32c33940be8d0552c17ac62f51b3ab75db0519705ec0213e350aaa62090fa68c",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "latex-template.tex",
+  "version": 6
+}

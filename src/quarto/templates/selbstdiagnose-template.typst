@@ -1,0 +1,179 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let student-header-offset = if student-fields-in-header { 6mm } else { 0mm }
+
+// Template fuer Selbstdiagnosebogen: A4 querformat, eine Uebersichtstabelle
+// mit den Spalten "Das kann ich", "Beispielaufgabe" und drei
+// Einschaetzungsspalten mit Smileys (gruen, gelb, rot).
+#let primary = rgb("#1565c0")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#f2f4f7")
+#let mid-gray = rgb("#c4c8cf")
+#let rule-gray = rgb("#aaaaaa")
+#let heading-font = ("Material Outfit", "Noto Sans")
+#let title-font = ("Material Outfit", "Noto Sans")
+#let title-weight = "bold"
+#let heading-weight = "semibold"
+#show heading: set text(font: heading-font, weight: heading-weight)
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+
+// Infobox/Warnbox/Tippbox: Der exam.lua-Filter uebersetzt die QMD-Marker
+// [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in Aufrufe dieser Makros.
+#let box_frame(title, body, accent) = block(above: 5pt, below: 6pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + accent, radius: 3pt, inset: (x: 7pt, y: 5pt))[
+    #block(below: 2pt)[
+      #text(font: heading-font, size: 11pt, weight: heading-weight, fill: accent)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.65em)
+    #body
+  ]
+]
+#let infobox(title, body) = box_frame(title, body, primary)
+#let warnbox(title, body) = box_frame(title, body, warn)
+#let tippbox(title, body) = box_frame(title, body, tip)
+
+// Smiley-Spalten: kräftige Farbe fuer Kopfzelle und Abkreiskreis,
+// helle Farbe fuer den Zellenhintergrund, Text fuer die Legende.
+#let laune = (
+  (
+    smiley: "🙂",
+    kraeftig: rgb("#2e7d32"),
+    hell: rgb("#e8f5e9"),
+    text: "Das kann ich allein und kann meinen Weg erklären.",
+  ),
+  (
+    smiley: "😐",
+    kraeftig: rgb("#c17f00"),
+    hell: rgb("#fdf3d7"),
+    text: "Das kann ich teilweise, ich brauche noch Zeit oder mache Fehler.",
+  ),
+  (
+    smiley: "😕",
+    kraeftig: rgb("#c62828"),
+    hell: rgb("#fdecea"),
+    text: "Ich brauche ein Beispiel oder eine Erklärung, um anzufangen.",
+  ),
+)
+
+#set page(
+  header-ascent: 3mm,
+  header: context {
+    if counter(page).get().first() == 1 and student-fields-in-header { move(dy: student-header-offset, student_fields_row()) }
+  },
+  paper: "a4",
+  flipped: true,
+  margin: (top: 9mm, right: 11mm, bottom: 8mm, left: 11mm),
+)
+
+#set text(font: body-font, size: calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt), lang: "de", fill: ink)
+#set par(justify: false, leading: 0.65em)
+
+#let field_line(width: 100%) = box(
+  width: width,
+  inset: (bottom: 2pt),
+  stroke: (bottom: 0.6pt + rgb("#333333")),
+)[]
+
+#let student_fields() = block(above: 4pt, below: 6pt)[
+  #grid(
+    columns: (auto, 1.6fr, auto, 0.7fr),
+    column-gutter: 0.5em,
+    align: left + bottom,
+    [*Name:*], [#field_line()],
+    [*Datum:*], [#field_line()],
+  )
+]
+
+#let diagnose_kopf(titel, untertitel) = block(below: 0.45cm)[
+  #rect(width: 100%, fill: primary, radius: 4pt, inset: (x: 14pt, y: 10pt))[
+    #text(font: title-font, size: 18pt, weight: title-weight, fill: white)[#titel]
+    #linebreak()
+    #text(size: 11pt, fill: rgb("#bbdefb"))[#untertitel]
+  ]
+]
+
+#let hinweiskasten(titel, body) = block(above: 4pt, below: 7pt)[
+  #rect(width: 100%, fill: light-gray, radius: 3pt, inset: (x: 8pt, y: 6pt))[
+    #text(size: 11pt)[
+      #strong[#titel] #body
+    ]
+  ]
+]
+
+#let launen_legende() = block(above: 4pt, below: 7pt)[
+  #grid(
+    columns: (1fr,) * 3,
+    column-gutter: 6pt,
+    ..laune.map(l => rect(fill: l.hell, radius: 3pt, inset: (x: 6pt, y: 4pt))[
+      #text(font: "Noto Color Emoji", size: 14pt)[#l.smiley]
+      #h(0.4em)
+      #text(size: 11pt)[#l.text]
+    ]),
+  )
+]
+
+#let kreis(farbe) = circle(radius: 0.2cm, stroke: 1pt + farbe)
+
+// Eine Tabellenzeile: Nummer, Kompetenz, Beispielaufgabe und drei
+// Abkreiskreise in den Smiley-Spalten.
+#let zeile(nr, kann, aufgabe) = (
+  table.cell(fill: light-gray)[#strong[#nr]],
+  kann,
+  aufgabe,
+  ..laune.map(l => table.cell(fill: l.hell)[#kreis(l.kraeftig)]),
+)
+
+#let diagnose_tabelle(zeilen, schriftgroesse: 11pt, zellrand: 4.5pt, kopf: ([Nr.], [Das kann ich], [Beispielaufgabe], [🙂], [😐], [😕])) = block(above: 4pt)[
+  #set text(size: schriftgroesse)
+  #table(
+    columns: (0.7cm, 1fr, 1.5fr, 1.05cm, 1.05cm, 1.05cm),
+    align: (
+      center + horizon,
+      left + top,
+      left + top,
+      center + horizon,
+      center + horizon,
+      center + horizon,
+    ),
+    stroke: 0.5pt + mid-gray,
+    inset: (x: 5pt, y: zellrand),
+    table.header(
+      table.cell(fill: primary)[#text(fill: white, weight: "bold")[#kopf.at(0)]],
+      table.cell(fill: primary)[#text(fill: white, weight: "bold")[#kopf.at(1)]],
+      table.cell(fill: primary)[#text(fill: white, weight: "bold")[#kopf.at(2)]],
+      ..range(3).map(index => table.cell(fill: laune.at(index).kraeftig)[#text(font: "Noto Color Emoji", size: 14pt)[#kopf.at(index + 3)]]),
+    ),
+    ..zeilen.flatten(),
+  )
+]
+
+#let columns_two(body) = columns(2, gutter: 12pt, body)
+
+#let lernzeile() = block(above: 8pt)[
+  #grid(
+    columns: (auto, 0.9fr, auto, 1.1fr),
+    column-gutter: 0.5em,
+    align: left + bottom,
+    [*Das übe ich als Nächstes (Nr.):*], [#field_line()],
+    [*Meine offene Frage:*], [#field_line()],
+  )
+]
+
+#let student_fields = if student-fields-in-header { () => none } else { student_fields }
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+#diagnose_kopf(
+  [$if(title)$$title$$else$Selbstdiagnose$endif$],
+  [$if(subtitle)$$subtitle$$endif$],
+)
+
+$body$

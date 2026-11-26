@@ -1,0 +1,568 @@
+from __future__ import annotations
+
+import argparse
+import os
+import re
+from pathlib import Path
+from typing import Callable, Protocol
+
+
+# CLI-Kommandos, die tatsaechlich mit dem Remote-Moodle-Kurs kommunizieren (Import, Upload, Push,
+# Verify, Publish). Fuer KI-Agent-Shells (Claude Code, Codex) duerfen diese ausschliesslich ueber
+# die dafuer vorgesehenen `inv`-Tasks in tasks.py ausgefuehrt werden, niemals per direktem
+# `python -m course_sync.main <command>`-Aufruf. Menschliche Nutzung von `course-sync <command>` ist
+# davon nicht betroffen (siehe README.md). Die Tasks setzen dafuer die Umgebungsvariable
+# COURSE_SYNC_TASK=1 (siehe tasks.py:_run_python); siehe _running_inside_ai_agent_shell() unten.
+REMOTE_SYNC_COMMANDS = frozenset(
+    {
+        "import-moodle",
+        "push-moodle",
+        "upload-chapter-moodle",
+        "upload-course-moodle",
+        "verify-moodle",
+        "publish",
+    }
+)
+
+_REMOTE_SYNC_TASK_HINTS = {
+    "import-moodle": "inv import-moodle <course> <remote_course_id>",
+    "push-moodle": "inv push-moodle <course> <remote_course_id>",
+    "upload-chapter-moodle": "inv upload-chapter-moodle <course> <chapter>",
+    "upload-course-moodle": "inv upload-course-moodle <course>",
+    "verify-moodle": "inv verify-moodle <course>",
+    "publish": "inv publish <course>",
+}
+
+# Best-effort-Erkennung, ob eine KI-Coding-Agent-Sitzung (Claude Code, Codex) diese Shell steuert.
+# Menschliche Terminals setzen diese Variablen normalerweise nicht, weshalb 'course-sync <command>'
+# und 'inv <task>' fuer Menschen unveraendert wie in README.md dokumentiert funktionieren. Dies ist
+# ein technischer Backstop zusaetzlich zur Regel in AGENTS.md/CLAUDE.md, kein Ersatz dafuer -
+# Agenten sollen die Regel ohnehin befolgen, aber ein direkter Umgehungsversuch soll technisch
+# auffallen statt stillschweigend zu funktionieren.
+_AI_AGENT_ENV_MARKERS = (
+    "CLAUDECODE",
+    "CLAUDE_CODE_ENTRYPOINT",
+    "CLAUDE_CODE_SESSION_ID",
+    "CLAUDE_AGENT_SDK_VERSION",
+    "CODEX_SANDBOX",
+    "CODEX_SANDBOX_NETWORK_DISABLED",
+    "AI_AGENT",
+)
+
+
+def _running_inside_ai_agent_shell() -> bool:
+    return any(os.environ.get(name) for name in _AI_AGENT_ENV_MARKERS)
+
+
+def _ensure_remote_sync_task(command: str) -> None:
+    """Blockiert Remote-Moodle-Kommandos, wenn eine KI-Agent-Shell sie ausserhalb der dafuer
+    vorgesehenen Sync-Tasks aufruft.
+
+    Direkte Aufrufe wie `python -m course_sync.main upload-chapter-moodle ...` umgehen die
+    before-/after-sync-Absicherung (Tests, Audit, Backup-Diff, Remote-Verifikation,
+    Statusbericht), die die `inv`-Tasks um jeden Remote-Zugriff herum ausfuehren. Fuer
+    Claude Code/Codex ist dieser Pfad deshalb technisch gesperrt. Menschliche Nutzung von
+    `course-sync <command>` bleibt davon unberuehrt (siehe README.md, "Wichtige Kommandos").
+    """
+    if command not in REMOTE_SYNC_COMMANDS:
+        return
+    if not _running_inside_ai_agent_shell():
+        return
+    if os.environ.get("COURSE_SYNC_TASK") == "1":
+        return
+    hint = _REMOTE_SYNC_TASK_HINTS.get(command, "inv <task>")
+    raise RuntimeError(
+        f"'{command}' kommuniziert mit dem Remote-Moodle-Kurs. In einer KI-Agent-Sitzung "
+        f"(Claude Code/Codex) darf das nicht direkt aufgerufen werden "
+        f"(z. B. ueber 'python -m course_sync.main {command}' oder 'python src/course_sync/main.py {command}'). "
+        f"Bitte den dafuer vorgesehenen Sync-Task verwenden: {hint}"
+    )
+
+
+class SyncQuestionLike(Protocol):
+    package_path: Path
+
+
+class UploadResultLike(Protocol):
+    identifier: str
+    title: str
+    action: str
+
+
+class CleanupResultLike(Protocol):
+    title: str
+    section_number: int
+    action: str
+
+
+def resolve_course_dir(course: str, courses_dir: Path) -> Path:
+    course_dir = courses_dir / course
+    if not course_dir.exists():
+        available_courses = list_course_summaries(courses_dir)
+        hint = ""
+        if available_courses:
+            hint = " Verfuegbare Kurse: " + ", ".join(item["slug"] for item in available_courses) + "."
+        else:
+            hint = " Lege mit 'course-sync new-course <name>' einen neuen Kurs an."
+        raise FileNotFoundError(f"Kurs '{course}' wurde nicht gefunden.{hint}")
+    return course_dir
+
+
+def derive_course_title(slug: str) -> str:
+    words = [word for word in re.split(r"[-_\s]+", slug.strip()) if word]
+    return " ".join(word[:1].upper() + word[1:] for word in words) or slug
+
+
+def list_course_summaries(courses_dir: Path) -> list[dict[str, object]]:
+    if not courses_dir.exists():
+        return []
+
+    summaries: list[dict[str, object]] = []
+    for course_dir in sorted(path for path in courses_dir.iterdir() if path.is_dir()):
+        index_path = course_dir / "index.mdx"
+        if not index_path.exists():
+            continue
+        source = index_path.read_text(encoding="utf-8")
+        title = derive_course_title(course_dir.name)
+        first_heading = re.search(r"^#\s+(.+)$", source, flags=re.MULTILINE)
+        if first_heading is not None:
+            title = first_heading.group(1).strip()
+        chapter_count = len(re.findall(r"<Chapter\b", source))
+        summaries.append({"slug": course_dir.name, "title": title, "chapters": chapter_count})
+    return summaries
+
+
+def list_course_chapters(course_dir: Path) -> list[dict[str, str]]:
+    index_path = course_dir / "index.mdx"
+    if not index_path.exists():
+        return []
+
+    source = index_path.read_text(encoding="utf-8")
+    chapters: list[dict[str, str]] = []
+    for tag_match in re.finditer(r"<Chapter\b([^>]*)/>", source):
+        attrs = tag_match.group(1)
+        src_match = re.search(r"src=[\"']\./chapters/([^\"']+)\.mdx[\"']", attrs)
+        if src_match is None:
+            continue
+        slug = src_match.group(1)
+        title_match = re.search(r"title=[\"']([^\"']+)[\"']", attrs)
+        chapters.append({"slug": slug, "title": title_match.group(1) if title_match else slug})
+    return chapters
+
+
+def create_new_course(courses_dir: Path, slug: str, *, title: str = "", language: str = "de", force: bool = False) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", slug):
+        raise ValueError("Kursname darf nur Buchstaben, Zahlen, '-' und '_' enthalten und muss damit beginnen.")
+
+    course_dir = courses_dir / slug
+    if course_dir.exists() and not force:
+        raise FileExistsError(f"Kurs '{slug}' existiert bereits. Nutze --force nur fuer bewusst vorbereitete leere Ordner.")
+    if course_dir.exists() and any(course_dir.iterdir()):
+        raise FileExistsError(f"Kurs '{slug}' existiert bereits und ist nicht leer.")
+
+    title = title.strip() or derive_course_title(slug)
+    language = (language.strip() or "de").lower()
+    chapter_slug = "001-einstieg" if language.startswith("de") else "001-getting-started"
+    chapter_title = "Einstieg" if language.startswith("de") else "Getting Started"
+    question_title = "Erste Python-Aufgabe" if language.startswith("de") else "First Python Exercise"
+    instructions = (
+        "Aendere den Text in der print-Anweisung und fuehre das Programm aus."
+        if language.startswith("de")
+        else "Change the text in the print statement and run the program."
+    )
+
+    chapters_dir = course_dir / "chapters"
+    h5p_dir = chapters_dir / chapter_slug / "hello-world"
+    h5p_dir.mkdir(parents=True, exist_ok=True)
+    chapters_dir.mkdir(parents=True, exist_ok=True)
+
+    (course_dir / "course.yml").write_text(
+        "\n".join(
+            [
+                "h5pDefaults:",
+                f"  language: {language}",
+                f"  defaultLanguage: {language}",
+                "  mainLibrary: H5P.PythonQuestion",
+                "  embedTypes:",
+                "    - div",
+                "  license: U",
+                "  majorVersion: 6",
+                "  minorVersion: 90",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (course_dir / "index.mdx").write_text(
+        f"# {title}\n\n<Chapter src=\"./chapters/{chapter_slug}.mdx\" title=\"{chapter_title}\" />\n",
+        encoding="utf-8",
+    )
+    (chapters_dir / f"{chapter_slug}.mdx").write_text(
+        "\n".join(
+            [
+                f"## {chapter_title}",
+                "",
+                "<PythonQuestion",
+                '  identifier="hello-world"',
+                f'  title="{question_title}"',
+                f'  instructions="{instructions}"',
+                "/>",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (h5p_dir / "content.mdx").write_text(
+        "\n".join(
+            [
+                "---",
+                "contentType: ide_only",
+                "pythonRunner: skulpt",
+                "pyodideOptions:",
+                "  packages: []",
+                "---",
+                "<Instructions>",
+                instructions,
+                "</Instructions>",
+                "",
+                "```python editor:startingCode",
+                'print("Hello, world!")',
+                "```",
+                "",
+                "```yaml grading",
+                "gradingMethod: please_choose",
+                "dueDateGroup:",
+                "  enableDueDate: false",
+                "  duedate: 01.01.1970",
+                "testCases: []",
+                "```",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return course_dir
+
+
+def run_cli_command(
+    args: argparse.Namespace,
+    *,
+    parser: argparse.ArgumentParser,
+    root_dir: Path,
+    courses_dir: Path,
+    sync_course: Callable[[Path], list[SyncQuestionLike]],
+    build_preview_runtime: Callable[[Path | None], list[SyncQuestionLike]],
+    serve_preview: Callable[[int], None],
+    resolve_moodle_client: Callable[[str | None, str | None], object],
+    import_moodle_course: Callable[[str, int, object], Path],
+    push_moodle_course: Callable[[Path, int, object], None],
+    sync_metadata_path: Callable[[Path], Path],
+    build_moodle_ping_report: Callable[[object], dict[str, object]],
+    print_moodle_ping_report: Callable[[dict[str, object]], None],
+    build_course_status: Callable[[Path], dict[str, object]],
+    print_course_status: Callable[[dict[str, object]], None],
+    export_chapter: Callable[[Path, str, Path | None], list[Path]] | None = None,
+    upload_moodle_chapter: Callable[
+        [Path, str, str | None, str | None, str | None, str | None, Path | None, bool, int, str | None, bool, bool],
+        list[UploadResultLike],
+    ]
+    | None = None,
+    upload_moodle_course: Callable[
+        [Path, str | None, str | None, str | None, Path | None, bool, int, str | None, bool, bool, bool],
+        list[UploadResultLike | CleanupResultLike],
+    ]
+    | None = None,
+    audit_course: Callable[[Path], dict[str, object]] | None = None,
+    verify_moodle_course: Callable[
+        [Path, str | None, str | None, str | None, Path | None, bool, int, str | None, bool],
+        list[dict[str, object]],
+    ]
+    | None = None,
+    update_h5p_libraries_from_github: Callable[[str | None], list[dict[str, str]]] | None = None,
+    update_h5p_libraries_from_local_export: Callable[[str], list[dict[str, str]]] | None = None,
+    import_moodle_from_mbz: Callable[[str, Path, int, str], Path] | None = None,
+    export_static_site: Callable[[Path, Path | list[Path] | None, str], list[Path]] | None = None,
+) -> None:
+    try:
+        _ensure_remote_sync_task(args.command)
+
+        if args.command == "list-courses":
+            courses = list_course_summaries(courses_dir)
+            if not courses:
+                print("Keine Kurse gefunden. Lege mit 'course-sync new-course <name>' einen Kurs an.")
+                return
+            for course in courses:
+                if args.verbose:
+                    print(f"{course['slug']}\t{course['title']}\t{course['chapters']} Kapitel")
+                else:
+                    print(course["slug"])
+            return
+
+        if args.command == "new-course":
+            course_dir = create_new_course(
+                courses_dir,
+                args.course,
+                title=args.title or "",
+                language=args.language,
+                force=args.force,
+            )
+            print(course_dir.relative_to(root_dir) if course_dir.is_relative_to(root_dir) else course_dir)
+            print(f"Naechste Schritte: course-sync sync {args.course} && course-sync serve")
+            return
+
+        if args.command == "sync":
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            questions = sync_course(course_dir)
+            for question in questions:
+                print(question.package_path.relative_to(root_dir))
+            return
+
+        if args.command == "audit":
+            if audit_course is None:
+                raise RuntimeError("Kurs-Audit ist nicht konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            report = audit_course(course_dir)
+            _print_audit_report(report)
+            if int(report.get("errors", 0)) > 0:
+                raise RuntimeError(f"Audit fehlgeschlagen: {report['errors']} Fehler.")
+            return
+
+        if args.command == "build":
+            course_dir = resolve_course_dir(args.course, courses_dir) if args.course else None
+            questions = build_preview_runtime(course_dir)
+            for question in questions:
+                print(question.package_path.relative_to(root_dir))
+            return
+
+        if args.command == "export-site":
+            if export_static_site is None:
+                raise RuntimeError("Static-Site-Export ist nicht konfiguriert.")
+            course_names = getattr(args, "courses", None)
+            if course_names is None:
+                legacy_course = getattr(args, "course", None)
+                course_names = [legacy_course] if legacy_course else []
+            course_dirs = [resolve_course_dir(course_name, courses_dir) for course_name in course_names]
+            course_dir = course_dirs[0] if len(course_dirs) == 1 else course_dirs or None
+            output_dir = Path(args.output).expanduser()
+            exported_paths = export_static_site(output_dir, course_dir, args.site_url)
+            for path in exported_paths:
+                print(path.relative_to(root_dir) if path.is_relative_to(root_dir) else path)
+            return
+
+        if args.command == "update-h5p-libraries":
+            if update_h5p_libraries_from_github is None:
+                raise RuntimeError("Update-H5P-Libraries ist nicht konfiguriert.")
+            updated_libraries = update_h5p_libraries_from_github(args.tag)
+            for item in updated_libraries:
+                path = Path(str(item["path"]))
+                display_path = path.relative_to(root_dir) if path.is_relative_to(root_dir) else path
+                print(f"{item['machineName']}: {item['asset']} ({item['release']}) -> {display_path}")
+            return
+
+        if args.command == "update-h5p-libraries-local":
+            if update_h5p_libraries_from_local_export is None:
+                raise RuntimeError("Update-H5P-Libraries-Local ist nicht konfiguriert.")
+            updated_libraries = update_h5p_libraries_from_local_export(args.export_dir)
+            for item in updated_libraries:
+                path = Path(str(item["path"]))
+                display_path = path.relative_to(root_dir) if path.is_relative_to(root_dir) else path
+                print(f"{item['machineName']}: {item['asset']} ({item['release']}) -> {display_path}")
+            return
+
+        if args.command == "export-chapter":
+            if export_chapter is None:
+                raise RuntimeError("Export-Chapter ist nicht konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            output_dir = Path(args.output).expanduser() if args.output else None
+            exported_paths = export_chapter(course_dir, args.chapter, output_dir)
+            for path in exported_paths:
+                print(path.relative_to(root_dir) if path.is_relative_to(root_dir) else path)
+            return
+
+        if args.command == "serve":
+            serve_preview(args.port)
+            return
+
+        if args.command == "import-moodle":
+            client = resolve_moodle_client(args.base_url, args.token)
+            course_dir = import_moodle_course(args.course, args.remote_course_id, client)
+            print(course_dir.relative_to(root_dir))
+            print(sync_metadata_path(course_dir).relative_to(root_dir))
+            return
+
+        if args.command == "import-mbz":
+            if import_moodle_from_mbz is None:
+                raise RuntimeError("import-mbz ist nicht konfiguriert.")
+            mbz_path = Path(args.mbz_path).expanduser()
+            if not mbz_path.exists():
+                raise FileNotFoundError(f"MBZ-Datei nicht gefunden: {mbz_path}")
+            course_dir = import_moodle_from_mbz(
+                args.course,
+                mbz_path,
+                args.remote_course_id,
+                args.base_url,
+            )
+            print(course_dir.relative_to(root_dir))
+            print(sync_metadata_path(course_dir).relative_to(root_dir))
+            return
+
+        if args.command == "push-moodle":
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            client = resolve_moodle_client(args.base_url, args.token)
+            push_moodle_course(course_dir, args.remote_course_id, client)
+            return
+
+        if args.command == "upload-chapter-moodle":
+            if upload_moodle_chapter is None:
+                raise RuntimeError("Moodle-Playwright-Upload ist nicht konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            storage_state = Path(args.storage_state).expanduser() if args.storage_state else None
+            results = upload_moodle_chapter(
+                course_dir,
+                args.chapter,
+                args.course_url,
+                args.section,
+                args.username,
+                args.password,
+                storage_state,
+                args.headless,
+                args.timeout,
+                args.target,
+                getattr(args, "verify_mbz_sync", False),
+                getattr(args, "verify_remote", False),
+            )
+            for result in results:
+                print(f"{result.action}: {result.identifier} ({result.title})")
+            return
+
+        if args.command == "upload-course-moodle":
+            if upload_moodle_course is None:
+                raise RuntimeError("Moodle-Playwright-Kursupload ist nicht konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            storage_state = Path(args.storage_state).expanduser() if args.storage_state else None
+            results = upload_moodle_course(
+                course_dir,
+                args.course_url,
+                args.username,
+                args.password,
+                storage_state,
+                args.headless,
+                args.timeout,
+                args.target,
+                getattr(args, "verify_mbz_sync", False),
+                bool(getattr(args, "prune_extra_sections", False)),
+                getattr(args, "verify_remote", False),
+            )
+            for result in results:
+                if hasattr(result, "identifier"):
+                    print(f"{result.action}: {result.identifier} ({result.title})")
+                else:
+                    print(f"{result.action}: section {result.section_number} ({result.title})")
+            return
+
+        if args.command == "verify-moodle":
+            if verify_moodle_course is None:
+                raise RuntimeError("Moodle-Remote-Verifikation ist nicht konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            storage_state = Path(args.storage_state).expanduser() if args.storage_state else None
+            results = verify_moodle_course(
+                course_dir,
+                args.course_url,
+                args.username,
+                args.password,
+                storage_state,
+                args.headless,
+                args.timeout,
+                args.target,
+                getattr(args, "missing_ids_only", False),
+            )
+            _print_verify_results(results)
+            if any(not bool(item.get("ok")) for item in results):
+                raise RuntimeError("Remote-Verifikation fehlgeschlagen.")
+            return
+
+        if args.command == "publish":
+            if audit_course is None or upload_moodle_course is None or verify_moodle_course is None:
+                raise RuntimeError("Publish ist nicht vollstaendig konfiguriert.")
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            storage_state = Path(args.storage_state).expanduser() if args.storage_state else None
+            print("== Audit ==")
+            audit_report = audit_course(course_dir)
+            _print_audit_report(audit_report)
+            if int(audit_report.get("errors", 0)) > 0:
+                raise RuntimeError(f"Audit fehlgeschlagen: {audit_report['errors']} Fehler.")
+            print("== Upload ==")
+            upload_results = upload_moodle_course(
+                course_dir,
+                args.course_url,
+                args.username,
+                args.password,
+                storage_state,
+                args.headless,
+                args.timeout,
+                args.target,
+                getattr(args, "verify_mbz_sync", False),
+                bool(getattr(args, "prune_extra_sections", False)),
+                False,
+            )
+            for result in upload_results:
+                if hasattr(result, "identifier"):
+                    print(f"{result.action}: {result.identifier} ({result.title})")
+                else:
+                    print(f"{result.action}: section {result.section_number} ({result.title})")
+            print("== Remote Verify ==")
+            verify_results = verify_moodle_course(
+                course_dir,
+                args.course_url,
+                args.username,
+                args.password,
+                storage_state,
+                args.headless,
+                args.timeout,
+                args.target,
+            )
+            _print_verify_results(verify_results)
+            if any(not bool(item.get("ok")) for item in verify_results):
+                raise RuntimeError("Remote-Verifikation fehlgeschlagen.")
+            print("== Status ==")
+            if args.target:
+                print(f"Ziel {args.target}: {len(verify_results)} Aktivitaeten erfolgreich remote verifiziert.")
+            else:
+                print_course_status(build_course_status(course_dir))
+            return
+
+        if args.command == "moodle-ping":
+            client = resolve_moodle_client(args.base_url, args.token)
+            print_moodle_ping_report(build_moodle_ping_report(client))
+            return
+
+        if args.command == "status":
+            course_dir = resolve_course_dir(args.course, courses_dir)
+            print_course_status(build_course_status(course_dir))
+            return
+    except (FileExistsError, FileNotFoundError, RuntimeError, ValueError) as error:
+        parser.exit(1, f"Fehler: {error}\n")
+
+    parser.error("Unbekanntes Kommando.")
+
+
+def _print_audit_report(report: dict[str, object]) -> None:
+    print(
+        f"Audit: errors={report.get('errors', 0)}, "
+        f"warnings={report.get('warnings', 0)}, checks={report.get('checks', 0)}"
+    )
+    for issue in report.get("issues", []):
+        if not isinstance(issue, dict):
+            continue
+        location = str(issue.get("path") or issue.get("identifier") or "")
+        prefix = f"{issue.get('severity', 'warning')}:"
+        print(f"- {prefix} {location}: {issue.get('message', '')}")
+
+
+def _print_verify_results(results: list[dict[str, object]]) -> None:
+    ok_count = sum(1 for item in results if bool(item.get("ok")))
+    print(f"Remote-Verifikation: ok={ok_count}, failed={len(results) - ok_count}")
+    for item in results:
+        status = "ok" if item.get("ok") else "failed"
+        detail = f"; Frame-Text: {item['chars']} Zeichen" if not item.get("ok") and "chars" in item else ""
+        print(f"- {status}: {item.get('identifier')} (id={item.get('activityId')}) {item.get('message', '')}{detail}")

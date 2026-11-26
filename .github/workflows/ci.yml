@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    env:
+      MATERIAL_PRIVATE_DIR: _nicht_vorhanden
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+      # Kalendertests rechnen mit Mitteleuropaeischer Zeit.
+      TZ: Europe/Berlin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: quarto-dev/quarto-actions/setup@v2
+      - uses: typst-community/setup-typst@v4
+      - name: Systemprogramme
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended texlive-luatex texlive-lang-german \
+            librsvg2-bin poppler-utils qpdf bubblewrap \
+            pandoc libreoffice tesseract-ocr tesseract-ocr-deu ghostscript fonts-noto-core
+      - run: pip install -e '.[dev,deck,kalender]'
+      - run: playwright install --with-deps chromium
+      - name: Praesentationsansicht bauen
+        run: npm ci && npm run build
+        working-directory: src/excalideck/present
+      - run: inv oss-pruefen
+      # Tests, die private Kursinhalte oder H5P-Libraries brauchen, ueberspringen sich mit Begruendung.
+      - run: python -m pytest -q -rs

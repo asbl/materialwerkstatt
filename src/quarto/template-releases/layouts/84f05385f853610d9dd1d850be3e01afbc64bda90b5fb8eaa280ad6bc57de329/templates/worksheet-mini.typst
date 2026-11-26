@@ -1,0 +1,16 @@
+// Compact A4 mini worksheet: two identical halves, shared with derived skins.
+#let primary = rgb("#1565c0")
+#let primary-light = rgb("#eaf3fb")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#f3f4f6")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#9ca3af")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Aptos Display", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono",)
+#let mini-motif = none
+#let mini-accent = primary
+
+$worksheet-mini-layout.typst()$

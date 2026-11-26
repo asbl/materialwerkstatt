@@ -1,0 +1,266 @@
+/* Zusatzpanels: Diff, Auftraege, Git, Dokumentmenue, Einstellungen und Marketplace. */
+
+/* Diff-Ansicht im Wiederherstellungs- und Versionsdialog */
+.diff-view {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  margin-bottom: 10px;
+}
+
+.diff-head {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.diff-body {
+  max-height: 40vh;
+  overflow: auto;
+  font: var(--fs-xs)/1.5 ui-monospace, "DejaVu Sans Mono", monospace;
+}
+
+.diff-line {
+  display: flex;
+  gap: 6px;
+  padding: 0 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  min-height: 1.5em;
+}
+
+.diff-text {
+  min-width: 0;
+}
+
+.diff-row,
+.diff-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.diff-row > :first-child,
+.diff-columns > :first-child {
+  border-right: 1px solid var(--border);
+}
+
+.diff-columns {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font: var(--fs-sm)/1.5 system-ui, sans-serif;
+}
+
+.diff-columns strong {
+  padding: 8px 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.diff-sign {
+  flex: none;
+  width: 1em;
+  color: var(--muted);
+  user-select: none;
+}
+
+.diff-line-add {
+  background: color-mix(in srgb, #2e9e5b 16%, transparent);
+}
+
+.diff-line-del {
+  background: color-mix(in srgb, #d24545 16%, transparent);
+}
+
+.diff-word-changed {
+  background: color-mix(in srgb, var(--token-highlight) 45%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.diff-gap {
+  padding: 2px 10px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  border-block: 1px dashed var(--border);
+}
+
+/* Auftragsuebersicht */
+.jobs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.job-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--muted);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+}
+
+.job-item-succeeded {
+  border-left-color: #2e9e5b;
+}
+
+.job-item-failed {
+  border-left-color: #d24545;
+}
+
+.job-item-running {
+  border-left-color: var(--accent);
+}
+
+.job-title {
+  overflow-wrap: anywhere;
+}
+
+.job-status {
+  justify-self: end;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.job-time {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.job-message {
+  grid-column: 1 / -1;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* Volltext-Snippet in der Materialauswahl */
+.document-option .document-snippet {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-option .document-fulltext-badge {
+  justify-self: start;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+/* Sprungmarken im Render-Protokoll */
+.render-log .log-line-ref {
+  text-decoration: underline dotted;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.render-warnings {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--token-highlight);
+  background: color-mix(in srgb, var(--token-highlight) 10%, transparent);
+  font-size: var(--fs-xs);
+  white-space: pre-wrap;
+}
+
+/* Git-Status-Dialog */
+.git-diff {
+  max-height: 50vh;
+  overflow: auto;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, "DejaVu Sans Mono", monospace;
+  font-size: var(--fs-xs);
+  white-space: pre;
+}
+
+.git-diff:empty::before {
+  content: "Keine Änderungen gegenüber dem letzten Commit.";
+  color: var(--muted);
+}
+
+/* Document settings and technical details stay out of the editing flow. */
+.document-settings { position: relative; }
+.document-settings > summary { cursor: pointer; padding: 6px 8px; }
+.document-settings-panel { position: absolute; top: 100%; right: 0; z-index: 30; display: flex; flex-direction: column; gap: 4px; width: min(360px, calc(100vw - 32px)); max-height: min(60vh, var(--menu-max-height, 60vh)); transform: translateX(var(--menu-offset-x, 0px)); overflow-y: auto; padding: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-2); }
+.document-info { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.document-menu-actions { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+.document-details { min-width: 0; border-top: 1px solid var(--border); margin-top: 4px; padding: 8px 4px 4px; font-size: var(--fs-sm); color: var(--muted); }
+.document-details[hidden] { display: none; }
+.document-details a { color: var(--accent); }
+.discussion-actions { display: inline-flex; align-items: center; gap: 4px; }
+.discussion-menu { position: relative; }
+.discussion-menu > summary { cursor: pointer; padding: 6px; }
+.discussion-menu[hidden] { display: none; }
+.discussion-description { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--muted); white-space: normal; }
+
+.document-details > div { white-space: normal; overflow-wrap: anywhere; padding-top: 6px; }
+
+.discussion-actions[hidden] { display: none; }
+/* Let the settings menu extend over the editor instead of clipping it. */
+.editor-actions:has(.document-settings[open]) { overflow: visible; }
+.discussion-menu > summary { list-style: none; }
+.discussion-menu > summary::-webkit-details-marker { display: none; }
+
+/* Einstellungen-Dialog mit Marketplace (Plugin-Paketmanager) */
+.settings-panel { width: min(880px, 94vw); max-height: 88vh; display: flex; flex-direction: column; }
+.settings-body { overflow-y: auto; padding: 12px 16px; }
+.marketplace-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.marketplace-header h3 { margin: 0; }
+.marketplace-actions { display: flex; gap: 8px; align-items: center; }
+.marketplace-actions input[type="search"] { min-width: 200px; }
+.marketplace-restart { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; padding: 8px 10px; border: 1px solid var(--token-highlight); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--token-highlight) 12%, var(--panel)); }
+.settings-tabs { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--border); }
+.settings-tabs [role="tab"] { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
+.settings-tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--token-highlight); color: inherit; font-weight: 600; }
+.settings-body [role="tabpanel"][hidden] { display: none; }
+.marketplace-restart[hidden] { display: none; }
+.workspace-heading { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-weight: 600; }
+#workspacePath { width: 100%; box-sizing: border-box; }
+.workspace-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.workspace-footer label { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.workspace-footer input[type="checkbox"] { width: auto; margin: 0; }
+.workspace-places { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; margin: 0 0 14px; font-size: var(--fs-sm); }
+.workspace-places dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .workspace-places { grid-template-columns: 1fr; } }
+.plugin-list { list-style: none; margin: 4px 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.plugin-empty { padding: 4px 2px; }
+.plugin-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
+.plugin-card-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.plugin-name { font-weight: 600; }
+.plugin-version { color: var(--muted); font-size: var(--fs-sm); }
+.plugin-badge { font-size: var(--fs-xs); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 1px 8px; color: var(--muted); }
+.plugin-status-loaded { color: var(--success); border-color: var(--success); }
+.plugin-status-error, .plugin-status-incompatible, .plugin-status-blocked, .plugin-status-missing-dependency { color: var(--danger); border-color: var(--danger); }
+.plugin-status-disabled { color: var(--muted); }
+.plugin-status-restart-pending, .plugin-status-enabled { color: var(--token-highlight); border-color: var(--token-highlight); }
+.plugin-description { margin: 0; }
+.plugin-message { margin: 0; color: var(--danger); font-size: var(--fs-sm); }
+.plugin-deps { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.plugin-deps ul { margin: 2px 0 0; padding-left: 18px; }
+.plugin-caps { margin: 0; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: var(--fs-xs); color: var(--muted); }
+.cap-chip { border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 1px 7px; }
+.cap-provides { border-style: dashed; }
+.plugin-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.plugin-actions .danger { color: var(--danger); border-color: var(--danger); }
+
+/* Optional plugin actions must stay hidden despite button display styles. */
+#showChat[hidden],
+#officeImportBtn[hidden], #newMenuToggle[hidden] { display: none; }

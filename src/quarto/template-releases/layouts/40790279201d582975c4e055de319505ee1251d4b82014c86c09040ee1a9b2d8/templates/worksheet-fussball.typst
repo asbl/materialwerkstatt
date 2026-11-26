@@ -1,0 +1,22 @@
+#let primary = rgb("#22683e")
+#let primary-light = rgb("#ecf4ed")
+#let ink = rgb("#20382b")
+#let light-gray = rgb("#ecf4ed")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Noto Sans", "Noto Sans")
+#let body-font = ("TeX Gyre Heros", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono", "Noto Sans Mono")
+#let design-name = "Fußball"
+#let design-accent = rgb("#98b749")
+#let design-radius = 2pt
+#let design-pixel = false
+#let design-motif = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><rect x=\"2\" y=\"3\" width=\"60\" height=\"48\" rx=\"2\" fill=\"#22683e\"/><path d=\"M7 8h50v38H7zM32 8v38\" fill=\"none\" stroke=\"#fff\"/><circle cx=\"32\" cy=\"27\" r=\"11\" fill=\"#fff\"/><path d=\"m32 20 7 5-3 8h-8l-3-8z\" fill=\"#24372e\"/></svg>"
+#let design-compact = false
+#let design-cover-motif = ""
+
+$exam-functions.typst()$
+
+$worksheet-design.typst()$

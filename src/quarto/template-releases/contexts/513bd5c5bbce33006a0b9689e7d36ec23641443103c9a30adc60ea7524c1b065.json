@@ -1,0 +1,22 @@
+{
+  "files": {
+    "src/quarto/template-releases/contexts/assets/f434b4f2c95f2a4d040e960a9b48f1a260492aaa447258044af39b577f1e78f7.tex": "f434b4f2c95f2a4d040e960a9b48f1a260492aaa447258044af39b577f1e78f7"
+  },
+  "options": {
+    "include-in-header": [
+      "src/quarto/template-releases/contexts/assets/f434b4f2c95f2a4d040e960a9b48f1a260492aaa447258044af39b577f1e78f7.tex"
+    ],
+    "keep-tex": true,
+    "mainfont": "TeX Gyre Heros",
+    "monofont": "TeX Gyre Cursor",
+    "papersize": "a4",
+    "pdf-engine": "lualatex",
+    "sansfont": "TeX Gyre Heros",
+    "toc": false
+  },
+  "original": {
+    "include-in-header": [
+      "foerder-header.tex"
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "checksum": "39744eb3def75dcaa673f050dcec951de3f7231eea8c04c60ff7750e54ff31b3",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    },
+    "typst": {
+      "font-paths": [
+        "src/quarto/fonts/static",
+        "src/quarto/_local/fonts"
+      ]
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/checkup.lua": "b1a5c5acdf785d4776cb5580e3a8f2686ac8dd8fb5b12bdf7049ef16273f7be6",
+    "filters/exam.lua": "36d9f9f181c2c379a89b62300071c134bd1d649e218c38b15d484762c0c14373",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/slide-layout.typst": "932e3886c55abb2b8b667b7705635efc3cc8ff7571e7e687f7451072ca63820a",
+    "templates/slide-reiten.typst": "13ca5956db5e8269f5f09baf14a57e5cbfdc85a08b18cc4f956cd1d812ec7ed0"
+  },
+  "layout": "src/quarto/template-releases/layouts/971bf19d36b05e5ce83343ddc6e5ddfcd445b4f878640e7524a6489fcf9c8d25",
+  "note": "Neue Titel- und Überschriftentypografie; getrennte Schriftwahl und mindestens 0.65 em Zeilenabstand.",
+  "settings": {},
+  "slide-design": {
+    "accent": "#b78a67",
+    "description": "Warme Sandtöne, feine Sattelnähte, doppelte Lederrahmen und Hürdenleisten.",
+    "font": "Noto Serif",
+    "id": "reiten",
+    "ink": "#47372f",
+    "label": "Reiten",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M15 8q17-14 34 0l-4 9q-13-9-26 0L15 8zm4 9L13 38q0 14 12 14h5V41h-5l5-22m15-2 6 21q0 14-12 14h-5V41h5l-5-22\" fill=\"#b78a67\" stroke=\"#815538\" stroke-width=\"3\"/><path d=\"m18 29 6 2m-7 8 6 1m23-11-6 2m7 8-6 1\" stroke=\"#fff\" stroke-width=\"2\"/></svg>",
+    "paper": "#f7f0e7",
+    "primary": "#815538",
+    "radius": 6,
+    "slide_background": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1600\" height=\"900\" viewBox=\"0 0 1600 900\"><rect width=\"1600\" height=\"900\" fill=\"#f7f0e7\"/><rect x=\"24\" y=\"24\" width=\"1552\" height=\"804\" rx=\"18\" fill=\"none\" stroke=\"#815538\" stroke-width=\"2\"/><rect x=\"32\" y=\"32\" width=\"1536\" height=\"120\" rx=\"14\" fill=\"white\" stroke=\"#b78a67\" stroke-width=\"3\"/><rect x=\"32\" y=\"176\" width=\"1536\" height=\"644\" rx=\"14\" fill=\"white\" stroke=\"#b78a67\" stroke-width=\"3\"/><path d=\"M44 44H1556V140H44ZM44 188H1556V808H44Z\" fill=\"none\" stroke=\"#815538\" stroke-width=\"1\" stroke-dasharray=\"6 7\"/><path d=\"M40 842H1560M40 882H1560\" fill=\"none\" stroke=\"#815538\" stroke-width=\"2\" /><path d=\"M712 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M768 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M824 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /><path d=\"M880 850h32m-32 22h32\" fill=\"none\" stroke=\"#b78a67\" stroke-width=\"4\" /></svg>"
+  },
+  "template": "slide-reiten.typst",
+  "version": 4
+}

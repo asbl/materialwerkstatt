@@ -1,0 +1,196 @@
+$passoptions.latex()$
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+  ignorenonframetext,
+$if(handout)$
+  handout,
+$endif$
+$if(aspectratio)$
+  aspectratio=$aspectratio$,
+$endif$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\beamertemplatenavigationsymbolsempty
+\let\listoflistings\undefined
+
+\widowpenalties 1 10000
+\raggedbottom
+
+$fonts.latex()$
+$if(theme)$
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
+$else$
+\usetheme{default}
+$endif$
+$if(colortheme)$
+\usecolortheme[$for(colorthemeoptions)$$colorthemeoptions$$sep$,$endfor$]{$colortheme$}
+$endif$
+$if(fonttheme)$
+\usefonttheme[$for(fontthemeoptions)$$fontthemeoptions$$sep$,$endfor$]{$fonttheme$}
+$endif$
+$if(innertheme)$
+\useinnertheme[$for(innerthemeoptions)$$innerthemeoptions$$sep$,$endfor$]{$innertheme$}
+$endif$
+$if(outertheme)$
+\useoutertheme[$for(outerthemeoptions)$$outerthemeoptions$$sep$,$endfor$]{$outertheme$}
+$endif$
+$font-settings.latex()$
+
+\usepackage[most]{tcolorbox}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\definecolor{didaktikblue}{HTML}{1565C0}
+\definecolor{didaktikred}{HTML}{C62828}
+\definecolor{didaktikgreen}{HTML}{2E7D32}
+\definecolor{didaktikorange}{HTML}{EF6C00}
+\definecolor{didaktikgray}{HTML}{F3F5F7}
+\definecolor{didaktikink}{HTML}{172033}
+\setbeamercolor{normal text}{fg=didaktikink,bg=white}
+\setbeamercolor{frametitle}{fg=didaktikink,bg=white}
+\setbeamercolor{title}{fg=didaktikink}
+\setbeamercolor{subtitle}{fg=gray}
+\setbeamercolor{structure}{fg=didaktikblue}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{subtitle}{size=\large}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \vspace{1.2mm}
+  \insertframetitle
+  \par\vspace{1mm}
+}
+\setbeamertemplate{itemize item}{\color{didaktikblue}\small\(\blacktriangleright\)}
+\setbeamertemplate{itemize subitem}{\color{didaktikblue}\scriptsize\(\blacktriangleright\)}
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.76\paperwidth,ht=2.6ex,dp=1.2ex,leftskip=2.5ex]{author in head/foot}%
+      \scriptsize\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.24\paperwidth,ht=2.6ex,dp=1.2ex,rightskip=2.5ex plus1fil]{date in head/foot}%
+      \hfill\scriptsize\insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+\setbeamertemplate{title page}{%
+  \vfill
+  {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+  \vspace{2mm}
+  {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}
+  \vspace{8mm}
+  {\small\insertauthor\par}
+  \vfill
+}
+\newtcolorbox{kernbox}{%
+  colback=didaktikgray,
+  colframe=didaktikblue,
+  arc=1mm,
+  boxrule=0.6pt,
+  left=2mm,
+  right=2mm,
+  top=1mm,
+  bottom=1mm
+}
+% Infobox/Warnbox/Tippbox: der exam.lua-Filter uebersetzt die QMD-Marker
+% [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in diese Umgebungen.
+\newtcolorbox{infobox}[1]{%
+  colback=didaktikgray,
+  colframe=didaktikblue,
+  colbacktitle=didaktikblue,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={#1},
+  arc=1mm,
+  boxrule=0.6pt,
+  left=2mm,
+  right=2mm,
+  top=1mm,
+  bottom=1mm
+}
+\newtcolorbox{warnbox}[1]{%
+  colback=didaktikgray,
+  colframe=didaktikred,
+  colbacktitle=didaktikred,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={#1},
+  arc=1mm,
+  boxrule=0.6pt,
+  left=2mm,
+  right=2mm,
+  top=1mm,
+  bottom=1mm
+}
+\newtcolorbox{tippbox}[1]{%
+  colback=didaktikgray,
+  colframe=didaktikgreen,
+  colbacktitle=didaktikgreen,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={#1},
+  arc=1mm,
+  boxrule=0.6pt,
+  left=2mm,
+  right=2mm,
+  top=1mm,
+  bottom=1mm
+}
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+
+$if(title)$
+\title$if(shorttitle)$[$shorttitle$]$endif${$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${$subtitle$}
+$endif$
+\author$if(shortauthor)$[$shortauthor$]$endif${$for(author)$$author$$sep$ \and $endfor$}
+\date$if(shortdate)$[$shortdate$]$endif${$date$}
+$if(institute)$
+\institute$if(shortinstitute)$[$shortinstitute$]$endif${$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
+
+\begin{document}
+$if(title)$
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+$endif$
+
+$body$
+
+$if(natbib)$
+$if(bibliography)$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+$if(nocite-ids)$
+  \nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+  \bibliographytrue
+  \bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+\end{frame}
+$endif$
+$endif$
+$if(biblatex)$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+$if(nocite-ids)$
+  \nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+  \bibliographytrue
+  \printbibliography[heading=none]
+\end{frame}
+$endif$
+\end{document}

@@ -1,0 +1,96 @@
+// Template fuer Mini-Feedbackbogen: zwei identische DIN-A5-Bogen nebeneinander
+// auf einer A4-Querformatseite, getrennt durch eine gestrichelte Schnittlinie.
+#let primary = rgb("#1565c0")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#f2f4f7")
+#let mid-gray = rgb("#c4c8cf")
+#let rule-gray = rgb("#aaaaaa")
+#let heading-font = ("Aptos Display", "Aptos", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+
+// Infobox/Warnbox/Tippbox: Der exam.lua-Filter uebersetzt die QMD-Marker
+// [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in Aufrufe dieser Makros.
+#let box_frame(title, body, accent) = block(above: 4pt, below: 5pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + accent, radius: 3pt, inset: (x: 7pt, y: 5pt))[
+    #block(below: 2pt)[
+      #text(font: heading-font, size: 11pt, weight: "bold", fill: accent)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.6em)
+    #body
+  ]
+]
+#let infobox(title, body) = box_frame(title, body, primary)
+#let warnbox(title, body) = box_frame(title, body, warn)
+#let tippbox(title, body) = box_frame(title, body, tip)
+
+#set page(paper: "a4", flipped: true, margin: 0pt)
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt)$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.46em)
+
+#show table: it => {
+  set text(size: 11pt)
+  it
+}
+
+#let field_line(width: 100%) = box(
+  width: width,
+  inset: (bottom: 2pt),
+  stroke: (bottom: 0.6pt + rgb("#333333")),
+)[]
+
+#let student_fields() = block(above: 3pt, below: 5pt)[
+  #grid(
+    columns: (auto, 1.7fr, auto, 0.8fr),
+    column-gutter: 0.5em,
+    align: left + bottom,
+    [*Name (freiwillig):*], [#field_line()],
+    [*Datum:*], [#field_line()],
+  )
+]
+
+#let feedback_kopf(titel, untertitel) = block(below: 0.35cm)[
+  #rect(width: 100%, fill: primary, radius: 4pt, inset: (x: 10pt, y: 8pt))[
+    #text(font: heading-font, size: 14pt, weight: "bold", fill: white)[#titel]
+    #linebreak()
+    #text(size: 11pt, fill: rgb("#bbdefb"))[#untertitel]
+  ]
+]
+
+#let hinweis(body) = block(above: 4pt, below: 6pt)[
+  #rect(width: 100%, fill: light-gray, radius: 3pt, inset: (x: 7pt, y: 5pt))[
+    #text(size: 11pt)[#body]
+  ]
+]
+
+#let antwortkasten(height: 1cm) = block(above: 2pt, below: 5pt)[
+  #rect(width: 100%, height: height, stroke: 0.5pt + mid-gray, radius: 2pt)
+]
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+// Ein Bogen: exakt A5 (148 x 210 mm) mit den urspruenglichen Raendern.
+#let bogen = block(width: 148mm, height: 210mm, clip: true, inset: (top: 9mm, right: 10mm, bottom: 9mm, left: 10mm))[
+  #feedback_kopf(
+    [$if(title)$$title$$else$Feedback$endif$],
+    [$if(subtitle)$$subtitle$$endif$],
+  )
+  $body$
+]
+
+#grid(
+  columns: (148mm, 148mm),
+  rows: 210mm,
+  align: top + left,
+  bogen,
+  bogen,
+)
+
+// Schnittlinie in der Mitte zwischen beiden Bogen
+#place(top + left, dx: 148.5mm, dy: 0mm)[
+  #line(start: (0mm, 0mm), end: (0mm, 210mm), stroke: (paint: rgb("#999999"), thickness: 0.5pt, dash: "dashed"))
+]

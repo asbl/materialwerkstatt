@@ -1,0 +1,26 @@
+{
+  "checksum": "17bad868b07da330cc28386e5d1fd6e2a79a8150dd8963599d23df584332d875",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/math-test-template.typst": "c3a731301858f413ca496e6a502ac0d1db6ac40512b9ef47d08337cc5057925d",
+    "templates/student-fields.typst": "450b928543efa61e75b4535b1cb3f6d5832c53e9fc9f0ebb33a500925c96239c"
+  },
+  "layout": "src/quarto/template-releases/layouts/bc7411953c851bd6ad3847c1f2512df3ef518f59bfb2f092de6df60913aadf17",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "math-test-template.typst",
+  "version": 1
+}

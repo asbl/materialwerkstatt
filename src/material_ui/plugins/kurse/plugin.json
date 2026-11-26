@@ -1,0 +1,24 @@
+{
+  "id": "kurse",
+  "name": "Kurse (H5P)",
+  "version": "0.2.0",
+  "minAppApi": 3,
+  "capabilities": [
+    "repo-read",
+    "state-write",
+    "network-outbound"
+  ],
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js",
+  "hostApis": [
+    "course-workspace"
+  ],
+  "styles": [
+    "assets/kurse.css"
+  ],
+  "modules": [
+    "assets/courses.js",
+    "assets/sync-view.js"
+  ],
+  "icons": "assets/icons.svg"
+}

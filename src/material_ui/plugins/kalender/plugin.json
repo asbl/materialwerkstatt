@@ -1,0 +1,16 @@
+{
+  "id": "kalender",
+  "name": "Kalender und Agenda",
+  "version": "0.3.0",
+  "minAppApi": 3,
+  "capabilities": ["network-outbound", "state-write"],
+  "provides": ["calendar"],
+  "pythonEntry": "register",
+  "jsEntry": "assets/plugin.js",
+  "modules": [
+    "assets/store.js", "assets/format.js", "assets/sync.js", "assets/settings.js",
+    "assets/event-form.js", "assets/views.js", "assets/today.js"
+  ],
+  "styles": ["assets/kalender.css"],
+  "icons": "assets/icons.svg"
+}

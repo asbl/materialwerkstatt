@@ -1,0 +1,17 @@
+{
+  "files": {
+    "src/quarto/template-releases/contexts/assets/9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4.tex": "9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4"
+  },
+  "options": {
+    "include-in-header": [
+      "src/quarto/template-releases/contexts/assets/9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4.tex"
+    ],
+    "keep-tex": true,
+    "papersize": "a4",
+    "pdf-engine": "pdflatex",
+    "toc": false
+  },
+  "original": {
+    "include-in-header": "src/quarto/templates/exam-header.tex"
+  }
+}

@@ -1,0 +1,85 @@
+project:
+  type: default
+  pre-render: python3 src/quarto_render_guard.py
+  # Bewusst feste Tiefen statt **-Globs: Jedes ** in den Render-Mustern
+  # veranlasst Quarto, den gesamten Projektbaum zu durchlaufen (inklusive
+  # ignorierter Verzeichnisse wie unterricht/kurse/build mit ueber 200000
+  # Dateien). Das kostet allein 40-50 s pro Einzelrender. Neue Tiefen
+  # bewusst ergaenzen; -old/-entwurf/alt-Ausschluesse regelt
+  # _is_configured_qmd_source in src/project_tasks.py.
+  render:
+    - /unterricht/mathematik/klasse-05/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-05/*/*/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-06/*.qmd
+    - /unterricht/mathematik/klasse-06/*/*.qmd
+    - /unterricht/mathematik/klasse-06/*/*/*.qmd
+    - /unterricht/mathematik/klasse-06/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-06/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-09/*.qmd
+    - /unterricht/mathematik/klasse-09/*/*.qmd
+    - /unterricht/mathematik/klasse-09/*/*/*.qmd
+    - /unterricht/mathematik/klasse-09/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-09/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-09/*/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-10/*.qmd
+    - /unterricht/mathematik/klasse-10/*/*.qmd
+    - /unterricht/mathematik/klasse-10/*/*/*.qmd
+    - /unterricht/mathematik/klasse-10/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-10/*/*/*/*/*.qmd
+    - /unterricht/mathematik/klasse-10/*/*/*/*/*/*.qmd
+    - /unterricht/mathematik/lernstandserhebungen/*.qmd
+    - /unterricht/mathematik/lernstandserhebungen/*/*.qmd
+    - /unterricht/mathematik/lernstandserhebungen/*/*/*.qmd
+    - /unterricht/informatik/klasse-11/*.qmd
+    - /unterricht/informatik/klasse-11/*/*.qmd
+    - /unterricht/informatik/klasse-11/*/*/*.qmd
+    - /unterricht/informatik/klasse-11/*/*/*/*.qmd
+    - /unterricht/informatik/klasse-11/*/*/*/*/*.qmd
+    - /unterricht/informatik/klasse-12/*.qmd
+    - /unterricht/informatik/klasse-12/*/*.qmd
+    - /unterricht/informatik/klasse-12/*/*/*.qmd
+    - /unterricht/informatik/klasse-12/*/*/*/*.qmd
+    - /unterricht/informatik/Q1/*/*.qmd
+    - /unterricht/organisation/foerderplaene/*.qmd
+    - /unterricht/organisation/foerderplaene/*/*.qmd
+    - /unterricht/organisation/foerderplaene/*/*/*.qmd
+    - /unterricht/organisation/konferenzen/*.qmd
+    - /unterricht/sachkunde/*.qmd
+    - /unterricht/sachkunde/*/*.qmd
+    - /unterricht/sachkunde/*/*/*.qmd
+    - /unterricht/sachkunde/*/*/*/*.qmd
+    - /unterricht/sachkunde/*/*/*/*/*.qmd
+
+filters:
+  - src/quarto/filters/exam.lua
+  - src/quarto/filters/rechenfolge.lua
+  - src/quarto/filters/antwortfelder.lua
+
+template-partials:
+  - src/quarto/templates/student-fields.typst
+  - src/quarto/templates/slide-layout.typst
+  - src/quarto/templates/exam-functions.typst
+  - src/quarto/templates/worksheet-design.typst
+
+format:
+  pdf:
+    toc: false
+    keep-tex: true
+    pdf-engine: pdflatex
+    papersize: a4
+    template: src/quarto/templates/latex-template.tex
+    include-in-header: src/quarto/templates/exam-header.tex
+  typst:
+    font-paths:
+      - src/quarto/fonts/static
+      - src/quarto/_local/fonts
+
+execute:
+  echo: true
+  warning: false
+  message: false

@@ -1,0 +1,26 @@
+{
+  "checksum": "cce510d62373aa7d3b00dfcd3c3c8a8e0e404132d50bb4ee1493597c2932b3e1",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/slide-fussball.typst": "55174ec07790e1a471afd7411391441a9f66a4818a3f5bdb0a959bc0cc4667d7",
+    "templates/slide-layout.typst": "21eb21a922f9408c6707a7b71dfe6123df81c99ec9c119538ef1685246fcf01b"
+  },
+  "layout": "src/quarto/template-releases/layouts/ac82045d6766b528f8a13f20e902ab7235eb20d9a1c2e2e2309742b90083d3ff",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "slide-fussball.typst",
+  "version": 1
+}

@@ -1,0 +1,47 @@
+// Shared layout: ISO A5 landscape, never duplicate content on this page.
+#set page(width: 210mm, height: 148mm,
+  margin: (top: 7mm, bottom: 7mm, left: 9mm, right: 9mm),
+  numbering: none,
+)
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt)$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.65em, spacing: 4pt)
+$exam-functions.typst()$
+
+#show heading.where(level: 1): it => block(above: 0pt, below: 5pt)[
+  #text(font: title-font, size: 16pt, weight: title-weight, fill: primary)[#it.body]
+]
+#show heading.where(level: 2): it => block(above: 5pt, below: 3pt, sticky: true)[
+  #text(font: heading-font, size: 11pt, weight: heading-weight, fill: primary)[#it.body]
+]
+#show heading.where(level: 1): it => if worksheet-skin {
+  block(above: 0pt, below: 5pt)[
+    #grid(columns: (1fr, 21mm), gutter: 3mm, align: horizon,
+      rect(fill: rgb("#14723e"), stroke: 1pt + rgb("#f5c64c"), radius: 4pt,
+        inset: (x: 9pt, y: 6pt))[
+        #text(font: title-font, size: 14pt, weight: title-weight, fill: white)[#it.body]
+      ],
+      if worksheet-mascot != none {
+        image(worksheet-mascot, width: 20mm, height: 17mm, fit: "contain")
+      } else {
+        box(width: 20mm, height: 17mm)[
+          #place(center + horizon, circle(radius: 7.5mm, fill: rgb("#dca158"), stroke: 1pt + rgb("#774724")))
+          #place(center + horizon, dx: -3mm, dy: -3mm, circle(radius: 1mm, fill: rgb("#633c23")))
+          #place(center + horizon, dx: 3mm, dy: -2mm, circle(radius: 1.2mm, fill: rgb("#633c23")))
+          #place(center + horizon, dx: -1mm, dy: 3mm, circle(radius: 1.1mm, fill: rgb("#633c23")))
+          #place(center + horizon, dx: 4mm, dy: 4mm, circle(radius: 0.8mm, fill: rgb("#633c23")))
+        ]
+      }
+    )
+  ]
+} else {
+  block(above: 0pt, below: 5pt)[#text(font: title-font, size: 16pt, weight: title-weight, fill: primary)[#it.body]]
+}
+#show heading.where(level: 2): it => block(above: 5pt, below: 3pt, sticky: true)[
+    #box(fill: primary-light, radius: 3pt, inset: (x: 5pt, y: 2pt))[
+      #text(font: heading-font, size: 11pt, weight: heading-weight, fill: primary)[#it.body]
+    ]
+  ]
+$for(header-includes)$
+$header-includes$
+$endfor$
+$body$

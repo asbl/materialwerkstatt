@@ -1,0 +1,218 @@
+{
+  "source_commit": "7af0d90b4d532ffa4b041937b560c6df4e7b1e95",
+  "modification": "Static instances, optical size 20 where available, renamed families and style metadata.",
+  "files": [
+    {
+      "path": "static/outfit/MaterialOutfit-SemiBold.ttf",
+      "source": "outfit/Outfit[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Outfit",
+      "weight": 600,
+      "sha256": "7fb7203a8238a1a626c04113f219860310aa5aea63efade3723ed2773eceb75e"
+    },
+    {
+      "path": "static/outfit/MaterialOutfit-Bold.ttf",
+      "source": "outfit/Outfit[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Outfit",
+      "weight": 700,
+      "sha256": "493736d519337653b5930873da7460c45df0e38b128992e394ed9ce0d194e655"
+    },
+    {
+      "path": "static/spacegrotesk/MaterialSpaceGrotesk-SemiBold.ttf",
+      "source": "spacegrotesk/SpaceGrotesk[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Space Grotesk",
+      "weight": 600,
+      "sha256": "27e494009db93edb5f441adda9158843705eb390f81abdc56f2a4b45e127079f"
+    },
+    {
+      "path": "static/spacegrotesk/MaterialSpaceGrotesk-Bold.ttf",
+      "source": "spacegrotesk/SpaceGrotesk[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Space Grotesk",
+      "weight": 700,
+      "sha256": "a9bf86db9792f058cff1bf00abd9c8e646c567da7a6f6a4f3174e39cc93019ec"
+    },
+    {
+      "path": "static/fredoka/MaterialFredoka-SemiBold.ttf",
+      "source": "fredoka/Fredoka[wdth,wght].ttf",
+      "axes": {
+        "wght": 600,
+        "wdth": 100.0
+      },
+      "family": "Material Fredoka",
+      "weight": 600,
+      "sha256": "22aeeb478488571b8243befa2cab08ea45d63e2b1b7713cbfae09a21c737156b"
+    },
+    {
+      "path": "static/fredoka/MaterialFredoka-Bold.ttf",
+      "source": "fredoka/Fredoka[wdth,wght].ttf",
+      "axes": {
+        "wght": 700,
+        "wdth": 100.0
+      },
+      "family": "Material Fredoka",
+      "weight": 700,
+      "sha256": "39b2979b6ebe015468c58a2c9a40e23f98a116a1dd7231299a59d436687226f9"
+    },
+    {
+      "path": "static/baloo2/MaterialBaloo2-SemiBold.ttf",
+      "source": "baloo2/Baloo2[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Baloo 2",
+      "weight": 600,
+      "sha256": "97e022c33792315b89f80d09a752d0b1b423c354ecc9c9846c4906b0dc136fdd"
+    },
+    {
+      "path": "static/baloo2/MaterialBaloo2-Bold.ttf",
+      "source": "baloo2/Baloo2[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Baloo 2",
+      "weight": 700,
+      "sha256": "2ea7433a419045c837e1583cee9d789d4f6240655293f77ee22b1eda97373d9a"
+    },
+    {
+      "path": "static/balsamiqsans/MaterialBalsamiqSans-Bold.ttf",
+      "source": "balsamiqsans/BalsamiqSans-Bold.ttf",
+      "axes": {},
+      "family": "Material Balsamiq Sans",
+      "weight": 700,
+      "sha256": "6cf95acbdbe8e7fcc8bddfa0b81e3b81db81fc83494a9df66848c370f915e422"
+    },
+    {
+      "path": "static/bitter/MaterialBitter-SemiBold.ttf",
+      "source": "bitter/Bitter[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Bitter",
+      "weight": 600,
+      "sha256": "ca2cac5b8e27420f650b9d4aabf98b982f9ec966f3f1a802c93711d2016cdd1d"
+    },
+    {
+      "path": "static/bitter/MaterialBitter-Bold.ttf",
+      "source": "bitter/Bitter[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Bitter",
+      "weight": 700,
+      "sha256": "32d2c6d33a752a1f0833b088392772c02a6a7e30e4b9e41d6be9e93ab77aa6c3"
+    },
+    {
+      "path": "static/sourceserif4/MaterialSourceSerif4-SemiBold.ttf",
+      "source": "sourceserif4/SourceSerif4[opsz,wght].ttf",
+      "axes": {
+        "wght": 600,
+        "opsz": 20
+      },
+      "family": "Material Source Serif 4",
+      "weight": 600,
+      "sha256": "736d67a9ef7f96d7d2745301cd891e66bfa36745e4ba49102403d95fb6a4500d"
+    },
+    {
+      "path": "static/sourceserif4/MaterialSourceSerif4-Bold.ttf",
+      "source": "sourceserif4/SourceSerif4[opsz,wght].ttf",
+      "axes": {
+        "wght": 700,
+        "opsz": 20
+      },
+      "family": "Material Source Serif 4",
+      "weight": 700,
+      "sha256": "f99e034eb8328364488e61e6a8788ab5bef0f28cbbb675664e2e3d0d5803193a"
+    },
+    {
+      "path": "static/acme/MaterialCartoon-Regular.ttf",
+      "source": "acme/Acme-Regular.ttf",
+      "axes": {},
+      "family": "Material Cartoon",
+      "weight": 400,
+      "sha256": "a3a3c8d24c7d3285527b93c90f31e6170c055af45ecc4ad219e62b4c95ed8354"
+    },
+    {
+      "path": "static/pixelifysans/MaterialPixelifySans-SemiBold.ttf",
+      "source": "pixelifysans/PixelifySans[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Pixelify Sans",
+      "weight": 600,
+      "sha256": "86f55338341e15baab03866812e44ae3b7832b3073ea6aef4174319f78ab0207"
+    },
+    {
+      "path": "static/pixelifysans/MaterialPixelifySans-Bold.ttf",
+      "source": "pixelifysans/PixelifySans[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Pixelify Sans",
+      "weight": 700,
+      "sha256": "1d62e015cb5fb4a71db50b013e98181606a4aff5078ba08ef182869be0231448"
+    },
+    {
+      "path": "static/cinzel/MaterialCinzel-SemiBold.ttf",
+      "source": "cinzel/Cinzel[wght].ttf",
+      "axes": {
+        "wght": 600
+      },
+      "family": "Material Cinzel",
+      "weight": 600,
+      "sha256": "9f34c4c1116b2aa1486fcbca24f3cf606566a36470cbe9500d7d91d0a94b4e08"
+    },
+    {
+      "path": "static/cinzel/MaterialCinzel-Bold.ttf",
+      "source": "cinzel/Cinzel[wght].ttf",
+      "axes": {
+        "wght": 700
+      },
+      "family": "Material Cinzel",
+      "weight": 700,
+      "sha256": "9f5aff50308e0688a2e52a9990047d6038c1c0e0cdd74d381086c1bd3c6998ff"
+    },
+    {
+      "path": "static/barlowsemicondensed/MaterialSport-SemiBold.ttf",
+      "source": "barlowsemicondensed/BarlowSemiCondensed-SemiBold.ttf",
+      "axes": {},
+      "family": "Material Sport",
+      "weight": 600,
+      "sha256": "d47b1494d84ffa8881b156e0e410076cc051ee261a99e39e84d26a985c9bfe88"
+    },
+    {
+      "path": "static/barlowsemicondensed/MaterialSport-Bold.ttf",
+      "source": "barlowsemicondensed/BarlowSemiCondensed-Bold.ttf",
+      "axes": {},
+      "family": "Material Sport",
+      "weight": 700,
+      "sha256": "2dbfeb4ff85c85aab505f0f4be1d95861a1a2274216d9b4d9dc1bd510c604ec0"
+    },
+    {
+      "path": "static/alice/MaterialAlice-Regular.ttf",
+      "source": "alice/Alice-Regular.ttf",
+      "axes": {},
+      "family": "Material Alice",
+      "weight": 400,
+      "sha256": "ff7edb9213861c27493e334b1edba1a6b19934b4561be151ba8b8684a459c76d"
+    },
+    {
+      "path": "static/lilitaone/MaterialInsel-Regular.ttf",
+      "source": "lilitaone/LilitaOne-Regular.ttf",
+      "axes": {},
+      "family": "Material Insel",
+      "weight": 400,
+      "sha256": "ab1ada01405d5faa7601f9b66a0c18a96c43ecfc292af2d308a9ad2432c5de45"
+    }
+  ]
+}

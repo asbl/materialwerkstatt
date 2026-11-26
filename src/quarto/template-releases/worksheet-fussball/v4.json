@@ -1,0 +1,34 @@
+{
+  "checksum": "e56423b875d4f296c2e388684eb8b97bb8b8db3236284ab065b4155aa6a5e43f",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/exam.lua": "8d2acaac537133c024894174fac658b73f7885a6be5cf4d6cbb5c011771dda67",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/exam-functions.typst": "4d42d226463a5e787f17443129c716efaf1d565990360be88a8e4682e0213e82",
+    "templates/student-fields.typst": "d4488249c326a53d04b49d7bc385ee236c3bfffd620c2915f71a8ae2ae42edd7",
+    "templates/worksheet-design.typst": "a059d8b059ba6c1887ff21df15d2fa54585f7cda6af35d5f6e7e716f3ace32fd",
+    "templates/worksheet-fussball.typst": "789ff4ed531378a6f37298feb8981158f90746e7c7674766a9daa988c8f2f880"
+  },
+  "layout": "src/quarto/template-releases/layouts/6f858ed3df3c646026f4ef9f7066d627434b55c2ec771bd519f3c1b1a4747637",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "worksheet-fussball.typst",
+  "version": 4
+}

@@ -1,0 +1,270 @@
+/* Render-Protokoll und CodeMirror-Editor. */
+
+.render-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  max-height: 55%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.render-panel[hidden] {
+  display: none;
+}
+
+.render-panel.error {
+  background: color-mix(in srgb, var(--danger) 7%, var(--panel));
+}
+
+.render-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.render-panel-header button {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.render-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.render-meta div {
+  min-width: 0;
+}
+
+.render-meta dt {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.render-meta dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--fs-sm);
+}
+
+.render-log {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: var(--fs-sm)/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.editor-shell {
+  grid-row: 4;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+/* CodeMirror-6-Editor im Host-Container */
+.editor-host {
+  position: absolute;
+  inset: 0;
+}
+
+.editor-host .cm-editor {
+  height: 100%;
+  background: transparent;
+  color: var(--text);
+  font: var(--fs-base)/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.editor-host .cm-editor.cm-focused {
+  outline: none;
+}
+
+.editor-host .cm-scroller {
+  overflow: auto;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.editor-host .cm-content {
+  padding: 10px 12px;
+  tab-size: 2;
+  overflow-wrap: anywhere;
+}
+
+.editor-host .cm-line {
+  padding: 0;
+}
+
+.editor-host .cm-gutters {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  user-select: none;
+}
+
+.editor-host .cm-activeLine,
+.editor-host .cm-activeLineGutter {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.editor-host .cm-selectionBackground,
+.editor-host .cm-content ::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.editor-host .cm-cursor {
+  border-left-color: var(--text);
+}
+
+.editor-host .cm-foldPlaceholder,
+.qmd-fold-placeholder {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--token-command-name);
+  border-radius: var(--radius-xs);
+  padding: 0 8px;
+  margin: 0 4px;
+  background: color-mix(in srgb, var(--token-command) 10%, transparent);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.editor-host .cm-flash-line {
+  background: color-mix(in srgb, var(--token-highlight) 30%, transparent);
+  transition: background 0.4s ease;
+}
+
+.editor-host .cm-tooltip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px var(--overlay);
+  color: var(--text);
+}
+
+.editor-host .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text);
+}
+
+.editor-host .cm-tooltip-autocomplete ul li .cm-completionDetail {
+  color: var(--muted);
+  font-family: ui-monospace, "DejaVu Sans Mono", monospace;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-host .cm-panels {
+  background: var(--panel);
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-host .cm-panels input,
+.editor-host .cm-panels button {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 2px 6px;
+  font-size: var(--fs-sm);
+}
+
+.editor-host .cm-searchMatch {
+  background: color-mix(in srgb, var(--token-highlight) 35%, transparent);
+}
+
+.editor-host .cm-searchMatch-selected {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.qmd-token-frontmatter,
+.qmd-token-fence {
+  color: var(--token-frontmatter);
+  font-weight: 600;
+}
+
+.qmd-token-command {
+  color: var(--token-command);
+  font-weight: 600;
+}
+
+.qmd-token-command-name {
+  color: var(--token-command-name);
+}
+
+.qmd-token-command-argument {
+  color: var(--token-command-argument);
+}
+
+.qmd-token-heading {
+  color: var(--token-heading);
+  font-weight: 700;
+}
+
+.qmd-token-list {
+  color: var(--token-list);
+  font-weight: 600;
+}
+
+.qmd-token-link {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.qmd-token-inline {
+  color: var(--token-inline);
+  background: color-mix(in srgb, var(--token-highlight) 14%, transparent);
+}
+
+.qmd-token-comment {
+  color: var(--muted);
+}
+
+.editor-status {
+  grid-row: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 8px;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#pdfPreview {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: white;
+}
+
+#languageCheckStatus { white-space:normal; }

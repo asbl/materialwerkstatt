@@ -1,0 +1,31 @@
+{
+  "checksum": "b9de498e0a4be1b242e988717f0cb6194b9dac0fc12726924e1ffb3830b4c1cf",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "722149e5161e3a123878a284d8e3c07dc59d889ca893b5d92a32d0366a5aae1f",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "4d5d4252bae04396bff03bf87cd824fa3e4a533ecbc6f74a19627ee38dcbabdf",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/exam-functions.typst": "c84858e12187436fd9f0fced5c02e0c767b6e14db146880e83b85559e8405025",
+    "templates/exam-template.typst": "84ebb55d7414c58b5ee046031a20de22809a8a07b444ab4686608a028dc2c3f7",
+    "templates/student-fields.typst": "450b928543efa61e75b4535b1cb3f6d5832c53e9fc9f0ebb33a500925c96239c"
+  },
+  "layout": "src/quarto/template-releases/layouts/e324dccbf6a923a0dc353050a2ab555d5f63d1072c97b9c8ecac1c24ae6e6019",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "exam-template.typst",
+  "version": 2
+}

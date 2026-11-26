@@ -1,0 +1,74 @@
+#let primary = rgb("#1565c0")
+#let ink = rgb("#172033")
+#let muted = rgb("#555555")
+#let rule-gray = rgb("#aaaaaa")
+#let heading-font = ("Material Outfit", "Noto Sans")
+#let title-font = ("Material Outfit", "Noto Sans")
+#let title-weight = "bold"
+#let heading-weight = "semibold"
+#show heading: set text(font: heading-font, weight: heading-weight)
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+
+// Infobox/Warnbox/Tippbox: Der exam.lua-Filter uebersetzt die QMD-Marker
+// [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in Aufrufe dieser Makros.
+#let box_frame(title, body, accent) = block(above: 6pt, below: 7pt)[
+  #rect(width: 100%, fill: accent.lighten(92%), stroke: 0.7pt + accent, radius: 3pt, inset: (x: 7pt, y: 6pt))[
+    #block(below: 3pt)[
+      #text(font: heading-font, size: 11pt, weight: heading-weight, fill: accent)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.7em)
+    #body
+  ]
+]
+#let infobox(title, body) = box_frame(title, body, primary)
+#let warnbox(title, body) = box_frame(title, body, warn)
+#let tippbox(title, body) = box_frame(title, body, tip)
+
+#set page(
+  paper: "a4",
+  margin: (top: 16mm, right: 1.35cm, bottom: 14mm, left: 1.45cm),
+  footer: context {
+    align(
+      right,
+      text(size: 11pt, fill: muted)[
+        $if(title)$$title$$else$Praesentation$endif$ · Seite #counter(page).display()
+      ],
+    )
+  },
+)
+
+#set text(font: body-font, size: calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt), lang: "de", fill: ink)
+#set par(justify: false, leading: 0.7em)
+#set list(indent: 0.75em, spacing: 0.8em, marker: ([•], [–], [·]))
+
+#show heading.where(level: 1): it => block(above: 12pt, below: 5pt)[
+  #text(font: heading-font, size: 15pt, weight: heading-weight, fill: primary)[#it.body]
+]
+
+#show heading.where(level: 2): it => block(above: 12pt, below: 4pt)[
+  #text(font: heading-font, size: 12.5pt, weight: heading-weight, fill: primary)[#it.body]
+]
+
+#show heading.where(level: 3): it => block(above: 8pt, below: 3pt)[
+  #text(font: heading-font, size: 11pt, weight: heading-weight, fill: ink)[#it.body]
+]
+
+#align(center)[
+  #text(font: title-font, size: 20pt, weight: title-weight, fill: primary)[
+    $if(title)$$title$$else$Praesentation$endif$
+  ]
+]
+$if(subtitle)$
+#v(2mm)
+#align(center)[#text(size: 11pt, fill: muted)[$subtitle$]]
+$endif$
+#v(5mm)
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$body$

@@ -1,0 +1,25 @@
+{
+  "checksum": "3a4a6883c24e56ae694963e972f51eca17886fe94fdbd49ba977af3fe0b06a40",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/deck-template.typst": "79f669cc9a3f1660495f55f908104d276f94b868e586fa3bfc035a7ea6b1f892"
+  },
+  "layout": "src/quarto/template-releases/layouts/3378b880eb47278931caaba505812eaf86a171a95c95d204a494cdbbe1c9df39",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "deck-template.typst",
+  "version": 1
+}

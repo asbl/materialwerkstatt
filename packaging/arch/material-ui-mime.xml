@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/x-quarto-markdown">
+    <comment>Quarto Markdown</comment>
+    <sub-class-of type="text/plain"/>
+    <glob pattern="*.qmd"/>
+  </mime-type>
+  <mime-type type="text/x-mdx">
+    <comment>MDX Kursquelle</comment>
+    <sub-class-of type="text/plain"/>
+    <glob pattern="*.mdx"/>
+  </mime-type>
+</mime-info>

@@ -1,0 +1,144 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let student-header-offset = if student-fields-in-header { 3mm } else { 0mm }
+
+#let header-gray = rgb("#d9d9d9")
+#let light-gray = rgb("#f2f2f2")
+#let ink = rgb("#172033")
+#let link-blue = rgb("#1155cc")
+#let rule-gray = rgb("#777777")
+#let heading-font = ("Aptos Display", "Aptos", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+
+// Infobox/Warnbox/Tippbox: Der exam.lua-Filter uebersetzt die QMD-Marker
+// [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in Aufrufe dieser Makros.
+#let box_frame(title, body, accent) = block(above: 5pt, below: 6pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + accent, radius: 3pt, inset: (x: 7pt, y: 5pt))[
+    #block(below: 2pt)[
+      #text(font: heading-font, size: 10pt, weight: "bold", fill: accent)[#title]
+    ]
+    #set text(size: 9.6pt)
+    #set par(leading: 0.6em)
+    #body
+  ]
+]
+#let infobox(title, body) = box_frame(title, body, link-blue)
+#let warnbox(title, body) = box_frame(title, body, warn)
+#let tippbox(title, body) = box_frame(title, body, tip)
+
+#set page(
+  header-ascent: 3mm,
+  header: context {
+    if counter(page).get().first() == 1 and student-fields-in-header { move(dy: student-header-offset, student_fields_row()) }
+  },
+  paper: "a4",
+  margin: (top: 1.2cm, right: 1.4cm, bottom: 1.0cm, left: 1.4cm),
+)
+
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$10.5pt$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.5em, spacing: 0.6em)
+
+#show link: set text(fill: link-blue)
+
+#let logo-path = "assets/cws-logo.png"
+
+#let student_fields() = [
+  #grid(
+    columns: (auto, 1fr, auto, 1fr),
+    gutter: 0.45em,
+    align: left + bottom,
+    [*Name:*], [#box(width: 100%, inset: (bottom: 2pt), stroke: (bottom: 0.6pt + rule-gray))[]],
+    [*Datum:*], [#box(width: 100%, inset: (bottom: 2pt), stroke: (bottom: 0.6pt + rule-gray))[]],
+  )
+  #v(0.85cm)
+]
+
+#let antwortkasten(height: 1cm) = block(above: 4pt, below: 7pt)[
+  #rect(width: 100%, height: height, radius: 2pt, stroke: 0.6pt + rule-gray)
+]
+
+#let foerderplan_kopf(name, klasse, schuljahr, verfasser, fach, datum) = block(below: 0.4cm)[
+  #grid(
+    columns: (1fr, auto),
+    align: (left, right),
+    [
+      #text(font: heading-font, size: 17pt, weight: "bold")[Christian-Wirth-Schule]
+      #linebreak()
+      #text(size: 9pt)[Schloßplatz 1 · 61250 Usingen]
+    ],
+    [#image(logo-path, width: 3.6cm)],
+  )
+  #v(-0.1cm)
+  #line(length: 100%, stroke: 0.8pt + ink)
+
+  #v(0.2cm)
+
+  #table(
+    columns: (1fr,) * 3,
+    stroke: 0.5pt + rule-gray,
+    inset: (x: 6pt, y: 4pt),
+    align: left + horizon,
+    [*Förderplan für:*\ #name],
+    [*Klasse:* #klasse],
+    [*Schuljahr:* #schuljahr],
+    [*Verfasser:* #verfasser],
+    [*Fach:* #fach],
+    [*Datum:* #datum],
+  )
+]
+
+#let foerderbereich(titel, sticky: false, body) = block(breakable: false, sticky: sticky, above: 8pt, below: 2pt)[
+  #rect(width: 100%, fill: header-gray, radius: 2pt, inset: (x: 8pt, y: 3pt))[
+    #text(size: 11pt, weight: "bold")[Förderbereich: #titel]
+  ]
+  #v(0.1cm)
+  #set table(
+    columns: (2.5fr, 3.5fr, 4fr),
+    stroke: 0.5pt + black,
+    inset: (x: 6pt, y: 4pt),
+    align: left + horizon,
+    fill: (x, y) => if y == 0 { light-gray },
+  )
+  #body
+]
+
+#let unterschriften() = block(above: 1.2cm)[
+  #grid(
+    columns: (1fr, 1fr, 1fr),
+    column-gutter: 0.6cm,
+    align: center,
+    [
+      #block(breakable: false)[
+        #line(length: 100%, stroke: 0.5pt + black)
+        #text(size: 8.5pt)[Ort, Datum, Unterschrift]
+        #linebreak()
+        #text(size: 9pt, weight: "bold")[Lehrer/in]
+      ]
+    ],
+    [
+      #block(breakable: false)[
+        #line(length: 100%, stroke: 0.5pt + black)
+        #text(size: 8.5pt)[Ort, Datum, Unterschrift]
+        #linebreak()
+        #text(size: 9pt, weight: "bold")[Erziehungsberechtigte/r]
+      ]
+    ],
+    [
+      #block(breakable: false)[
+        #line(length: 100%, stroke: 0.5pt + black)
+        #text(size: 8.5pt)[Ort, Datum, Unterschrift]
+        #linebreak()
+        #text(size: 9pt, weight: "bold")[Schüler/in]
+      ]
+    ],
+  )
+]
+
+#let student_fields = if student-fields-in-header { () => none } else { student_fields }
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+$body$

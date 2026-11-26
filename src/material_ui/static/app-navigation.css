@@ -1,0 +1,250 @@
+/* Index-Navigation: Tags, Ordner- und Dateilisten, Kursliste. */
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.tag-list .chip {
+  cursor: pointer;
+}
+
+.index-list button.chip.active,
+.index-list summary.chip.active {
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tag-navigation-hint {
+  margin: 4px 0 8px;
+  font-size: var(--fs-xs);
+}
+
+#tagNavigation { min-width: 0; }
+#tagNavigation .tag-controls { padding: 8px 0; }
+.tag-controls label { display: grid; gap: 4px; min-width: 0; }
+.tag-controls input, .tag-controls select { width: 100%; min-width: 0; }
+.tag-filter-toolbar { display: flex; flex-wrap: wrap; align-items: start; gap: 6px; margin-top: 8px; }
+#tagActiveFilters { display: contents; }
+#tagActiveFilters button { padding: 4px 8px; font-size: .8rem; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+#tagFilterDetails { flex: 1 0 100%; }
+#tagFilterDetails:not([open]) { flex: 0 0 auto; }
+#tagFilterDetails summary { cursor: pointer; color: var(--muted); padding: 4px 0; font-size: .85rem; }
+.tag-filter-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+#tagNavigation .tag-reset, #tagNavigation .tag-back { background: transparent; color: var(--muted); border: 0; padding: 4px 0; font-size: .8rem; }
+#tagBreadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
+#tagBreadcrumbs button { background: transparent; color: var(--muted); border: 0; padding: 3px 0; font-size: .85rem; text-align: left; overflow-wrap: anywhere; }
+#tagBreadcrumbs [aria-current] { color: var(--text); font-weight: 600; }
+.tag-browser, .tag-results { max-height: none; overflow: visible; min-width: 0; }
+.tag-browser button { gap: 8px; padding: 9px 6px; }
+#tagNavigation .index-label { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+#tagBadges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
+#tagBadges button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 5px 9px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: transparent; color: var(--text); font-size: .8rem; overflow-wrap: anywhere; }
+#tagBadges button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+#tagNavigation h4 { margin: 16px 0 6px; font-size: .85rem; color: var(--muted); }
+#tagNavigation .tag-results button { align-items: start; padding: 9px 6px; gap: 8px; }
+.tag-results .icon { flex-shrink: 0; margin-top: 2px; }
+.tag-pagination[hidden] { display: none; }
+.tag-pagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: .8rem; }
+.tag-pagination button { padding: 5px 8px; }
+
+
+.tag-count {
+  color: var(--muted);
+}
+
+.index-list,
+.kurs-chapter-list {
+  list-style: none;
+  padding: 0;
+}
+
+.index-list {
+  margin: 8px 0;
+}
+
+.index-list button,
+.index-list a {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+  text-align: left;
+  min-width: 0;
+}
+
+.index-list button {
+  width: 100%;
+}
+
+.index-list a {
+  padding: 6px;
+  text-decoration: none;
+}
+
+.index-list summary {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text);
+  min-width: 0;
+}
+
+/* Feste Mindesthoehe fuer Ordnerzeilen: Die bei Hover eingeblendeten
+   Aktions-Buttons sind auf diese Zeilenhoehe kompaktiert, damit die Zeile
+   nicht waechst und die Liste unter dem Zeiger nicht verrutscht. */
+.index-list summary[data-folder] {
+  min-height: 32px;
+}
+
+.index-list summary > button.icon-button {
+  width: 26px;
+  min-width: 26px;
+  padding: 4px;
+  flex: none;
+  margin-left: 0;
+}
+
+.index-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.index-list summary:hover,
+.index-list summary.tree-selected {
+  background: color-mix(in srgb, var(--accent) 15%, var(--panel));
+  color: var(--accent);
+}
+
+/* Projekt-/Tool-Ordner der Repo-Wurzel (src, build, pyproject.toml, …) treten
+   hinter das eigentliche Unterrichtsmaterial zurueck: eingeklappt, kleiner, gedaempft. */
+.folder-project-group > summary {
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.index-list summary.tree-selected {
+  font-weight: 650;
+}
+
+/* Mark the selected folder together with its contents, like a selected unit. */
+#folderEntries details[data-folder].folder-selected {
+  border-radius: var(--radius-md);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 3px 0 var(--accent);
+}
+
+#folderEntries details.folder-selected > summary {
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--accent);
+}
+
+#folderEntries details.folder-selected:not([open]) > summary {
+  border-radius: var(--radius-md);
+}
+
+.index-list .index-list {
+  margin: 2px 0 2px 10px;
+  padding-left: 8px;
+  border-left: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.index-list li.deck-entry {
+  display: flex;
+  align-items: stretch;
+}
+
+.index-list li.deck-entry > a,
+.index-list li.deck-entry > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.index-list li.deck-entry > button {
+  width: auto;
+  flex: none;
+  align-self: center;
+  margin-right: 4px;
+}
+
+/* Nur bei Maus/Trackpad die Datei-Aktionen bis zum Hover ausblenden: so bleibt
+   mehr Platz fuer lange Datei-/Ordnernamen bei tiefer Verschachtelung, ohne auf
+   Touch-Geraeten (kein verlaessliches Hover) Rename/Loeschen unerreichbar zu machen.
+   Die Buttons erscheinen kompakt in Zeilenhoehe statt mit den globalen 36px-Tastgroessen,
+   damit die Zeilen beim Hover nicht wachsen; auf Touch-Geraeten bleiben sie gross. */
+@media (hover: hover) and (pointer: fine) {
+  .index-list li.deck-entry > button.icon-button,
+  .index-list summary > button.icon-button {
+    display: none;
+    min-height: 20px;
+    padding: 0 2px;
+  }
+
+  .index-list li.deck-entry > button.icon-button {
+    min-width: 0;
+  }
+
+  .index-list li.deck-entry > button.icon-button .icon,
+  .index-list summary > button.icon-button .icon {
+    margin-right: 0;
+  }
+
+  .index-list li.deck-entry:hover > button.icon-button,
+  .index-list li.deck-entry:focus-within > button.icon-button,
+  .index-list summary:hover > button.icon-button,
+  .index-list summary:focus-within > button.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.index-list button:hover,
+.index-list a:hover,
+.index-list button[aria-current="true"],
+.kurs-chapter-list button[aria-current="true"] {
+  background: color-mix(in srgb, var(--accent) 15%, var(--panel));
+  color: var(--accent);
+}
+
+.kurs-chapter-list details > summary {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.kurs-chapter-list .index-list {
+  padding-left: 12px;
+}
+
+.course-activity-pane {
+  grid-row: 4;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.course-activity-pane h2,
+.course-activity-pane p {
+  margin: 12px;
+}
+
+.course-activity-pane h2 {
+  font-size: var(--fs-lg);
+}

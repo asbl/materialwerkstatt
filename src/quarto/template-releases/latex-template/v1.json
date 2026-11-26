@@ -1,0 +1,26 @@
+{
+  "checksum": "4d9276c02724f5a9f5503c2db79cc8fe6ed16e9388a9970f26b14f25e60c3571",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "templates/exam-header.tex": "9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4",
+    "templates/latex-template.tex": "ee601e248eeede970bcd781b1218f66418c76ec40ee7268f199206a58a82b52b"
+  },
+  "layout": "src/quarto/template-releases/layouts/062ee5e4001d4aeff7b9c07bacaa4dc8dd46f58732b0a563a283c3eebb31d540",
+  "note": "Ausgangsstand vor Einführung der Versionierung",
+  "settings": {},
+  "template": "latex-template.tex",
+  "version": 1
+}

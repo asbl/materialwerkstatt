@@ -1,0 +1,73 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let student-header-offset = if student-fields-in-header { 7mm } else { 0mm }
+
+#let primary = rgb("#1565c0")
+#let primary-light = rgb("#dce8f8")
+#let ink = rgb("#172033")
+#let light-gray = rgb("#eeeeee")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Aptos Display", "Aptos", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+#let mono-font = ("Aptos Mono", "DejaVu Sans Mono", "Noto Sans Mono")
+#let student-page-limit = $if(student-pages)$$student-pages$$else$999$endif$
+
+#set page(
+  paper: "a4",
+  margin: (top: 8mm, right: 1.25cm, bottom: 5mm, left: 1.45cm),
+  header-ascent: 3mm,
+  header: context {
+    let page-number = counter(page).get().first()
+    let show-name-field = calc.rem(page-number, 2) == 1 and page-number <= student-page-limit
+    if page-number == 1 and student-fields-in-header {
+      move(dy: student-header-offset, student_fields_row())
+    } else if page-number > 1 {
+      [
+        #v(1.5mm)
+        #text(size: 11pt)[
+          #grid(
+            columns: (1fr, auto),
+            gutter: 1em,
+            align: (left, right),
+            if show-name-field [
+              *Name:* #box(width: 8.5cm, line(length: 100%, stroke: 0.5pt + rule-gray))
+            ] else [
+              #h(1fr)
+            ],
+            [#text(fill: rgb("#555555"))[$if(title)$$title$$else$Klausur$endif$ · Seite #counter(page).display()]]
+          )
+        ]
+      ]
+    } else {
+      none
+    }
+  },
+)
+
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt)$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.48em)
+#set raw(block: true)
+#show raw.where(block: true): it => block(
+  width: 100%,
+  fill: light-gray,
+  radius: 3pt,
+  inset: (x: 8pt, y: 5pt),
+  above: 4pt,
+  below: 5pt,
+)[#it]
+
+$exam-functions.typst()$
+
+#let student_fields = if student-fields-in-header { () => none } else { student_fields }
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+$body$

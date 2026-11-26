@@ -1,0 +1,904 @@
+{% macro icon(name) -%}
+<svg class="icon" aria-hidden="true" focusable="false"><use href="{{ asset_url('icons.svg') }}#{{ name }}"></use></svg>
+{%- endmacro %}
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="material-token" content="{{ csrf_token }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Material UI</title>
+  <link rel="icon" type="image/svg+xml" href="{{ asset_url('favicon.svg') }}">
+  <link rel="stylesheet" href="{{ asset_url('app.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-navigation.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-workspace.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-controls.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-editor.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-dialogs.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-responsive.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-panels.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('app-modes.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('units.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('worksheet-tools.css') }}">
+  <script type="importmap">{{ module_imports | tojson }}</script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-brand" title="Material finden, bearbeiten und gestalten">
+      <span class="brand-mark"><img src="{{ asset_url('favicon.svg') }}" width="32" height="32" alt="" aria-hidden="true"></span>
+      <strong>Materialwerkstatt</strong>
+    </div>
+    <button id="workspaceNavigation" type="button" class="header-action" aria-expanded="false" aria-controls="indexContent" aria-label="Navigation" title="Navigation ein- oder ausblenden">{{ icon('folder') }} <span class="header-action-label">Navigation</span></button>
+    <section class="document-picker" aria-label="Materialsuche">
+      <div class="picker-row">
+        <div class="search-field">
+          <input id="documentSearch" type="search" placeholder="Material suchen: Thema, Klasse, Dateiname …  (Strg+K, &gt; für Befehle)" aria-label="Material suchen" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="documentResults" aria-autocomplete="list">
+        </div>
+        <button id="togglePicker" class="icon-button" type="button" aria-label="Material auswählen" title="Material auswählen">{{ icon('folder') }}</button>
+        <div class="split-button new-menu">
+          <button id="newDoc" type="button" class="primary" title="Neues Material anlegen">{{ icon('plus') }} <span>Neu</span></button>
+          <button id="newMenuToggle" type="button" class="primary icon-button" aria-haspopup="true" aria-expanded="false" aria-controls="newMenuPanel" aria-label="Weitere Möglichkeiten zum Anlegen" title="Weitere Möglichkeiten zum Anlegen">{{ icon('chevron-down') }}</button>
+          <div id="newMenuPanel" class="header-menu-panel new-menu-panel" hidden>
+            <button id="officeImportBtn" type="button" title="Arbeitsblatt aus PDF/DOCX importieren">{{ icon('upload') }} <span>Arbeitsblatt importieren</span></button>
+          </div>
+        </div>
+      </div>
+      <div id="searchOverlay" class="search-overlay" hidden>
+        <div id="filterChips" class="filter-chips" aria-label="Filter"></div>
+        <div class="facet-filters" aria-label="Dokumentfilter">
+          <label>Fach<select id="subjectFilter" aria-label="Fach"></select></label>
+          <label>Klasse<select id="gradeFilter" aria-label="Klasse"></select></label>
+          <label>Materialart<select id="kindFilter" aria-label="Materialtyp"></select></label>
+          <label>Tag<input id="tagFilter" type="search" list="tagFilterOptions" placeholder="Alle Tags" aria-label="Tag" autocomplete="off"></label>
+          <datalist id="tagFilterOptions"></datalist>
+          <label>PDF-Status<select id="pdfFilter" aria-label="PDF-Status"></select></label>
+          <label>Sortierung<select id="sortFilter" aria-label="Sortierung">
+            <option value="relevance">Relevanz</option>
+            <option value="recent">Zuletzt bearbeitet</option>
+            <option value="title">Titel</option>
+          </select></label>
+        </div>
+        <div id="documentResults" class="document-results" role="listbox"></div>
+      </div>
+    </section>
+    <div class="view-switch" role="group" aria-label="Darstellung">
+      <button type="button" data-workspace-view="edit" aria-pressed="false" title="Nur Editor">Bearbeiten</button>
+      <button type="button" data-workspace-view="split" aria-pressed="true" title="Editor und Vorschau nebeneinander">Geteilt</button>
+      <button type="button" data-workspace-view="preview" aria-pressed="false" title="Nur Vorschau">Vorschau</button>
+    </div>
+    <button id="toggleFocusMode" class="header-action icon-button" type="button" aria-label="Fokus-Modus (Seitenleiste ausblenden)" aria-pressed="false" title="Fokus-Modus (Seitenleiste ausblenden)">{{ icon('maximize') }}</button>
+    <div class="header-actions" role="group" aria-label="Status und Einstellungen">
+      <button id="renderStatus" type="button" class="status-badge ready" title="Bereit. – Render-Ausgabe anzeigen" aria-controls="renderPanel" aria-live="polite">{{ icon('log') }}<span class="visually-hidden">Bereit.</span></button>
+      <button id="showChat" type="button" class="header-action icon-button" aria-pressed="false" aria-controls="chatDock" aria-label="Chat öffnen" title="Chat mit Wissensbasis öffnen">{{ icon('chat') }}</button>
+      <button id="showHelp" type="button" class="header-action icon-button" aria-haspopup="dialog" aria-controls="helpModal" aria-label="Hilfe" title="Hilfe: Bedienelemente und Tastenkürzel">{{ icon('help') }}</button>
+      <div class="header-menu">
+        <button id="headerMenuToggle" type="button" class="header-action icon-button" aria-haspopup="true" aria-expanded="false" aria-controls="headerMenuPanel" aria-label="Weitere Optionen" title="Weitere Optionen">{{ icon('settings') }}</button>
+        <div id="headerMenuPanel" class="header-menu-panel" hidden>
+          <div id="themeToggle" class="theme-options" role="group" aria-label="Farbschema">
+            <button type="button" class="icon-button" data-theme-option="light" aria-pressed="false" aria-label="Hell" title="Hell">{{ icon('sun') }}</button>
+            <button type="button" class="icon-button" data-theme-option="system" aria-pressed="true" aria-label="System" title="System">{{ icon('monitor') }}</button>
+            <button type="button" class="icon-button" data-theme-option="dark" aria-pressed="false" aria-label="Dunkel" title="Dunkel">{{ icon('moon') }}</button>
+          </div>
+          <label class="toolbar-toggle"><input id="autoSave" type="checkbox" checked> Auto-Speichern</label>
+          <label class="toolbar-toggle"><input id="autoRender" type="checkbox" checked> Auto-Render</label>
+          <button id="showSettings" type="button" aria-haspopup="dialog" aria-controls="settingsModal" title="Einstellungen und Marketplace öffnen">{{ icon('settings') }} <span>Einstellungen</span></button>
+          <button id="showJobs" type="button" aria-haspopup="dialog" aria-controls="jobsModal" title="Letzte Aufträge anzeigen">{{ icon('history') }} <span>Aufträge</span></button>
+          <button id="restartServer" type="button" title="Material-UI-Server neu starten">{{ icon('refresh') }} <span>Server neu starten</span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace" id="workspace">
+    <aside class="workspace-index" aria-label="Bearbeitungsindex">
+      <nav class="index-rail" id="viewRail" aria-label="Navigationsansicht">
+        <button id="folderViewButton" type="button" class="index-rail-button active" aria-pressed="true" aria-label="Ordner" title="Ordner">{{ icon('folder') }}<span class="rail-label">Ordner</span></button>
+        <button id="tagTreeViewButton" type="button" class="index-rail-button" aria-pressed="false" aria-label="Material finden" title="Material finden">{{ icon('tag') }}<span class="rail-label">Material</span></button>
+      </nav>
+      <div class="index-main">
+        <header class="index-header">
+          <strong id="indexTitle">Index</strong>
+          <button id="reloadIndex" class="icon-button" type="button" aria-label="Aktuelle Ansicht aktualisieren" title="Aktuelle Ansicht aktualisieren">{{ icon('refresh') }}</button>
+          <button id="toggleIndex" class="icon-button" type="button" aria-expanded="true" aria-controls="indexContent" aria-label="Index einklappen" title="Index einklappen">{{ icon('chevron-left') }}</button>
+        </header>
+        <div id="indexContent" class="index-content">
+          <p id="indexWarnings" role="status" hidden></p>
+          <section id="folderNavigation" class="folder-navigation" aria-label="Ordnernavigation">
+            <details id="folderNavDetails" open>
+            <summary><h3 id="folderNavHeading">Ordner und Dateien</h3></summary>
+            <div id="folderViewControls">
+              <label for="navigationFolder">Ordner</label>
+              <input id="navigationFolder" type="search" list="navigationFolders" placeholder="Ordnerpfad suchen …" autocomplete="off">
+              <datalist id="navigationFolders"></datalist>
+            </div>
+            <section id="tagNavigation" aria-label="Tag-Navigation" hidden>
+              <div class="tag-controls">
+                <input id="tagSearch" type="hidden">
+                <div class="tag-filter-toolbar">
+                  <div id="tagActiveFilters" aria-label="Aktive Filter"></div>
+                  <details id="tagFilterDetails">
+                    <summary>Filter …</summary>
+                    <div class="tag-filter-fields">
+                      <label>Schuljahr<select id="tagYearFilter"><option value="">Alle</option></select></label>
+                      <label>Materialart<select id="tagKindFilter"></select></label>
+                    </div>
+                  </details>
+                </div>
+                <button id="tagReset" class="tag-reset" type="button" hidden>Filter zurücksetzen</button>
+              </div>
+              <nav id="tagBreadcrumbs" aria-label="Themenpfad"></nav>
+              <button id="tagBack" class="tag-back" type="button" hidden>← Eine Ebene zurück</button>
+              <p id="tagNavigationHint" class="muted tag-navigation-hint">Thema wählen · Rechtsklick zum Bearbeiten</p>
+              <section id="tagBadgePanel" aria-label="Tags zum Eingrenzen" hidden>
+                <h4>Weiter eingrenzen</h4>
+                <div id="tagBadges"></div>
+              </section>
+              <h4 id="tagTopicsHeading">Themen</h4>
+              <ul id="tagEntries" class="index-list tag-browser"></ul>
+              <h4 id="tagResultsHeading" aria-live="polite"></h4>
+              <ul id="tagResults" class="index-list tag-results" aria-label="Gefundene Materialien"></ul>
+              <div id="tagPagination" class="tag-pagination">
+                <button id="tagPrevious" type="button" aria-label="Vorherige Materialien">Zurück</button>
+                <span id="tagPageStatus" role="status"></span>
+                <button id="tagNext" type="button" aria-label="Nächste Materialien">Weiter</button>
+              </div>
+            </section>
+            <button id="newDocInFolder" type="button" title="Datei im ausgewählten Ordner anlegen">{{ icon('plus') }} Neu in diesem Ordner</button>
+            <ul id="folderEntries" class="index-list"></ul>
+            </details>
+          </section>
+          <section id="kursPane" class="kurs-pane" hidden>
+            <details>
+            <summary>Kursinformationen</summary>
+            <dl class="kurs-meta">
+              <div><dt>Kurs</dt><dd id="kursTitle">-</dd></div>
+              <div><dt>Slug</dt><dd id="kursSlugValue">-</dd></div>
+              <div><dt>Kapitel</dt><dd id="kursChapters">-</dd></div>
+              <div><dt>Pfad</dt><dd id="kursPath">-</dd></div>
+            </dl>
+            </details>
+            <ol id="kursChapterList" class="kurs-chapter-list"></ol>
+          </section>
+        </div>
+      </div>
+      <div id="indexResizer" class="index-resizer" role="separator" aria-orientation="vertical" aria-label="Indexbreite durch Ziehen ändern" title="Indexbreite durch Ziehen ändern"></div>
+    </aside>
+    <section class="editor-pane">
+        <nav id="documentTabs" class="document-tabs" aria-label="Geöffnete Dokumente" hidden></nav>
+        <section class="editor-actions" aria-label="Editieroptionen">
+          <nav class="toolbar" id="toolbar" aria-label="Dokumentaktionen">
+            <button id="saveDoc" type="button" title="Speichern (Strg+S)">{{ icon('save') }} Speichern</button>
+            <span id="docSaveFeedback" class="save-feedback" aria-live="polite" hidden></span>
+            <button id="reloadDoc" class="icon-button" type="button" aria-label="Neu laden" title="Aktuelle Datei neu laden (nach Änderungen von außen)">{{ icon('refresh') }}</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button id="addImage" class="icon-button" type="button" aria-label="Bild hinzufügen" title="Bild hinzufügen">{{ icon('image') }}</button>
+            <button id="changeTemplate" class="icon-button" type="button" aria-label="Template" title="Template ändern">{{ icon('template') }}</button>
+
+            <button id="shortcutsHelp" class="icon-button" type="button" aria-label="Shortcuts" title="Shortcuts: Klausur-/Arbeitsblatt-Bausteine einfügen">{{ icon('keyboard') }}</button>
+            <details class="document-settings"><summary>{{ icon('settings') }} Dokument</summary><div class="document-settings-panel">
+            <button id="showHistory" type="button" aria-label="Versionen" title="Versionen">{{ icon('history') }} Versionen</button>
+            <button id="editMetadata" type="button" aria-label="Metadaten" title="Metadaten bearbeiten">{{ icon('meta') }} Metadaten</button>
+            <div id="documentAdvanced" class="document-menu-actions">
+              <button id="checkDoc" type="button">{{ icon('check') }} Prüfen</button>
+              <button id="showRenderPanel" type="button" aria-controls="renderPanel" disabled>{{ icon('log') }} Render-Protokoll</button>
+              <button id="showGit" type="button" aria-controls="gitModal">{{ icon('git') }} Git-Status</button>
+            </div>
+            <button id="deleteOpenDocument" type="button">{{ icon('trash') }} Datei löschen</button>
+            <div id="documentDetails" class="document-details" hidden></div>
+            </div></details>
+          </nav>
+          <nav class="toolbar" id="courseToolbar" aria-label="Kursaktionen" hidden>
+            <button id="saveCourseActivity" type="button" title="Aktivität speichern und Vorschau aktualisieren (Strg+S)" disabled>{{ icon('save') }} Speichern und aktualisieren</button>
+            <span id="courseSaveFeedback" class="save-feedback" aria-live="polite" hidden></span>
+            <button id="reloadCourseActivity" class="icon-button" type="button" aria-label="Neu laden" title="Aktuelle Aktivität neu laden (nach Änderungen von außen)" disabled>{{ icon('refresh') }}</button>
+            <button id="courseShortcutsHelp" class="icon-button" type="button" aria-label="Shortcuts" title="Shortcuts: Kurs-Bausteine einfügen">{{ icon('keyboard') }}</button>
+          </nav>
+          <details class="advanced-options">
+            <summary>{{ icon('settings') }} Kursoptionen</summary>
+          <div id="kursActions" hidden>
+            <div class="button-row">
+              <button id="kursAuditBtn" type="button">{{ icon('check') }} Audit ausführen</button>
+              <button id="kursPreviewBtn" type="button">{{ icon('play') }} Vorschau starten</button>
+              <button id="kursPreviewStopBtn" type="button" hidden>{{ icon('stop') }} Vorschau beenden</button>
+            </div>
+            <p id="kursPreviewStatus" class="muted">Noch keine Vorschau gestartet.</p>
+            <h3 class="kurs-section-heading">Moodle</h3>
+            <div class="button-row">
+              <input id="moodleTarget" type="text" placeholder="Standardziel" list="moodleTargetList" autocomplete="off">
+              <datalist id="moodleTargetList"></datalist>
+              <button id="moodleVerifyBtn" type="button">{{ icon('check') }} Remote-Status prüfen</button>
+            </div>
+            <p class="muted">Ziel ist ein benannter Moodle-Kurs dieses Kurses (z. B. schule2). Neue Ziele mit URL und Zugangsdaten legt die Ansicht „Kurs-Sync“ an. Leer lassen für das Standardziel.</p>
+            <div class="button-row">
+              <select id="moodleChapterSelect" aria-label="Kapitel für Moodle-Upload"></select>
+              <button id="moodleUploadChapterBtn" type="button">{{ icon('upload') }} Kapitel hochladen</button>
+            </div>
+            <div class="button-row">
+              <button id="moodleUploadCourseBtn" type="button">{{ icon('upload') }} Kurs hochladen</button>
+              <button id="moodlePublishBtn" type="button" class="danger">{{ icon('publish') }} Veröffentlichen</button>
+            </div>
+          </div>
+          </details>
+        </section>
+      <div id="documentInfo" class="document-info">Kein Dokument geöffnet. Oben suchen, links in der Navigation wählen oder „Neues Material“ anlegen.</div>
+      <section id="renderPanel" class="render-panel" hidden>
+        <header class="render-panel-header">
+          <strong id="renderPanelTitle">Render-Protokoll</strong>
+          <button id="closeRenderPanel" type="button" aria-label="Render-Protokoll schließen">Schließen</button>
+        </header>
+        <dl class="render-meta">
+          <div><dt>Quelle</dt><dd id="renderSource">-</dd></div>
+          <div><dt>Befehl</dt><dd id="renderCommand">-</dd></div>
+          <div><dt>Exitcode</dt><dd id="renderExitCode">-</dd></div>
+        </dl>
+        <pre id="renderLog" class="render-log"></pre>
+      </section>
+      <div class="editor-shell" id="editorShell">
+        <div id="editorHost" class="editor-host" aria-label="QMD-Editor"></div>
+      </div>
+      <section id="courseActivityPane" class="course-activity-pane" hidden>
+        <h2 id="courseActivityTitle">Aktivität bearbeiten</h2>
+        <p id="courseActivityHint" class="muted">Im Index ein Kapitel aufklappen und eine Aktivität zum Bearbeiten auswählen.</p>
+      </section>
+      <div class="editor-status"><span id="editorStatus" role="status">Editor bereit.</span><span id="languageCheckStatus" role="status">Rechtschreibung: Browser · Grammatik: lokales LanguageTool optional</span></div>
+      <details id="editorDiagnostics" class="editor-diagnostics" hidden>
+        <summary id="diagnosticsSummary" aria-live="polite">Prüfhinweise</summary>
+        <ul id="diagnosticsList" aria-label="Prüfhinweise zum aktuellen Dokument"></ul>
+      </details>
+      <div id="previewResizer" class="preview-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="PDF-Breite ändern" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" title="PDF-Breite durch Ziehen oder Pfeiltasten ändern"></div>
+    </section>
+
+    <section class="preview-pane">
+      <nav class="toolbar preview-toolbar" id="previewToolbar" aria-label="Render-Aktionen">
+        <button id="renderDoc" type="button" title="Datei neu laden, dann PDF und passende Folien neu bauen (Strg+Enter)">{{ icon('play') }} Rendern</button>
+        <button id="slidesPlay" type="button" hidden title="Passende Folien präsentieren">{{ icon('play') }} Slides</button>
+        <button id="openPdfTab" class="icon-button" type="button" aria-label="PDF im Tab öffnen" title="PDF im Tab öffnen (Seiten, Zoom, Suche, Drucken)">{{ icon('pdf') }}</button>
+        <button id="printPdf" class="icon-button" type="button" aria-label="PDF drucken" title="PDF drucken">{{ icon('print') }}</button>
+        <button id="togglePdfFullscreen" class="icon-button" type="button" aria-label="PDF-Vollbild öffnen" aria-pressed="false" title="PDF-Vollbild öffnen">{{ icon('maximize') }}</button>
+      </nav>
+      <div class="preview-body">
+      <span id="markdownPreviewStatus" role="status" hidden></span>
+      <div id="markdownPreviewHost" hidden></div>
+      <iframe id="pdfPreview" title="PDF Vorschau"></iframe>
+      <div id="pdfEmptyState" class="pdf-empty-state" role="status" hidden></div>
+      <div id="pdfRenderingOverlay" class="pdf-rendering-overlay" hidden>
+        <span class="pdf-rendering-spinner" aria-hidden="true"></span>
+        Wird neu gerendert …
+      </div>
+      </div>
+    </section>
+
+    <aside class="chat-dock" id="chatDock" aria-label="Chat">
+      <div id="chatResizer" class="chat-resizer" role="separator" aria-orientation="vertical" aria-label="Chat-Breite ändern (Pfeiltasten, Doppelklick setzt zurück)" tabindex="0"></div>
+      <header class="chat-dock-header">
+        <strong>Chat</strong>
+        <button id="chatNew" class="chat-new" type="button" title="Neuen Chat beginnen; bisherige Chats bleiben im Verlauf">Neu</button>
+        <button id="chatDelete" type="button" title="Diesen Chat samt Verlauf löschen">Löschen</button>
+        <button id="closeChatDock" type="button" class="icon-button" aria-label="Chat schließen" title="Chat schließen">{{ icon('close') }}</button>
+      </header>
+      <select id="chatThread" class="chat-thread-select" aria-label="Chat auswählen" title="Bisherige Chats"></select>
+      <p id="chatContext" class="muted chat-context" role="status"></p>
+      <div id="chatEmpty" class="chat-empty">
+        <strong>Wobei kann ich helfen?</strong>
+        <p class="muted">Schreibe eine Nachricht oder wähle eine Aktion.</p>
+      </div>
+      <ol id="chatMessages" class="chat-messages" aria-live="polite"></ol>
+      <div id="chatQuick" class="chat-quick" role="group" aria-label="Schnellaktionen" hidden></div>
+      <div id="chatAttachments" class="chat-attachments" aria-label="Angehängte Dateien" hidden></div>
+      <form id="chatForm" class="chat-input-row">
+        <ul id="chatSuggest" class="chat-suggest" role="listbox" aria-label="Vorschläge" hidden></ul>
+        <textarea id="chatInput" rows="2" placeholder="Nachricht … (@ Datei, / Aktionen)" title="Enter sendet · Umschalt+Enter neue Zeile · @ Datei anhängen · / Schnellaktionen" aria-label="Chat-Nachricht" aria-autocomplete="list" aria-controls="chatSuggest"></textarea>
+        <div class="chat-send-col">
+          <button id="chatSend" type="submit">Senden</button>
+          <button id="chatStop" type="button" disabled hidden>Stopp</button>
+        </div>
+      </form>
+      <details class="chat-settings">
+        <summary class="chat-settings-toggle">Einstellungen</summary>
+        <div class="chat-setup">
+          <label for="chatProvider">Anbieter</label>
+          <select id="chatProvider" aria-label="Anbieter"></select>
+          <label id="chatModelLabel" for="chatModel" hidden>Modell</label>
+          <select id="chatModel" aria-label="Modell" hidden></select>
+          <label id="chatEffortLabel" for="chatEffort" hidden>Denkaufwand</label>
+          <select id="chatEffort" aria-label="Denkaufwand" hidden></select>
+        </div>
+        <div class="chat-provider-info">
+          <p id="chatUsage" class="muted chat-usage" role="status"></p>
+        </div>
+        <details id="chatPromptsEditor" class="chat-prompts">
+          <summary>Eigene Prompts</summary>
+          <p class="muted">Eine Zeile je Prompt: <code>Titel | Prompt</code>, optional <code>Titel [worksheet,slide] | Prompt</code> (Arten: worksheet, mini, solution, slide, other).</p>
+          <textarea id="chatPromptsText" rows="4" aria-label="Eigene Prompts"></textarea>
+          <button id="chatPromptsSave" type="button">Speichern</button>
+          <p id="chatPromptsStatus" class="muted" role="status"></p>
+        </details>
+      </details>
+    </aside>
+  </main>
+
+  <div id="imageModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeImageModal"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="imageModalTitle">
+      <header class="modal-header">
+        <strong id="imageModalTitle">Bild hinzufügen</strong>
+        <button id="closeImageModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+
+      <div class="modal-body">
+        <aside class="import-panel">
+          <input id="imageFileInput" type="file" accept="image/*" hidden>
+          <div id="drop" class="drop">
+            <strong>Bild ablegen</strong>
+            <span>oder Datei auswählen beziehungsweise Strg+V drücken</span>
+          </div>
+
+          <div class="grid">
+            <label>Dateiname <input id="filename" value="aufgabe-material-01"></label>
+            <label>Breite <input id="width" value="80%"></label>
+          </div>
+          <label>Alt-Text <input id="alt" value="Aufgabe"></label>
+          <div class="grid">
+            <label>Quelle <input id="source"></label>
+            <label>Seite <input id="page"></label>
+          </div>
+          <label>Typ
+            <select id="kind">
+              <option value="aufgabe">Aufgabe</option>
+              <option value="bild">Bild</option>
+              <option value="diagramm">Diagramm</option>
+              <option value="textauszug">Textauszug</option>
+            </select>
+          </label>
+          <label>Beschreibung <textarea id="description"></textarea></label>
+
+          <div class="grid">
+            <label>Klasse <input id="klasse" placeholder="z. B. klasse-10"></label>
+            <label>Thema <input id="thema" placeholder="z. B. trigonometrie"></label>
+          </div>
+          <label>Tags <input id="tags" placeholder="kommagetrennt, z. B. einheitskreis, winkel"></label>
+
+          <div class="checks">
+            <label><input id="insert" type="checkbox" checked> In QMD einfügen</label>
+            <label><input id="taskBlock" type="checkbox" checked> Als Aufgabenblock</label>
+            <label><input id="grayscale" type="checkbox"> Graustufen</label>
+            <label><input id="removeGreen" type="checkbox"> Grünen Hintergrund aufhellen</label>
+          </div>
+
+          <div class="tool-row">
+            <label><input name="tool" type="radio" value="crop" checked> Zuschneiden</label>
+            <label><input name="tool" type="radio" value="whiteout"> Weiß überdecken</label>
+          </div>
+          <div class="button-row">
+            <button id="resetCrop" type="button" disabled>Zuschnitt zurück</button>
+            <button id="undoWhiteout" type="button" disabled>Letztes Feld zurück</button>
+          </div>
+          <div class="zoom-row">
+            <button id="fitImage" type="button" disabled>Einpassen</button>
+            <button id="actualSize" type="button" disabled>100%</button>
+            <label>Zoom <input id="imageZoom" type="range" min="25" max="200" value="100" disabled></label>
+          </div>
+          <button id="importAsset" type="button" disabled>Importieren</button>
+          <p id="imageStatus" class="muted">Noch kein Bild geladen.</p>
+        </aside>
+
+        <section class="image-panel">
+          <canvas id="canvas"></canvas>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <div id="imagePasteChoiceModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="imagePasteChoiceBackdrop"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="imagePasteChoiceTitle">
+      <header class="modal-header">
+        <strong id="imagePasteChoiceTitle">Bild einfügen</strong>
+        <button id="imagePasteChoiceClose" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p>Wie soll das eingefügte Bild importiert werden?</p>
+        <div class="button-row">
+          <button id="pasteChoiceImage" type="button">Als Bild</button>
+          <button id="pasteChoiceCode" type="button">Als Code (KI)</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="taskImageImportModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="taskImageImportBackdrop"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="taskImageImportTitle">
+      <header class="modal-header">
+        <strong id="taskImageImportTitle">Aufgabe als Code importieren</strong>
+        <button id="taskImageImportClose" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="modal-body task-image-body">
+        <p id="taskImageStatus" class="muted" role="status">Bild wird hochgeladen …</p>
+        <div class="task-image-columns">
+          <section class="task-image-pane">
+            <h3>Original</h3>
+            <img id="taskImageOriginal" alt="Eingefügtes Aufgabenbild">
+          </section>
+          <section class="task-image-pane">
+            <h3>KI-Code</h3>
+            <textarea id="taskImageCode" rows="16" aria-label="Generierter Code"></textarea>
+          </section>
+          <section class="task-image-pane">
+            <h3>KI-Export</h3>
+            <img id="taskImagePreview" alt="Render-Vorschau des Codes">
+            <button id="taskImageRenderBtn" type="button">Vorschau aktualisieren</button>
+          </section>
+        </div>
+        <ol id="taskImageChatMessages" class="chat-messages" aria-live="polite"></ol>
+        <form id="taskImageChatForm" class="chat-input-row">
+          <textarea id="taskImageChatInput" rows="2" placeholder="Korrektur eingeben … (z. B. „ändere Aufgabe 2“)" aria-label="Korrektur"></textarea>
+          <button id="taskImageChatSend" type="submit">Senden</button>
+        </form>
+        <label for="taskImageWissenField">Zielordner in der Wissensbasis (wissen/…)</label>
+        <input id="taskImageWissenField" type="text" placeholder="aufgaben/mathematik/klasse-05/thema">
+        <div class="button-row">
+          <button id="taskImageCommitBtn" type="button" disabled>Import abschließen</button>
+          <button id="taskImageCancelBtn" type="button">Abbrechen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="templateModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeTemplateModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="templateModalTitle">
+      <header class="modal-header">
+        <strong id="templateModalTitle">Template ändern</strong>
+        <button id="closeTemplateModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <label>1. Typ auswählen
+          <select id="templateType"></select>
+        </label>
+        <label>2. Template auswählen
+          <select id="templateSelect"></select>
+        </label>
+        <section id="templatePreview" class="template-preview" aria-live="polite"></section>
+        <p id="templateStatus" class="muted">Der Pfad wird relativ zur aktuellen QMD geschrieben.</p>
+        <div class="button-row">
+          <button id="applyTemplate" type="button">Übernehmen</button>
+          <button id="removeTemplate" type="button">Template entfernen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="recoveryModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+      <header class="modal-header">
+        <strong id="recoveryTitle">Entwurf wiederherstellen</strong>
+        <button id="recoveryClose" type="button">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p id="recoveryHint"></p>
+        <label><span id="recoveryVersionsLabel">Im Browser zwischengesicherte Änderungen</span> <select id="recoveryVersions"></select></label>
+        <div id="recoveryDiff" class="diff-view" aria-label="Vergleich von Entwurf und Dateistand"></div>
+        <div class="grid">
+          <label>
+            <span id="recoveryDraftLabel">Deine noch nicht gespeicherten Änderungen</span>
+            <small id="recoveryDraftHelp" class="recovery-source-help">Dein Text aus dem Editor, im Browser zwischengesichert. Diese Fassung ist noch nicht in der QMD-Datei gespeichert.</small>
+            <textarea id="recoveryDraft" rows="12" readonly aria-describedby="recoveryDraftHelp"></textarea>
+          </label>
+          <label>
+            Aktuell gespeicherte Datei
+            <small id="recoveryFileHelp" class="recovery-source-help">Der Inhalt der QMD-Datei auf der Festplatte. Er kann inzwischen von einem anderen Tab oder Programm geändert worden sein.</small>
+            <textarea id="recoveryFile" rows="12" readonly aria-describedby="recoveryFileHelp"></textarea>
+          </label>
+        </div>
+        <div class="recovery-choices">
+          <div class="recovery-choice">
+            <button id="recoveryRestore" type="button" aria-describedby="recoveryRestoreHelp">Meine Änderungen weiterbearbeiten</button>
+            <p id="recoveryRestoreHelp">Öffnet deine noch nicht gespeicherten Änderungen im Editor. Die QMD-Datei wird erst geändert, wenn du speicherst.</p>
+          </div>
+          <div class="recovery-choice">
+            <button id="recoveryDiscard" class="recovery-secondary" type="button" aria-describedby="recoveryDiscardHelp">Änderungen verwerfen · gespeicherte Datei öffnen</button>
+            <p id="recoveryDiscardHelp">Löscht die ausgewählte Browser-Zwischensicherung und öffnet die gespeicherte QMD-Datei im Editor. Kopiere oder lade deine Änderungen vorher herunter, falls du sie noch brauchst.</p>
+          </div>
+        </div>
+        <div class="recovery-backup" role="group" aria-labelledby="recoveryBackupLabel">
+          <strong id="recoveryBackupLabel">Deine noch nicht gespeicherten Änderungen separat sichern</strong>
+          <div class="recovery-backup-actions">
+            <div>
+              <button id="recoveryCopy" class="recovery-secondary" type="button" aria-describedby="recoveryCopyHelp">Text in Zwischenablage kopieren</button>
+              <p id="recoveryCopyHelp">Kopiert den vollständigen Text der links ausgewählten Fassung zum Einfügen an anderer Stelle.</p>
+            </div>
+            <div>
+              <button id="recoveryDownload" class="recovery-secondary" type="button" aria-describedby="recoveryDownloadHelp">Als Textdatei herunterladen</button>
+              <p id="recoveryDownloadHelp">Lädt die links ausgewählte Fassung als .entwurf.txt herunter. Der Dialog bleibt offen.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="shortcutsModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeShortcutsModal"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle">
+      <header class="modal-header">
+        <strong id="shortcutsModalTitle">Shortcuts</strong>
+        <button id="closeShortcutsModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="shortcuts-body">
+        <input id="shortcutsSearch" type="search" placeholder="Shortcut suchen: Antwortkasten, Deckblatt, Rechengitter ..." autocomplete="off">
+        <div id="shortcutsChips" class="filter-chips" aria-label="Filter"></div>
+        <div id="shortcutsList" class="shortcuts-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="newDocModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeNewDocModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="newDocModalTitle">
+      <header class="modal-header">
+        <strong id="newDocModalTitle">Neues Material</strong>
+        <button id="closeNewDocModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <label>Titel <input id="newTitle" placeholder="Arbeitsblatt"></label>
+        <label>Typ
+          <select id="newKind">
+            <option>Arbeitsblatt</option>
+            <option>Mini-AB</option>
+            <option>Klausur</option>
+            <option>Nachprüfung</option>
+            <option>Fördermaterial</option>
+            <option>Förderplan</option>
+            <option value="Praesentation">Präsentation</option>
+            <option>Excalidraw-Folien</option>
+            <option>Planung</option>
+            <option>Notiz</option>
+            <option>Kurs (H5P)</option>
+          </select>
+        </label>
+        <div id="newDocQuartoFields">
+          <label id="newTargetFolderField" hidden>Zielordner <input id="newTargetFolder" readonly></label>
+          <div class="grid">
+            <label>Fach <input id="newSubject" value="mathematik"></label>
+            <label>Klasse <input id="newGrade" value="05" inputmode="numeric"></label>
+          </div>
+          <label>Thema <input id="newTopic" placeholder="bruchzahlen"></label>
+          <label>Vorlage <select id="newTemplate"></select></label>
+          <label id="newMiniField" class="mini-print-option" hidden><input id="newMini" type="checkbox"><span>Mehrere Exemplare pro Seite drucken (Mini-Format)</span></label>
+          <details class="new-document-options"><summary>Weitere Optionen</summary>
+            <label>Dateiname <input id="newFilename" placeholder="wird aus dem Titel erzeugt"></label>
+          </details>
+          <section id="newTemplatePreview" class="template-preview" aria-live="polite"></section>
+        </div>
+        <div id="newKursFields" hidden>
+          <div class="grid">
+            <label>Kurs-Slug <input id="newKursSlug" placeholder="mein-kurs"></label>
+            <label>Sprache
+              <select id="newKursLanguage">
+                <option value="de">Deutsch</option>
+                <option value="en">Englisch</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <details class="new-document-options"><summary>Speicherort und Status</summary><p id="newDocStatus" class="muted" role="status">Der Speicherort wird automatisch gewählt.</p></details>
+        <div class="button-row">
+          <button id="createNewDoc" class="primary-action" type="button">Anlegen</button>
+          <button id="cancelNewDoc" type="button">Abbrechen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="moodleConfirmModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeMoodleConfirmModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="moodleConfirmModalTitle">
+      <header class="modal-header">
+        <strong id="moodleConfirmModalTitle">Moodle-Aktion bestätigen</strong>
+        <button id="closeMoodleConfirmModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p id="moodleConfirmText"></p>
+        <div class="button-row">
+          <button id="moodleConfirmBtn" type="button">Bestätigen</button>
+          <button id="moodleConfirmCancelBtn" type="button">Abbrechen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="qmdImportModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="qmdImportBackdrop"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="qmdImportTitle">
+      <header class="modal-header">
+        <strong id="qmdImportTitle">QMD importieren</strong>
+        <button id="qmdImportClose" type="button">Abbrechen</button>
+      </header>
+      <form id="qmdImportForm" class="template-body">
+        <p id="qmdImportSource"></p>
+        <p>Die QMD wird ins Material-Repository kopiert. Das Original bleibt erhalten.
+          Verknüpfte Bilder, Templates und weitere Dateien werden nicht mitkopiert.</p>
+        <label for="qmdImportTarget">Zielpfad im Repository</label>
+        <input id="qmdImportTarget" type="text" required placeholder="unterricht/importiert/material.qmd">
+        <p id="qmdImportStatus" class="muted" role="status"></p>
+        <button id="qmdImportSubmit" type="submit">Importieren und öffnen</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="officeImportModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="officeImportBackdrop"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="officeImportTitle">
+      <header class="modal-header">
+        <strong id="officeImportTitle">Arbeitsblatt importieren (PDF/DOCX)</strong>
+        <button id="officeImportClose" type="button">Abbrechen</button>
+      </header>
+      <form id="officeImportForm" class="template-body">
+        <label for="officeImportFile">Datei (PDF oder DOCX)</label>
+        <input id="officeImportFile" type="file" accept=".pdf,.docx">
+        <p id="officeImportStatus" class="muted" role="status">Datei wählen, um Metadaten vorzuschlagen.</p>
+        <div id="officeImportFields" hidden>
+          <p id="officeImportDuplicate" class="muted" hidden></p>
+          <label>Titel <input id="officeImportTitleField"></label>
+          <div class="grid">
+            <label>Fach <input id="officeImportSubject"></label>
+            <label>Klasse <input id="officeImportGrade" inputmode="numeric"></label>
+          </div>
+          <label>Thema <input id="officeImportThema"></label>
+          <label>Typ
+            <select id="officeImportKind">
+              <option>Arbeitsblatt</option>
+              <option>Klausur</option>
+              <option>Nachprüfung</option>
+              <option>Fördermaterial</option>
+              <option>Planung</option>
+            <option>Notiz</option>
+            </select>
+          </label>
+          <label>Tags (Komma-getrennt) <input id="officeImportTags"></label>
+          <label for="officeImportTargetField">Zielpfad im Repository</label>
+          <input id="officeImportTargetField" type="text" placeholder="unterricht/mathematik/klasse-05/thema/arbeitsblaetter/…">
+          <label for="officeImportWissenField">Zielordner in der Wissensbasis (wissen/…)</label>
+          <input id="officeImportWissenField" type="text" placeholder="arbeitsblatt/mathematik/klasse-05/thema">
+          <div class="grid">
+            <label>KI-Anbieter für den Umbau <select id="officeImportProvider"></select></label>
+            <button id="officeImportDraftBtn" type="button">Mit KI umbauen</button>
+          </div>
+          <label for="officeImportPreview">Entwurf (wird importiert, hier editierbar)</label>
+          <textarea id="officeImportPreview" class="template-preview" rows="10"></textarea>
+        </div>
+        <button id="officeImportSubmit" type="submit" disabled>Import abschließen</button>
+      </form>
+    </section>
+  </div>
+
+  <div id="fileActionModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeFileActionModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="fileActionTitle">
+      <header class="modal-header">
+        <strong id="fileActionTitle">Datei</strong>
+        <button id="fileActionClose" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <form id="fileActionForm" class="template-body">
+        <p id="fileActionText"></p>
+        <label id="fileActionNameField" for="fileActionName" hidden>Neuer Dateiname</label>
+        <input id="fileActionName" type="text" autocomplete="off" hidden>
+        <fieldset id="folderSettings" hidden disabled>
+          <div id="folderUnitFields" hidden>
+            <label for="folderUnitTitle">Titel der Einheit</label>
+            <input id="folderUnitTitle" type="text">
+            <label for="folderUnitTopic">Thema</label>
+            <input id="folderUnitTopic" type="text">
+            <label for="folderUnitDescription">Kurzbeschreibung</label>
+            <textarea id="folderUnitDescription" rows="3"></textarea>
+          </div>
+          <label for="folderNotes">Ordnerhinweise</label>
+          <textarea id="folderNotes" rows="7"></textarea>
+        </fieldset>
+        <p id="fileActionStatus" class="muted" role="status"></p>
+        <div class="button-row">
+          <button id="fileActionConfirm" type="submit">Bestätigen</button>
+          <button id="fileActionCancel" type="button">Abbrechen</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="deckModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeDeckModal"></div>
+    <section class="modal-panel deck-panel" role="dialog" aria-modal="true" aria-labelledby="deckModalTitle">
+      <header class="modal-header">
+        <strong id="deckModalTitle">Deck präsentieren</strong>
+        <a id="deckModalNewTab" href="#" target="_blank" rel="noopener">In neuem Tab öffnen</a>
+        <button id="closeDeckModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <iframe id="deckFrame" title="Excalidraw Present-App" allow="fullscreen"></iframe>
+    </section>
+  </div>
+
+  <div id="metadataModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeMetadataModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="metadataModalTitle">
+      <header class="modal-header">
+        <strong id="metadataModalTitle">Metadaten bearbeiten</strong>
+        <button id="closeMetadataModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p class="muted">Ändert Einträge im YAML-Header des aktuellen Textes. Leere Felder entfernen den Eintrag. Gespeichert wird erst mit dem nächsten Speichern.</p>
+        <label>Titel <input id="metadataTitle" type="text"></label>
+        <label>Untertitel <input id="metadataSubtitle" type="text"></label>
+        <div class="grid">
+          <label>Autor <input id="metadataAuthor" type="text"></label>
+          <label>Datum <input id="metadataDate" type="text" placeholder="z. B. 2026-10-19"></label>
+        </div>
+        <label>Deck <input id="metadataDeck" type="text" placeholder="Pfad zur .excalidraw-Datei"></label>
+        <label>Tags <input id="metadataTags" type="text" list="metadataTagsList" placeholder="kommagetrennt, z. B. einheitskreis, winkel" autocomplete="off"></label>
+        <datalist id="metadataTagsList"></datalist>
+        <p id="metadataStatus" class="muted" role="status"></p>
+        <div class="button-row">
+          <button id="applyMetadata" type="button">Übernehmen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="tagRenameModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeTagRenameModal"></div>
+    <section class="modal-panel small-modal" role="dialog" aria-modal="true" aria-labelledby="tagRenameModalTitle">
+      <header class="modal-header">
+        <strong id="tagRenameModalTitle">Tag bearbeiten</strong>
+        <button id="closeTagRenameModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p class="muted">Name benennt diesen Tag in allen Dokumenten um (am Frontmatter ändert sich sonst nichts). Eltern-Tag ordnet ihn im Baum unter einem anderen Tag ein, unabhängig vom Frontmatter.</p>
+        <label>Name <input id="tagRenameSegment" type="text" autocomplete="off"></label>
+        <label>Eltern-Tag <input id="tagRenameParent" type="text" list="tagRenameParentOptions" placeholder="kein Elternteil (Top-Level)" autocomplete="off"></label>
+        <datalist id="tagRenameParentOptions"></datalist>
+        <label><input id="tagRenameRoot" type="checkbox"> Root-Tag (oberste Ebene im Tag-Baum, nur ohne Eltern-Tag wirksam)</label>
+        <p id="tagRenameStatus" class="muted" role="status"></p>
+        <div class="button-row">
+          <button id="applyTagRename" type="button">Übernehmen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="gitModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeGitModal"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="gitModalTitle">
+      <header class="modal-header">
+        <strong id="gitModalTitle">Git-Status</strong>
+        <button id="refreshGit" type="button">Aktualisieren</button>
+        <button id="closeGitModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <dl class="render-meta">
+          <div><dt>Datei</dt><dd id="gitPath">-</dd></div>
+          <div><dt>Status</dt><dd id="gitStatus">-</dd></div>
+          <div><dt>Letzter Commit</dt><dd id="gitLastCommit">-</dd></div>
+        </dl>
+        <pre id="gitDiff" class="git-diff"></pre>
+        <p id="gitHint" class="muted" role="status"></p>
+      </div>
+    </section>
+  </div>
+
+  <div id="helpModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeHelpModal"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <header class="modal-header">
+        <strong id="helpModalTitle">Hilfe</strong>
+        <button id="closeHelpModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <h3>Material finden</h3>
+        <p class="muted">„Auswählen“ oben durchsucht alle Materialien per Volltext und Filtern (Fach, Klasse, Materialart, Tag). Die
+          Ordneransicht links zeigt stattdessen die Projektstruktur; das eigentliche Unterrichtsmaterial liegt dort unter
+          „unterricht“, Projekt- und Werkzeugdateien stehen eingeklappt unter „Projektdateien“.</p>
+        <h3>Linke Navigationsleiste</h3>
+        <p class="muted">Die schmale Symbolleiste ganz links schaltet zwischen Ansichten um: Ordner, Material finden (Tags) sowie
+          ggf. weitere Ansichten aus aktivierten Erweiterungen (z. B. Unterrichtseinheiten, Kalender, Kurse, Wissen). Den Namen
+          jeder Ansicht zeigt ein kurzes Antippen oder Überfahren mit der Maus.</p>
+        <h3>Tastenkürzel im Editor</h3>
+        <ul>
+          <li><kbd>Strg</kbd>+<kbd>K</kbd> springt in die Suche; mit <kbd>&gt;</kbd> am Anfang findet sie Befehle der Oberfläche.</li>
+          <li><kbd>Strg</kbd>+<kbd>S</kbd> speichert das Dokument.</li>
+          <li><kbd>Strg</kbd>+<kbd>Enter</kbd> rendert neu.</li>
+          <li><kbd>Strg</kbd>+<kbd>F</kbd> sucht im Dokument.</li>
+          <li><kbd>Tab</kbd> / <kbd>Umschalt</kbd>+<kbd>Tab</kbd> rückt ein bzw. aus.</li>
+          <li><kbd>Enter</kbd> öffnet an einer Baustein-Abkürzung die Bausteinauswahl.</li>
+        </ul>
+        <p class="muted">Das Tastatur-Symbol über dem Editor („Shortcuts“) fügt vorgefertigte Textbausteine (z. B. Aufgaben,
+          Lückentexte) ein.</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="jobsModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeJobsModal"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="jobsModalTitle">
+      <header class="modal-header">
+        <strong id="jobsModalTitle">Aufträge</strong>
+        <button id="refreshJobs" type="button">Aktualisieren</button>
+        <button id="closeJobsModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="template-body">
+        <p class="muted">Rendern, Audit und Moodle-Aktionen der aktuellen Serversitzung. Gescheiterte Aufträge zeigen ihre Meldung, Details stehen im Render-Protokoll.</p>
+        <ol id="jobsList" class="jobs-list" aria-live="polite"></ol>
+        <p id="jobsStatus" class="muted" role="status"></p>
+      </div>
+    </section>
+  </div>
+
+  <div id="settingsModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" id="closeSettingsModal"></div>
+    <section class="modal-panel settings-panel" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <header class="modal-header">
+        <strong id="settingsModalTitle">Einstellungen</strong>
+        <button id="closeSettingsModalButton" type="button" aria-label="Schließen">Schließen</button>
+      </header>
+      <div class="settings-tabs" role="tablist" aria-label="Einstellungsbereiche">
+        <button id="settingsTabFolders" type="button" role="tab" aria-selected="true" aria-controls="settingsFolders">Ordner</button>
+        <button id="settingsTabPlugins" type="button" role="tab" aria-selected="false" aria-controls="settingsPlugins" tabindex="-1">Plugins</button>
+      </div>
+      <div class="settings-body">
+        <section id="settingsFolders" role="tabpanel" aria-labelledby="settingsTabFolders">
+          <div id="workspaceRestartBanner" class="marketplace-restart" hidden>
+            <span>Der Ordner wird erst nach einem Neustart des Servers verwendet.</span>
+            <button id="workspaceRestart" type="button">{{ icon('refresh') }} <span>Server neu starten</span></button>
+          </div>
+          <form id="workspaceForm" novalidate>
+            <div class="workspace-heading"><label for="workspacePath">Inhaltsordner</label> <span id="workspaceState" class="plugin-badge"></span></div>
+            <p class="muted">Hier liegen Material, Wissen, eigene Vorlagen und Plugins, getrennt vom Programm. Diesen Ordner können Sie synchronisieren. Leer bedeutet: <span id="workspaceDefault"></span>. Die Einstellung gilt nur für diesen Rechner.</p>
+            <input id="workspacePath" type="text" placeholder="z. B. ~/Dokumente/material" spellcheck="false" autocomplete="off">
+            <footer class="workspace-footer">
+              <label><input id="workspaceCreate" type="checkbox"> Ordner anlegen, falls er fehlt</label>
+              <button id="workspaceSave" type="submit">Ordner übernehmen</button>
+            </footer>
+            <p id="workspaceStatus" class="muted" role="status"></p>
+          </form>
+          <h4>Was liegt wo</h4>
+          <dl class="workspace-places">
+            <dt>Programm</dt><dd id="workspaceCode"></dd>
+            <dt>Inhalte derzeit</dt><dd id="workspaceCurrent"></dd>
+          </dl>
+          <dl class="workspace-places">
+            <dt>unterricht/</dt><dd>Material und Kurse</dd>
+            <dt>wissen/</dt><dd>Wissensbasis</dd>
+            <dt>ressourcen/quellen/</dt><dd>Originalquellen</dd>
+            <dt>src/quarto/_local/</dt><dd>Eigene Vorlagen (übrige Dateien unter src/ verwaltet das Programm)</dd>
+            <dt>plugins/</dt><dd>Eigene Plugins</dd>
+            <dt>build/</dt><dd>Erzeugte PDFs, nicht synchronisieren</dd>
+          </dl>
+          <p class="muted">Vorhandene Inhalte werden nicht automatisch verschoben.</p>
+        </section>
+        <section id="settingsPlugins" class="marketplace-section" role="tabpanel" aria-labelledby="settingsTabPlugins" hidden>
+          <header class="marketplace-header">
+            <h3 id="marketplaceTitle">Marketplace</h3>
+            <div class="marketplace-actions">
+              <input id="marketplaceSearch" type="search" placeholder="Plugins suchen …" autocomplete="off" aria-label="Plugins suchen">
+              <button id="marketplaceRefresh" type="button" title="Katalog aktualisieren">{{ icon('refresh') }} <span>Aktualisieren</span></button>
+            </div>
+          </header>
+          <p class="muted">Plugins installieren, aktivieren und deinstallieren. Der Katalog ist ein git-Repository; Abhängigkeiten werden automatisch mit installiert.</p>
+          <p id="marketplaceStatus" class="muted" role="status"></p>
+          <div id="marketplaceRestartBanner" class="marketplace-restart" hidden>
+            <span>Änderungen werden erst nach einem Neustart des Servers wirksam.</span>
+            <button id="marketplaceRestart" type="button" title="Material-UI-Server neu starten">{{ icon('refresh') }} <span>Server neu starten</span></button>
+          </div>
+          <h4>Installiert</h4>
+          <ul id="marketplaceInstalled" class="plugin-list" aria-live="polite"></ul>
+          <h4>Verfügbar</h4>
+          <ul id="marketplaceAvailable" class="plugin-list" aria-live="polite"></ul>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <script src="{{ asset_url('editor.bundle.js') }}"></script>
+  <script type="module" src="{{ asset_url('app.js') }}"></script>
+</body>
+</html>

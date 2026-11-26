@@ -1,0 +1,113 @@
+/* Kurs-Plugin: Ansichten "Kurse" und "Kurs-Sync" in der Seitenleiste.
+   Die Grundformatierung (Innenabstand, Kopfzeile, Status) steht hier selbst und leiht sich
+   nichts vom Kalender-Plugin: Es kann deaktiviert sein oder seine Klassen aendern. */
+.kurse-view, .ksync { padding: 10px 12px; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.kurse-header, .ksync-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.kurse-header > div, .ksync-header > div { min-width: 0; }
+.kurse-header h2, .ksync-header h2 { margin: 0; }
+.kurse-header p, .ksync-header p { margin: 2px 0 0; font-size: var(--fs-sm); }
+.ksync-header button { flex: 0 0 auto; min-height: 36px; padding: 4px 7px; border: 0; background: transparent; box-shadow: none; color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.ksync-header button:hover { background: color-mix(in srgb, var(--accent) 10%, var(--panel)); color: var(--accent); }
+.ksync-header button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ksync-status { margin: 0 0 8px; font-size: .8rem; color: var(--muted); }
+.ksync-status:empty { display: none; }
+.ksync-status.error { color: var(--danger); }
+#viewSection-kurse .index-list button { width: 100%; text-align: left; }
+
+/* Ansicht "Kurs-Sync": Sync-Grad je Kurs und Plattform.
+   Statusfarben: aktuell = Erfolg, lokal geändert = Hinweis; "Stand nicht erfasst" ist
+   schraffiert und "fehlt" leer, damit die Zustände auch ohne Farbe unterscheidbar sind. */
+.ksync {
+  --ksync-synced: var(--success);
+  --ksync-changed: var(--token-highlight);
+  --ksync-unknown: color-mix(in srgb, var(--muted) 78%, var(--panel));
+  --ksync-track: color-mix(in srgb, var(--muted) 16%, var(--panel));
+  --ksync-col-width: 52px;
+}
+
+.ksync-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 0 12px; padding: 0; font-size: var(--fs-sm); color: var(--muted); }
+.ksync-legend li { display: flex; align-items: center; gap: 5px; }
+
+.ksync-courses { display: grid; gap: 10px; }
+.ksync-course { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--panel); }
+.ksync-course > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ksync-course-title { min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; color: var(--text); font-size: var(--fs-base); font-weight: 650; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.ksync-course-title:hover { color: var(--accent); text-decoration: underline; background: transparent; }
+.ksync-course-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ksync-course-meta { flex: 0 0 auto; font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+
+.ksync-platform + .ksync-platform { margin-top: 10px; }
+.ksync-platform-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--fs-md); }
+.ksync-platform-label { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ksync-host { display: block; font-size: var(--fs-sm); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ksync-platform > .ksync-bar { margin-top: 5px; }
+a.ksync-host:hover { color: var(--accent); }
+.ksync-degree { flex: 0 0 auto; font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ksync-degree strong { font-size: var(--fs-base); color: var(--text); }
+
+/* Gestapelter Balken: 2px Lücke zwischen den Segmenten, abgerundete Enden. */
+.ksync-bar { display: flex; gap: 2px; height: 10px; border-radius: 4px; overflow: hidden; }
+.ksync-seg { flex: 1 0 3px; min-width: 3px; }
+.ksync-synced { background: var(--ksync-synced); }
+.ksync-changed { background: var(--ksync-changed); }
+.ksync-unknown { background: repeating-linear-gradient(135deg, var(--ksync-unknown) 0 3px, var(--ksync-track) 3px 6px); }
+.ksync-missing, .ksync-none { background: var(--ksync-track); }
+.ksync-note { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--muted); }
+.ksync-updated { white-space: nowrap; }
+.ksync-error { margin: 0; font-size: var(--fs-sm); color: var(--danger); overflow-wrap: anywhere; }
+.ksync-footnote { margin: 12px 0 4px; font-size: var(--fs-sm); color: var(--muted); }
+
+/* Einzelstatus (Legende und Aktivitätszeilen). */
+.ksync-cell { display: inline-block; flex: 0 0 auto; width: 10px; height: 10px; border-radius: 3px; box-sizing: border-box; }
+.ksync-cell.ksync-missing { background: transparent; border: 1.5px solid color-mix(in srgb, var(--muted) 55%, var(--panel)); }
+.ksync-cell.ksync-excluded { height: 2px; border-radius: 1px; background: color-mix(in srgb, var(--muted) 55%, var(--panel)); }
+
+/* Kapitel-Matrix: Titelspalte + eine schmale Spalte je Plattform. */
+.ksync-chapters { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 6px; }
+.ksync-chapters > summary { cursor: pointer; font-size: var(--fs-sm); color: var(--muted); padding: 2px 0; }
+.ksync-chapters > summary:hover { color: var(--accent); }
+.ksync-chapter-list, .ksync-activities { list-style: none; margin: 0; padding: 0; }
+.ksync-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--ksync-cols, 1), var(--ksync-col-width)); align-items: center; gap: 6px; padding: 3px 0; font-size: var(--fs-sm); }
+.ksync-row-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ksync-chapter-list summary.ksync-row { cursor: pointer; list-style: none; }
+.ksync-chapter-list summary.ksync-row::-webkit-details-marker { display: none; }
+.ksync-chapter-list summary .ksync-row-title { display: flex; align-items: baseline; gap: 6px; }
+.ksync-row-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ksync-chapter-list summary .ksync-row-title::before { content: "▸"; flex: 0 0 auto; width: .6em; color: var(--muted); }
+.ksync-chapter-list details[open] > summary .ksync-row-title::before { content: "▾"; }
+.ksync-chapter-list summary:hover .ksync-row-title { color: var(--accent); }
+.ksync-chapter-list summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 4px; }
+.ksync-cols { color: var(--muted); font-size: var(--fs-xs); padding-bottom: 0; }
+.ksync-col { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+.ksync-mini { height: 8px; width: var(--ksync-col-width); }
+.ksync-mini-excluded { display: block; height: 2px; border-radius: 1px; background: color-mix(in srgb, var(--muted) 55%, var(--panel)); }
+.ksync-activities { padding-left: 1em; margin-bottom: 4px; }
+.ksync-activities .ksync-row { color: var(--muted); padding: 2px 0; }
+.ksync-activities .ksync-cell { justify-self: center; }
+.ksync-skip { flex: 0 0 auto; color: var(--muted); }
+.ksync-row-skipped .ksync-row-text { color: var(--muted); }
+
+/* Moodle-Ziele anlegen und bearbeiten (Kurs-Sync) */
+.ksync-link { padding: 2px 0; min-height: 0; border: 0; background: transparent; box-shadow: none; color: var(--muted); font-size: var(--fs-sm); text-align: left; cursor: pointer; }
+.ksync-link:hover { color: var(--accent); text-decoration: underline; background: transparent; }
+.ksync-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ksync-platform > .ksync-link { margin-top: 2px; }
+.ksync-target-actions { margin-top: 8px; }
+.ksync-target-form { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--muted) 6%, var(--panel)); }
+.ksync-target-form h4 { margin: 0; font-size: var(--fs-md); }
+.ksync-target-form label { display: grid; gap: 3px; font-size: var(--fs-sm); color: var(--muted); }
+.ksync-target-form input, .ksync-target-form select { width: 100%; min-width: 0; box-sizing: border-box; }
+.ksync-target-form input[readonly] { opacity: .75; }
+.ksync-advanced { display: grid; gap: 8px; }
+.ksync-advanced > summary { cursor: pointer; font-size: var(--fs-sm); color: var(--muted); }
+.ksync-advanced > summary:hover { color: var(--accent); }
+.ksync-advanced[open] > summary { margin-bottom: 8px; }
+.ksync-form-error { margin: 0; font-size: var(--fs-sm); color: var(--danger); overflow-wrap: anywhere; }
+.ksync-form-error:empty { display: none; }
+.ksync-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ksync-target-form .ksync-note { margin: 0; overflow-wrap: anywhere; }
+.ksync-target-form code { font-size: .95em; }
+
+@media (forced-colors: active) {
+  .ksync-seg, .ksync-cell { forced-color-adjust: none; }
+}

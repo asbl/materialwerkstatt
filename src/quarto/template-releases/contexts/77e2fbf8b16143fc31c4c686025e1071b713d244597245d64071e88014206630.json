@@ -1,0 +1,20 @@
+{
+  "files": {
+    "src/quarto/template-releases/contexts/assets/9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4.tex": "9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4"
+  },
+  "options": {
+    "geometry": [
+      "paperwidth=595.304bp",
+      "paperheight=841.89bp",
+      "margin=0pt"
+    ],
+    "include-in-header": [
+      "src/quarto/template-releases/contexts/assets/9d003edc848975ea3a101810ab5099f7c05762a9973c2041123754124d8e5cc4.tex"
+    ],
+    "keep-tex": true,
+    "papersize": "a4",
+    "pdf-engine": "lualatex",
+    "toc": false
+  },
+  "original": {}
+}

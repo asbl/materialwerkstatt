@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${TITLE}</title>
+    ${METADATA}
+    <style>
+      :root {
+        color-scheme: light;
+        --page: #f6f8fb;
+        --surface: #ffffff;
+        --surface-soft: #f9fafb;
+        --ink: #172033;
+        --muted: #64748b;
+        --accent: ${COURSE_COLOR};
+        --accent-strong: color-mix(in srgb, ${COURSE_COLOR} 82%, #0f172a);
+        --accent-soft: #dbeafe;
+        --border: #d8dee8;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        --topbar-height: 61px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--page);
+      }
+      a { color: inherit; }
+      .course-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(12px);
+      }
+      .course-topbar-inner {
+        width: min(1120px, calc(100% - 32px));
+        min-height: var(--topbar-height);
+        margin: 0 auto;
+        padding: 12px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .course-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        color: inherit;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .course-brand:hover,
+      .course-brand:focus-visible { color: var(--accent-strong); }
+      .course-topbar-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        flex: 0 0 auto;
+      }
+      .course-topbar-link {
+        color: var(--muted);
+        font-size: 0.95rem;
+        font-weight: 750;
+        text-decoration: none;
+      }
+      .course-topbar-link:hover,
+      .course-topbar-link:focus-visible {
+        color: var(--ink);
+        text-decoration: underline;
+      }
+      .course-brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        background: var(--accent);
+        box-shadow: inset 0 -8px 14px rgba(0, 0, 0, 0.16);
+      }
+      .course-shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 72px;
+      }
+      .course-workspace {
+        display: grid;
+        grid-template-columns: 286px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+      .course-sidebar {
+        position: sticky;
+        top: calc(var(--topbar-height) + 18px);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .course-sidebar-title {
+        margin: 0;
+        padding: 12px 14px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+      }
+      .course-activity-nav {
+        display: grid;
+        gap: 0;
+        max-height: calc(100vh - var(--topbar-height) - 120px);
+        overflow-y: auto;
+      }
+      .course-chapter {
+        border-bottom: 1px solid var(--border);
+      }
+      .course-chapter:last-child { border-bottom: 0; }
+      .course-chapter-button,
+      .course-activity-button {
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr) 16px;
+        gap: 9px;
+        align-items: start;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .course-chapter-button {
+        align-items: center;
+        background: var(--surface);
+        border-bottom: 0;
+        font-weight: 720;
+      }
+      .course-chapter-button:hover,
+      .course-chapter-button:focus-visible,
+      .course-activity-button:hover,
+      .course-activity-button:focus-visible {
+        background: var(--surface-soft);
+      }
+      .chapter-chevron {
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1;
+        transform: rotate(-90deg);
+        transition: transform 140ms ease;
+      }
+      .course-chapter-button[aria-expanded="true"] .chapter-chevron {
+        transform: rotate(0deg);
+      }
+      .course-subactivity-list {
+        display: grid;
+        margin: 0;
+        padding: 0 0 6px 31px;
+      }
+      .course-subactivity-list[hidden] { display: none; }
+      .course-activity-button {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 36px;
+        padding: 7px 10px 7px 12px;
+        border-bottom: 0;
+        border-left: 2px solid var(--border);
+        color: var(--muted);
+      }
+      .course-activity-button[aria-selected="true"] {
+        background: color-mix(in srgb, var(--accent) 11%, #fff);
+        border-left-color: var(--accent);
+        color: var(--ink);
+      }
+      .activity-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--accent) 16%, #fff);
+        color: var(--accent-strong);
+        font-size: 0.74rem;
+        font-weight: 800;
+      }
+      .activity-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-size: 0.92rem;
+        font-weight: 680;
+        line-height: 1.25;
+      }
+      .course-activity-button .activity-label {
+        font-size: 0.88rem;
+        font-weight: 650;
+      }
+      .course-content {
+        min-width: 0;
+      }
+      .course-player {
+        display: grid;
+        gap: 14px;
+      }
+      .course-player-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 48px;
+      }
+      .course-player-title {
+        min-width: 0;
+      }
+      .course-player-eyebrow {
+        margin: 0 0 3px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      .course-player-title h2 {
+        margin: 0;
+        font-size: 1.18rem;
+        line-height: 1.25;
+        font-weight: 740;
+      }
+      .course-player-actions {
+        display: inline-flex;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+      .course-step-button {
+        min-height: 36px;
+        padding: 7px 12px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .course-step-button:hover,
+      .course-step-button:focus-visible {
+        border-color: #b8c5d8;
+        background: var(--surface-soft);
+      }
+      .course-step-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+      .course-h5p-frame-wrap {
+        min-height: 620px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .course-h5p-frame {
+        display: block;
+        width: 100%;
+        height: min(76vh, 820px);
+        min-height: 620px;
+        border: 0;
+        background: #fff;
+      }
+      .course-empty-state {
+        padding: 22px;
+        color: var(--muted);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .course-hero {
+        margin: 0 0 26px;
+        padding: 0 0 22px;
+        border-bottom: 1px solid var(--border);
+      }
+      .course-eyebrow {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .course-title {
+        margin: 0;
+        font-size: 2rem;
+        line-height: 1.15;
+        font-weight: 760;
+      }
+      .course-subtitle {
+        max-width: 780px;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.55;
+      }
+      h1, h2, h3 {
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+      p, li {
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+      pre {
+        overflow-x: auto;
+        padding: 14px;
+        border-radius: 8px;
+        background: #111827;
+        color: #f8fafc;
+      }
+      code { font-family: "Fira Code", "SFMono-Regular", Consolas, monospace; }
+      .course-section {
+        margin: 0 0 22px;
+        padding: 0;
+      }
+      .course-source-content {
+        display: none;
+      }
+      .course-section[hidden] { display: none; }
+      .course-section-header {
+        margin: 0 0 10px;
+        padding: 0;
+      }
+      .course-section-header h1,
+      .course-section-header h2,
+      .course-section-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 720;
+      }
+      .course-section-body {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        border-top: 4px solid var(--accent);
+      }
+      .course-section-body > p,
+      .course-section-body > ul,
+      .course-section-body > pre {
+        margin: 0;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+      .python-question-card {
+        margin: 0;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .course-section-body > .python-question-card:first-child,
+      .course-section-body > p + .python-question-card,
+      .course-section-body > ul + .python-question-card,
+      .course-section-body > pre + .python-question-card {
+        border-top: 0;
+      }
+      .question-toolbar {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 56px;
+        padding: 10px 14px;
+      }
+      .question-type-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+      .question-toolbar-title {
+        min-width: 0;
+        font-size: 0.98rem;
+        font-weight: 650;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .question-toolbar-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+      .question-action-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        text-decoration: none;
+        color: var(--muted);
+        background: var(--surface-soft);
+        border: 1px solid var(--border);
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 620;
+      }
+      .question-action-link:hover,
+      .question-action-link:focus-visible {
+        border-color: #b8c5d8;
+        color: var(--ink);
+      }
+      .question-action-link.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .question-action-link.primary:hover,
+      .question-action-link.primary:focus-visible {
+        background: var(--accent-strong);
+        border-color: var(--accent-strong);
+      }
+      .question-unavailable {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        border: 1px solid #f7c35f;
+        background: #fff7df;
+        color: #92400e;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+      @media (max-width: 720px) {
+        .course-topbar-inner,
+        .course-shell {
+          width: min(100% - 24px, 1120px);
+        }
+        .course-workspace {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+        .course-sidebar {
+          position: sticky;
+          top: calc(var(--topbar-height) + 8px);
+        }
+        .course-activity-nav {
+          max-height: calc(42vh - var(--topbar-height) / 2);
+        }
+        .course-subactivity-list {
+          padding-left: 24px;
+        }
+        .course-title { font-size: 1.55rem; }
+        .course-player-toolbar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .course-player-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .course-h5p-frame,
+        .course-h5p-frame-wrap {
+          min-height: 520px;
+        }
+        .question-toolbar {
+          grid-template-columns: 18px minmax(0, 1fr);
+        }
+        .question-toolbar-actions {
+          grid-column: 2;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="course-topbar">
+      <div class="course-topbar-inner">
+        <a class="course-brand" href="${HOME_HREF}" aria-label="Zur Startseite">
+          <span class="course-brand-mark" aria-hidden="true"></span>
+          <span>Kurse</span>
+        </a>
+        <nav class="course-topbar-actions" aria-label="Seitennavigation">
+          <a class="course-topbar-link" href="${HOME_HREF}#impressum-title">Impressum</a>
+        </nav>
+      </div>
+    </header>
+    <main class="course-shell">
+      <section class="course-hero">
+        <p class="course-eyebrow">Kursübersicht</p>
+        <h1 class="course-title">${TITLE}</h1>
+      </section>
+      <div class="course-workspace">
+        <aside class="course-sidebar" aria-label="Aktivitäten">
+          <p class="course-sidebar-title">Aktivitäten</p>
+          <nav class="course-activity-nav" id="course-activity-nav"></nav>
+        </aside>
+        <div class="course-content">
+          <section class="course-player" id="course-player" aria-live="polite">
+            <div class="course-player-toolbar">
+              <div class="course-player-title">
+                <p class="course-player-eyebrow" id="course-player-chapter">Aktivität</p>
+                <h2 id="course-player-title">Bitte Aktivität wählen</h2>
+              </div>
+              <div class="course-player-actions">
+                <button class="course-step-button" type="button" id="course-prev-button">Zurück</button>
+                <button class="course-step-button" type="button" id="course-next-button">Weiter</button>
+              </div>
+            </div>
+            <div class="course-h5p-frame-wrap" id="course-frame-wrap">
+              <iframe class="course-h5p-frame" id="course-h5p-frame" title="H5P-Aktivität"></iframe>
+            </div>
+            <p class="course-empty-state" id="course-empty-state" hidden>In diesem Kurs wurde keine H5P-Aktivität gefunden.</p>
+          </section>
+        </div>
+        <div class="course-source-content" id="course-content" aria-hidden="true">
+          ${CONTENT_HTML}
+        </div>
+      </div>
+    </main>
+    <script>
+      const sections = [...document.querySelectorAll(".course-section")];
+      const nav = document.getElementById("course-activity-nav");
+      const frame = document.getElementById("course-h5p-frame");
+      const frameWrap = document.getElementById("course-frame-wrap");
+      const emptyState = document.getElementById("course-empty-state");
+      const playerTitle = document.getElementById("course-player-title");
+      const playerChapter = document.getElementById("course-player-chapter");
+      const prevButton = document.getElementById("course-prev-button");
+      const nextButton = document.getElementById("course-next-button");
+      const courseSlug = window.location.pathname.match(/\/courses\/([^/]+)/)?.[1] || "${TITLE}";
+      const chapterGroups = new Map();
+      sections.forEach((section, index) => {
+        const heading = section.querySelector(".course-section-header h1, .course-section-header h2, .course-section-header h3");
+        section.querySelectorAll(".python-question-card").forEach((card) => {
+          const slug = card.dataset.chapter || `section-${index + 1}`;
+          const label = card.dataset.chapterTitle || (heading ? heading.textContent.trim() : `Kapitel ${index + 1}`);
+          if (!chapterGroups.has(slug)) chapterGroups.set(slug, { slug, label, questions: [] });
+          const title = card.querySelector(".question-toolbar-title")?.textContent.trim() || "H5P-Aktivität";
+          const openLink = card.querySelector(".question-action-link.primary")?.getAttribute("href") || "";
+          const questionId = card.getAttribute("data-question-id") || card.id.replace(/^question-/, "");
+          ${PREVIEW_HREF_LINE}
+          chapterGroups.get(slug).questions.push({ title, questionId, href: ${QUESTION_HREF_EXPR} });
+        });
+      });
+      const chapters = [...chapterGroups.values()];
+      const activities = chapters.flatMap((chapter, chapterIndex) =>
+        chapter.questions.map((question, questionIndex) => ({ ...question, chapter: chapter.label, chapterIndex, questionIndex }))
+      );
+      const activityButtons = [];
+      const chapterButtons = [];
+      const chapterLists = [];
+      let activeIndex = 0;
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type !== "course-sync:navigate-course-overview") return;
+        try {
+          const targetUrl = new URL(String(event.data.href || ""), window.location.href);
+          if (targetUrl.origin === window.location.origin) {
+            window.location.href = targetUrl.href;
+          }
+        } catch (error) {}
+      });
+
+      function setChapterExpanded(chapterIndex, expanded) {
+        chapterButtons[chapterIndex]?.setAttribute("aria-expanded", expanded ? "true" : "false");
+        if (chapterLists[chapterIndex]) chapterLists[chapterIndex].hidden = !expanded;
+      }
+
+      function selectActivity(nextIndex) {
+        if (!activities.length) {
+          frameWrap.hidden = true;
+          emptyState.hidden = false;
+          prevButton.disabled = true;
+          nextButton.disabled = true;
+          return;
+        }
+        activeIndex = Math.max(0, Math.min(nextIndex, activities.length - 1));
+        const activity = activities[activeIndex];
+        setChapterExpanded(activity.chapterIndex, true);
+        activityButtons.forEach((button, index) => {
+          button.setAttribute("aria-selected", index === activeIndex ? "true" : "false");
+        });
+        playerChapter.textContent = activity.chapter;
+        playerTitle.textContent = activity.title;
+        frame.title = activity.title;
+        if (frame.getAttribute("src") !== activity.href) frame.setAttribute("src", activity.href);
+        prevButton.disabled = activeIndex === 0;
+        nextButton.disabled = activeIndex === activities.length - 1;
+      }
+
+      chapters.forEach((chapter, chapterIndex) => {
+        const chapterElement = document.createElement("section");
+        chapterElement.className = "course-chapter";
+
+        const chapterButton = document.createElement("button");
+        chapterButton.className = "course-chapter-button";
+        chapterButton.type = "button";
+        chapterButton.setAttribute("aria-expanded", chapterIndex === 0 ? "true" : "false");
+        chapterButton.innerHTML = `<span class="activity-number">${chapterIndex + 1}</span><span class="activity-label"></span><span class="chapter-chevron">▾</span>`;
+        chapterButton.querySelector(".activity-label").textContent = chapter.label;
+
+        const subList = document.createElement("div");
+        subList.className = "course-subactivity-list";
+        subList.hidden = chapterIndex !== 0;
+
+        chapter.questions.forEach((question) => {
+          const activityIndex = activityButtons.length;
+          const button = document.createElement("button");
+          button.className = "course-activity-button";
+          button.type = "button";
+          button.setAttribute("aria-selected", activityIndex === 0 ? "true" : "false");
+          button.innerHTML = `<span class="activity-label"></span>`;
+          button.querySelector(".activity-label").textContent = question.title;
+          button.addEventListener("click", () => selectActivity(activityIndex));
+          activityButtons.push(button);
+          subList.appendChild(button);
+        });
+
+        chapterButton.addEventListener("click", () => {
+          const expanded = chapterButton.getAttribute("aria-expanded") === "true";
+          setChapterExpanded(chapterIndex, !expanded);
+          if (!expanded && chapter.questions.length) {
+            const firstActivityIndex = activities.findIndex((activity) => activity.chapterIndex === chapterIndex);
+            if (firstActivityIndex >= 0) selectActivity(firstActivityIndex);
+          }
+        });
+
+        chapterButtons.push(chapterButton);
+        chapterLists.push(subList);
+        chapterElement.append(chapterButton, subList);
+        nav.appendChild(chapterElement);
+      });
+
+      prevButton.addEventListener("click", () => selectActivity(activeIndex - 1));
+      nextButton.addEventListener("click", () => selectActivity(activeIndex + 1));
+      function selectChapterFromHash() {
+        const chapterSlug = new URLSearchParams(window.location.hash.slice(1)).get("chapter");
+        const chapterIndex = chapters.findIndex((chapter) => chapter.slug === chapterSlug);
+        const activityIndex = activities.findIndex((activity) => activity.chapterIndex === chapterIndex);
+        selectActivity(activityIndex >= 0 ? activityIndex : 0);
+      }
+
+      window.addEventListener("hashchange", selectChapterFromHash);
+      selectChapterFromHash();
+    </script>
+  </body>
+</html>

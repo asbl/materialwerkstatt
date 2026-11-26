@@ -1,0 +1,27 @@
+#let primary = rgb("#2f5bea")
+#let primary-light = rgb("#fff6d6")
+#let ink = rgb("#1e1b3a")
+#let light-gray = rgb("#fff6d6")
+#let mid-gray = rgb("#cccccc")
+#let rule-gray = rgb("#aaaaaa")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Material Outfit", "Noto Sans")
+#let title-font = ("Material Pixelify Sans", "Noto Sans")
+#let title-weight = "bold"
+#let heading-weight = "semibold"
+#show heading: set text(font: heading-font, weight: heading-weight)
+#let body-font = ("TeX Gyre Heros", "Noto Sans", "Liberation Sans")
+#let mono-font = ("DejaVu Sans Mono", "Noto Sans Mono")
+#let design-name = "Fördermaterial · Klasse 5 (Retro)"
+#let design-accent = rgb("#ffc933")
+#let design-radius = 0pt
+#let design-pixel = true
+#let design-heading-ink = ink
+#let design-motif = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M18 2h8v8h8v8h-8v8h-8v-8h-8v-8h8z\" fill=\"#ffc933\"/><path d=\"M43 27h6v6h6v6h-6v6h-6v-6h-6v-6h6z\" fill=\"#2f5bea\"/></svg>"
+#let design-compact = false
+#let design-cover-motif = ""
+
+$exam-functions.typst()$
+
+$worksheet-design.typst()$

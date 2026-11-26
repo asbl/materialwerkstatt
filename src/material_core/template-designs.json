@@ -1,0 +1,66 @@
+[
+  {
+    "id": "foerdermaterial",
+    "label": "Fördermaterial · Klasse 5 (Retro)",
+    "primary": "#2f5bea",
+    "paper": "#fff6d6",
+    "accent": "#ffc933",
+    "ink": "#1e1b3a",
+    "radius": 0,
+    "font": "Pixelify Sans",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M18 2h8v8h8v8h-8v8h-8v-8h-8v-8h8z\" fill=\"#ffc933\"/><path d=\"M43 27h6v6h6v6h-6v6h-6v-6h-6v-6h6z\" fill=\"#2f5bea\"/></svg>",
+    "description": "Klare Lernflächen, gelbe Register und kräftige Pixelrahmen für die Klasse 5.",
+    "deck_heading_font": "Code",
+    "pixel": true
+  },
+  {
+    "id": "retro",
+    "label": "Retro",
+    "primary": "#7041ac",
+    "paper": "#f2eafa",
+    "accent": "#f5bb40",
+    "ink": "#29213e",
+    "radius": 0,
+    "font": "Pixelify Sans",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M18 2h8v8h8v8h-8v8h-8v-8h-8v-8h8z\" fill=\"#f5bb40\"/><path d=\"M43 27h6v6h6v6h-6v6h-6v-6h-6v-6h6z\" fill=\"#7041ac\"/></svg>",
+    "description": "Arcade-Fenster mit harten Pixelschatten, violetten Statusleisten und gelben Rasterakzenten.",
+    "deck_heading_font": "Code",
+    "pixel": true
+  },
+  {
+    "id": "fussball",
+    "label": "Fußball",
+    "primary": "#22683e",
+    "paper": "#ecf4ed",
+    "accent": "#98b749",
+    "ink": "#20382b",
+    "radius": 2,
+    "font": "Noto Sans",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><rect x=\"2\" y=\"3\" width=\"60\" height=\"48\" rx=\"2\" fill=\"#22683e\"/><path d=\"M7 8h50v38H7zM32 8v38\" fill=\"none\" stroke=\"#fff\"/><circle cx=\"32\" cy=\"27\" r=\"11\" fill=\"#fff\"/><path d=\"m32 20 7 5-3 8h-8l-3-8z\" fill=\"#24372e\"/></svg>",
+    "description": "Gestreifter Rasen, weiße Spielfeldlinien, Mittelkreis und klare Trainingsflächen."
+  },
+  {
+    "id": "reiten",
+    "label": "Reiten",
+    "primary": "#815538",
+    "paper": "#f7f0e7",
+    "accent": "#b78a67",
+    "ink": "#47372f",
+    "radius": 6,
+    "font": "Noto Serif",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M15 8q17-14 34 0l-4 9q-13-9-26 0L15 8zm4 9L13 38q0 14 12 14h5V41h-5l5-22m15-2 6 21q0 14-12 14h-5V41h5l-5-22\" fill=\"#b78a67\" stroke=\"#815538\" stroke-width=\"3\"/><path d=\"m18 29 6 2m-7 8 6 1m23-11-6 2m7 8-6 1\" stroke=\"#fff\" stroke-width=\"2\"/></svg>",
+    "description": "Warme Sandtöne, feine Sattelnähte, doppelte Lederrahmen und Hürdenleisten."
+  },
+  {
+    "id": "anime",
+    "label": "Anime",
+    "primary": "#973d7d",
+    "paper": "#faf0f7",
+    "accent": "#4e9cb5",
+    "ink": "#382744",
+    "radius": 3,
+    "font": "Noto Sans",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"m33 2 5 17 20-8-12 17 16 10-21-1-3 19-10-17-20 9 12-19L2 19l22 1z\" fill=\"#4e9cb5\" stroke=\"#973d7d\" stroke-width=\"2\"/><path d=\"m44 4 8-3m-2 47 9 5M3 43l9-2\" stroke=\"#973d7d\" stroke-width=\"2\"/></svg>",
+    "description": "Manga-Panels mit schrägen Kanten, schwarzen Schlagschatten, Rasterpunkten und Speedlines."
+  }
+]

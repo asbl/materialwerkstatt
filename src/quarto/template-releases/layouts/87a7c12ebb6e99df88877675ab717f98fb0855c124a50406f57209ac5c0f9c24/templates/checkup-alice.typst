@@ -1,0 +1,49 @@
+// Alice Check-up v1. Eigene, geometrische Motive; keine fremden Bildassets.
+$for(header-includes)$
+$header-includes$
+$endfor$
+#let ink = rgb("#29253f")
+#let primary = rgb("#55427e")
+#let accent = rgb("#9e3155")
+#let paper = rgb("#f0edf7")
+#let body-font = "Noto Sans"
+#set page(paper: "a4", margin: (x: 7mm, top: 7mm, bottom: 9mm),
+  footer: context align(right, text(size: 9pt, fill: primary)[#counter(page).display()]))
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$$if(fontsize)$$fontsize$$else$11pt$endif$$endif$, lang: "de", fill: ink)
+#set par(leading: 0.65em, spacing: 4pt)
+#set enum(tight: false, spacing: 4pt)
+#set heading(numbering: none)
+#show heading.where(level: 1): it => block(above: 6pt, below: 5pt, sticky: true)[#text(size: 12pt, weight: "bold", fill: primary)[#it.body]]
+#show heading.where(level: 2): it => block(above: 7pt, below: 4pt, sticky: true)[#text(size: 11pt, weight: "bold", fill: primary)[#it.body]]
+#show heading.where(level: 3): it => block(above: 8pt, below: 4pt, sticky: true)[#text(size: 11pt, weight: "bold", fill: primary)[#it.body]]
+#set table(stroke: none, inset: (x: 0pt, y: 3pt), column-gutter: 8pt)
+#let alice-mark() = box(width: 31mm, height: 11mm)[
+  // Weißes Kaninchen, Taschenuhr und Spielkarten als ruhiges Titelmotiv.
+  #place(dx: 0mm, dy: 4mm, ellipse(width: 7mm, height: 5mm, fill: white, stroke: 0.7pt + primary))
+  #place(dx: 1mm, dy: 0mm, rotate(-12deg, ellipse(width: 1.8mm, height: 6mm, fill: white, stroke: 0.7pt + primary)))
+  #place(dx: 4mm, dy: 0mm, rotate(12deg, ellipse(width: 1.8mm, height: 6mm, fill: white, stroke: 0.7pt + primary)))
+  #place(dx: 5.2mm, dy: 5.1mm, circle(radius: 0.35mm, fill: primary))
+  #place(dx: 11mm, dy: 1.5mm, circle(radius: 4mm, fill: white, stroke: 0.8pt + primary))
+  #place(dx: 14.2mm, dy: 0mm, rect(width: 1.6mm, height: 1.4mm, fill: primary, stroke: none))
+  #place(dx: 15mm, dy: 3mm, line(end: (0mm, 2.5mm), stroke: 0.7pt + primary))
+  #place(dx: 15mm, dy: 5.5mm, line(end: (2mm, 1mm), stroke: 0.7pt + accent))
+  #place(dx: 23mm, dy: 1mm, rotate(10deg, rect(width: 6mm, height: 9mm, radius: 1pt, fill: white, stroke: 0.6pt + primary)[#align(center, text(fill: accent, size: 12pt)[♦])]))
+]
+#let alice-header() = {
+  block(width: 100%, fill: paper, inset: (x: 8pt, y: 5pt), radius: 3pt)[
+    #grid(columns: (1fr, auto), align: horizon,
+      [#text(size: 17pt, weight: "bold", fill: primary)[$if(title)$$title$$else$Check-up$endif$]], alice-mark())
+  ]
+}
+#let checkpage(rules, tasks) = {
+  alice-header()
+  v(5pt)
+  grid(columns: (49mm, 1fr), column-gutter: 6mm,
+    block(width: 100%, fill: paper, inset: 7pt, radius: 3pt)[#rules],
+    block[#tasks])
+}
+// Mehrspaltige Aufgaben bleiben QMD-Tabellen; das Template entfernt Tabellenränder.
+$if(checkup-solutions)$
+#alice-header()
+$endif$
+$body$

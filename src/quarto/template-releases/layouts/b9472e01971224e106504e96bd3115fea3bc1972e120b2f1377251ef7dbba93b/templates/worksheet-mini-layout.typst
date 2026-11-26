@@ -1,0 +1,66 @@
+// One source body, two equal areas; cut exactly at the middle of A4.
+#set page(paper: "a4", margin: (top: 8mm, bottom: 8mm, left: 12mm, right: 12mm), numbering: none)
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt)$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.65em, spacing: 5pt)
+$exam-functions.typst()$
+
+// Mini-ABs behalten ihre Grundschrift auch im kopfstehenden Lösungskasten.
+#let infobox(title, body) = block(above: 5pt, below: 6pt)[
+  #rect(width: 100%, fill: light-gray, stroke: none, inset: 7pt)[
+    #block(below: 4pt)[#strong(title)]
+    #set par(leading: 0.65em)
+    #body
+  ]
+]
+#let hinweis_gedreht(body) = block(above: 5pt, below: 6pt)[
+  #rotate(180deg, reflow: true)[#block(width: 100%)[#body]]
+]
+
+// The side is determined by the physical PDF page, identically for both copies.
+#let mini_side_label(back) = context box(
+  fill: if back { ink } else { primary },
+  radius: 2pt, inset: (x: 5pt, y: 3pt),
+)[
+  #text(size: calc.max(11pt, text.size), weight: "bold", fill: white)[
+    #if back [Rückseite] else [Vorderseite]
+  ]
+]
+
+#let mini_ab(body) = context {
+  let back = calc.rem(counter(page).get().first(), 2) == 0
+  set text(size: calc.max(11pt, text.size))
+  set par(leading: 0.65em, spacing: 5pt)
+  set table(stroke: none)
+  show heading.where(level: 1): it => block(above: 0pt, below: 10pt, sticky: true)[
+    #rect(width: 100%, fill: if back { white } else { primary-light },
+      stroke: if back { 0.8pt + primary } else { (left: 2pt + mini-accent) },
+      radius: 4pt, inset: (x: 8pt, y: 3pt))[
+      #grid(columns: (1fr, auto, if mini-motif == none { 0mm } else { 9mm }),
+        gutter: 2mm, align: horizon,
+        text(font: title-font, size: calc.max(12pt, text.size), weight: title-weight, fill: primary)[#it.body],
+        mini_side_label(back),
+        if mini-motif != none { image(bytes(mini-motif), width: 9mm, height: 8mm, fit: "contain") },
+      )
+    ]
+  ]
+  show heading.where(level: 2): it => block(above: 14pt, below: 8pt, sticky: true)[
+    #text(font: heading-font, size: calc.max(11pt, text.size), weight: heading-weight, fill: primary)[#it.body]
+  ]
+  block(height: 281mm, breakable: false)[
+    #place(top + center, dy: 140.5mm,
+      line(length: 100%, stroke: (paint: mid-gray, thickness: 0.5pt)))
+    #grid(columns: (1fr,), rows: (140.5mm, 140.5mm), gutter: 0pt,
+      block(inset: (bottom: 4mm), breakable: false)[#body],
+      block(inset: (top: 4mm), breakable: false)[#body],
+    )
+  ]
+}
+
+$if(mini-diagnose)$
+$worksheet-mini-diagnose-layout.typst()$
+$endif$
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+$body$

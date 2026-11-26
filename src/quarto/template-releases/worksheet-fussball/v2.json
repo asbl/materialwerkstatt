@@ -1,0 +1,29 @@
+{
+  "checksum": "7913afbd4dba031475bfdcbe43eb17fccde41ea45d3eede68e14f689039a8d92",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/exam.lua": "ee2bec34fe8f2872460b10034945d1f16c8bf679e8f0209cf2558d2a415c2b20",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "102f9fab1cd393fdda639314680a50714e0f34b28ce6106e6c298f135340dce3",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "templates/exam-functions.typst": "c9e4bfc437c502c9f5d3554faf86572cbaca5a861984153c55e2a841950c2294",
+    "templates/student-fields.typst": "450b928543efa61e75b4535b1cb3f6d5832c53e9fc9f0ebb33a500925c96239c",
+    "templates/worksheet-design.typst": "8f0da87c42e62f6643b777c4dbe17b199da0d6e7f2dc727638b000f6155c8c76",
+    "templates/worksheet-fussball.typst": "789ff4ed531378a6f37298feb8981158f90746e7c7674766a9daa988c8f2f880"
+  },
+  "layout": "src/quarto/template-releases/layouts/40790279201d582975c4e055de319505ee1251d4b82014c86c09040ee1a9b2d8",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "worksheet-fussball.typst",
+  "version": 2
+}

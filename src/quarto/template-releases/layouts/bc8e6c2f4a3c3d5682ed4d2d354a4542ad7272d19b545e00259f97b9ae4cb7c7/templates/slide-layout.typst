@@ -1,0 +1,121 @@
+#let muted = rgb("#555555")
+// Virgil 3 YOFF (Paket rnote-fonts) ist die handschriftliche Excalidraw-Schrift;
+// Excalifont kann bei Installation vorangestellt werden. Ohne Handschrift
+// faellt das Template auf die normale Materialschrift zurueck.
+#let hand-font = ("Virgil 3 YOFF", "Aptos", "Noto Sans")
+// Zaehlt Folien (Level-1-Ueberschriften), nicht Seiten: Eine ueberlaufende
+// Folie behaelt ihre Nummer auf der Fortsetzungsseite, die Titelfolie bleibt
+// ohne Nummer.
+#let folie = counter("folie")
+
+// Infobox/Warnbox/Tippbox: Der exam.lua-Filter uebersetzt die QMD-Marker
+// [Infobox: ...], [Warnbox: ...] und [Tippbox: ...] in Aufrufe dieser Makros.
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+
+#let box_frame(title, body, accent) = block(above: 6pt, below: 7pt)[
+  #rect(width: 100%, fill: accent.lighten(92%), stroke: 0.9pt + accent, radius: 4pt, inset: (x: 8pt, y: 6pt))[
+    #block(below: 3pt)[
+      #text(size: 15pt, fill: accent)[#title]
+    ]
+    #set text(size: 12.5pt)
+    #set par(leading: 0.7em)
+    #body
+  ]
+]
+#let infobox(title, body) = box_frame(title, body, primary)
+#let warnbox(title, body) = box_frame(title, body, warn)
+#let tippbox(title, body) = box_frame(title, body, tip)
+
+#set page(
+  background: background,
+  fill: paper,
+  width: 160mm,
+  height: 90mm,
+  margin: (top: if background == none { 11mm } else { 4mm }, right: 12mm, bottom: 9mm, left: 12mm),
+  footer: context {
+    let num = folie.get().first()
+    if background == none { align(
+      right,
+      text(font: hand-font, size: 9pt, fill: muted)[
+        $if(title)$$title$$else$Praesentation$endif$#if num > 0 [ · Folie #num]
+      ],
+    ) }
+  },
+  foreground: context {
+    if background != none {
+      place(bottom + left, dx: 5mm, dy: -2.2mm,
+        text(font: hand-font, size: 7pt, fill: ink)[$if(title)$$title$$else$Praesentation$endif$])
+      place(bottom + right, dx: -5mm, dy: -2.2mm,
+        text(font: hand-font, size: 7.5pt, fill: ink)[#folie.display()])
+    }
+  },
+)
+
+#set text(font: hand-font, size: $if(template-fontsize)$$template-fontsize$$else$13pt$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.75em)
+#set list(indent: 0.6em, spacing: 0.75em, marker: ([•], [–], [·]))
+// Bilder und Modell-Zeichungen auf die Folienhoehe begrenzen: contain
+// skaliert uebergrosse Abbildungen proportional herunter, so dass die
+// Folien-Ueberschrift nicht als Waise vor dem Umbruch stehen bleibt.
+// 48 mm lassen mit Überschrift und Absatzabstand Spielraum bis zur
+// 70 mm hohen Flaeche; contain skaliert kleinere Abbildungen hoch.
+#set image(height: 48mm, fit: "contain")
+
+// Erst bei bekannter Breite messen, dann die gesamte Folie proportional
+// verkleinern. Modelle und Gesprächsimpuls bleiben dadurch auf derselben Seite.
+#let fit-slide(body, area-height) = layout(size => {
+  let natural = measure(block(width: size.width, body))
+  let factor = if natural.height > 0pt { calc.min(1, area-height / natural.height) } else { 1 }
+  scale(x: factor * 100%, y: factor * 100%, origin: top + left, reflow: true,
+    block(width: size.width, body))
+})
+
+#let slide(title, body) = {
+  pagebreak(weak: true)
+  folie.step()
+  let body-height = if background == none { 54mm } else { 58mm }
+  block(breakable: false, above: 0pt, below: 0pt)[
+    #stack(dir: ttb, spacing: 0pt,
+      block(width: 100%, height: 11mm, above: 0pt, below: 0pt)[
+        #fit-slide(text(font: hand-font, size: 21pt, fill: slide-heading-ink, title), 11mm)
+      ],
+      v(if background == none { 2mm } else { 5mm }),
+      block(width: 100%, height: body-height, above: 0pt, below: 0pt)[
+        #fit-slide(body, body-height)
+      ],
+    )
+  ]
+}
+
+#show heading.where(level: 2): it => block(above: 3pt, below: 3pt)[
+  #text(font: hand-font, size: 15pt, fill: ink)[#it.body]
+]
+
+$if(slide-cover)$
+#block(width: 100%, height: 68mm, breakable: false)[
+#fit-slide([
+  #v(16mm)
+  #align(center)[
+    #text(font: hand-font, size: 30pt, fill: primary)[
+      $if(title)$$title$$else$Praesentation$endif$
+    ]
+  ]
+  $if(subtitle)$
+  #v(5mm)
+  #align(center)[#text(font: hand-font, size: 16pt, fill: muted)[$subtitle$]]
+  $endif$
+$if(slide-cover-content)$
+  #v(4mm)
+  $slide-cover-content$
+  $endif$
+], 68mm)
+]
+
+$endif$
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$body$

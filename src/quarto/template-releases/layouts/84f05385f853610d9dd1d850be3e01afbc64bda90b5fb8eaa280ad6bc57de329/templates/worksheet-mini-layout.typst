@@ -1,0 +1,45 @@
+// One source body, two equal areas; cut exactly at the middle of A4.
+#set page(paper: "a4", margin: (top: 8mm, bottom: 8mm, left: 12mm, right: 12mm), numbering: none)
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$calc.max($if(fontsize)$$fontsize$$else$11pt$endif$, 11pt)$endif$, lang: "de", fill: ink)
+#set par(justify: false, leading: 0.4em, spacing: 5pt)
+$exam-functions.typst()$
+
+#let mini_ab(body) = {
+  set text(size: 11pt)
+  set par(leading: 0.4em, spacing: 5pt)
+  set table(stroke: none)
+  show heading.where(level: 1): it => block(above: 0pt, below: 6pt, sticky: true)[
+    #rect(width: 100%, fill: primary-light, radius: 4pt, inset: (x: 8pt, y: 5pt))[
+      #grid(columns: (1fr, if mini-motif == none { 0mm } else { 12mm }),
+        gutter: 2mm, align: horizon,
+        text(font: heading-font, size: 12pt, weight: "bold", fill: primary)[#it.body],
+        if mini-motif != none { image(bytes(mini-motif), width: 12mm, height: 10mm, fit: "contain") },
+      )
+    ]
+  ]
+  show heading.where(level: 2): it => block(above: 6pt, below: 4pt, sticky: true)[
+    #text(font: heading-font, size: 11pt, weight: "bold", fill: primary)[#it.body]
+  ]
+  block(height: 281mm, breakable: false)[
+    #place(top + center, dy: 140.5mm, block(width: 100%)[
+      #grid(columns: (1fr, auto, 1fr), column-gutter: 3pt, align: horizon,
+        line(length: 100%, stroke: (paint: mid-gray, thickness: 0.5pt, dash: "dotted")),
+        if mini-motif != none { image(bytes(mini-motif), width: 6mm, height: 5.5mm, fit: "contain") },
+        line(length: 100%, stroke: (paint: mid-gray, thickness: 0.5pt, dash: "dotted")),
+      )
+    ])
+    #grid(columns: (1fr,), rows: (140.5mm, 140.5mm), gutter: 0pt,
+      block(inset: (bottom: 4mm), breakable: false)[#body],
+      block(inset: (top: 4mm), breakable: false)[#body],
+    )
+  ]
+}
+
+$if(mini-diagnose)$
+$worksheet-mini-diagnose-layout.typst()$
+$endif$
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+$body$

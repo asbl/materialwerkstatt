@@ -1,0 +1,34 @@
+{
+  "checksum": "2c8f31866f23f9e558b5312310c5d7150e64630439d9241ea641819b55095ed7",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/exam.lua": "2e6bda49c75c75143d28f9b532098e2cb33f7b72c7dfcd493b3af803acbdc1ea",
+    "filters/fraction-rectangle.lua": "df8d608dcaf9bb2166f971d383453d0ffe2bd1a0fa50d6159445fc2a22664be4",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/exam-functions.typst": "d3d84dd12efab2982c9fafb5ebead38857f8f62816492e36722cad12c4d710a4",
+    "templates/worksheet-mini-diagnose-layout.typst": "d830ea66e7d1dfcf9c036bd5ffe7dd9f590f4c7cb74f224f836b8231b6157301",
+    "templates/worksheet-mini-layout.typst": "07ed63f684a6d1c8b2ba59c3052c4c00dfac0b000a893e9a0cc55fa85406e119",
+    "templates/worksheet-mini.typst": "a5c6aa3a99f498029b0da2de81ff3fd91764af566c5d4cad98c5169e4171be5a"
+  },
+  "layout": "src/quarto/template-releases/layouts/d75ae969923a0eaf69e82a3b57509785fe763ed80b214511a88c32b6c557a7f2",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "worksheet-mini.typst",
+  "version": 2
+}

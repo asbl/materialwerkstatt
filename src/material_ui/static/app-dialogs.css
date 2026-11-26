@@ -1,0 +1,457 @@
+/* Dialoge: Modale Fenster, Template-Auswahl, Shortcuts, Bildimport. */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 20;
+}
+
+/* Die Präsentation läuft als Deck-Fenster: Andere Dialoge des Hauptfensters
+   müssen ÜBER ihr erscheinen, niemals unsichtbar dahinter. Ein verdeckter
+   Dialog würde den Fokus stehlen und Esc-Tasten gegen die Präsentation richten. */
+#deckModal {
+  z-index: 15;
+}
+
+.modal.open {
+  display: block;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+}
+
+.modal-panel {
+  position: absolute;
+  inset: 28px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow-3);
+}
+
+.small-modal {
+  inset: 80px auto auto 50%;
+  width: min(620px, calc(100vw - 28px));
+  min-height: 0;
+  transform: translateX(-50%);
+}
+
+.deck-panel {
+  inset: 20px;
+}
+
+#deckFrame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+}
+
+#deckModalNewTab {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.document-info .link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.template-body {
+  padding: 16px;
+}
+
+#helpModal kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--panel);
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+#recoveryModal .template-body {
+  overflow: auto;
+}
+
+#recoveryModal textarea {
+  width: 100%;
+  min-height: 240px;
+  font-family: monospace;
+}
+
+#recoveryModal .recovery-source-help {
+  color: var(--muted);
+  font-weight: normal;
+  line-height: 1.5;
+}
+
+#recoveryModal .recovery-choices,
+#recoveryModal .recovery-backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#recoveryModal .recovery-choices {
+  margin-top: 16px;
+}
+
+#recoveryModal .recovery-choice {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+#recoveryModal .recovery-backup {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+#recoveryModal .recovery-backup-actions {
+  margin-top: 10px;
+}
+
+#recoveryModal .recovery-secondary {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+#recoveryModal .recovery-secondary:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+
+#recoveryModal .recovery-choices p,
+#recoveryModal .recovery-backup p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  #recoveryModal .recovery-choices,
+  #recoveryModal .recovery-backup-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+#indexWarnings {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.template-preview {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+}
+
+.template-preview-details {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.template-preview-details span {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.template-type-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.template-type-tags .template-type-tag {
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  background: var(--panel);
+  font-size: var(--fs-sm);
+}
+
+.template-preview p {
+  margin: 0;
+}
+
+#templateModal .modal-panel,
+#newDocModal .modal-panel {
+  inset: 28px auto auto 50%;
+  width: min(800px, calc(100vw - 28px));
+  max-height: calc(100dvh - 56px);
+}
+
+#templateModal .template-body,
+#newDocModal .template-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.template-preview:has(.template-layout-preview) {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.template-layout-preview {
+  min-width: 0;
+  margin: 0;
+}
+
+.template-layout-preview svg {
+  display: block;
+  width: 100%;
+  max-height: 48dvh;
+  filter: drop-shadow(0 2px 4px #0003);
+}
+
+.template-layout-preview figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+.template-slide-preview svg + svg {
+  margin-top: 12px;
+}
+
+@media (max-width: 560px) {
+  .template-preview:has(.template-layout-preview) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.template-preview code {
+  display: block;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  white-space: normal;
+  font: var(--fs-sm)/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#officeImportPreview {
+  height: 220px;
+  resize: vertical;
+  font: var(--fs-sm)/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.shortcuts-body {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.shortcuts-list {
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.shortcut-card {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  text-align: left;
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  cursor: pointer;
+}
+
+.shortcut-card:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+
+.shortcut-title {
+  font-weight: 600;
+}
+
+.shortcut-hint {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.shortcut-example {
+  display: grid;
+  gap: 5px;
+  margin: 4px 0;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+  border-inline-start: 3px solid var(--accent);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.shortcut-example-label {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.shortcut-code {
+  margin: 4px 0 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: var(--fs-sm)/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.shortcut-placeholder {
+  background: color-mix(in srgb, var(--token-highlight) 25%, transparent);
+  border-radius: var(--radius-xs);
+  padding: 0 2px;
+}
+
+.shortcuts-body.configuring {
+  display: block;
+  overflow: auto;
+}
+
+.shortcuts-body.configuring > :not(.shortcut-settings) {
+  display: none;
+}
+
+.shortcut-settings {
+  display: grid;
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.shortcut-settings h2,
+.shortcut-settings p {
+  margin: 0;
+}
+
+.shortcut-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 14px;
+}
+
+.shortcut-fields label {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+
+.shortcut-fields input,
+.shortcut-fields textarea,
+.shortcut-fields select {
+  width: 100%;
+  min-width: 0;
+}
+
+.shortcut-fields textarea {
+  resize: vertical;
+}
+
+.shortcut-field-error {
+  color: var(--danger, #b42318);
+}
+
+.shortcut-fields [aria-invalid="true"] {
+  border-color: var(--danger, #b42318);
+}
+
+.shortcut-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modal-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 10px;
+  padding: 10px;
+}
+
+.import-panel,
+.image-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.import-panel {
+  padding-right: 4px;
+}
+
+.drop {
+  min-height: 110px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.drop.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+canvas {
+  display: block;
+  max-width: none;
+  background: white;
+  border: 1px solid var(--border);
+  cursor: crosshair;
+  transform-origin: top left;
+  touch-action: none;
+}

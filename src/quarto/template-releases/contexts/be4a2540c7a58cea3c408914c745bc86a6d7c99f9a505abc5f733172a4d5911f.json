@@ -1,0 +1,12 @@
+{
+  "files": {
+    "src/quarto/template-releases/contexts/assets/b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163"
+  },
+  "filter": "src/quarto/template-releases/contexts/assets/b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163.lua",
+  "options": {
+    "header-includes": [
+      "#let antwortlinie(width: 4.5cm) = box(width: width, height: 6mm, fill: rgb(\"#eeeeee\"), baseline: 1.5mm)\n#let diagnose_smiley(stufe) = box(width: 4mm, height: 4mm, baseline: 0.6mm)[\n  #let farbe = if stufe == \"ueben\" { rgb(\"#ef7770\") } else if stufe == \"festigen\" { rgb(\"#f6d65b\") } else { rgb(\"#78c98b\") }\n  #circle(radius: 2mm, fill: farbe, stroke: 0.5pt + rgb(\"#172033\"))\n  #place(top + left, dx: 1.05mm, dy: 1.1mm, circle(radius: 0.225mm, fill: rgb(\"#172033\"), stroke: none))\n  #place(top + left, dx: 2.5mm, dy: 1.1mm, circle(radius: 0.225mm, fill: rgb(\"#172033\"), stroke: none))\n  #let y = if stufe == \"ueben\" { 3mm } else if stufe == \"festigen\" { 2.7mm } else { 2.4mm }\n  #let control = if stufe == \"ueben\" { 2mm } else if stufe == \"festigen\" { 2.7mm } else { 3.4mm }\n  #place(top + left, curve(\n    stroke: 0.6pt + rgb(\"#172033\"),\n    curve.move((1mm, y)),\n    curve.cubic((1.5mm, control), (2.5mm, control), (3mm, y)),\n  ))\n]\n"
+    ]
+  },
+  "original": {}
+}

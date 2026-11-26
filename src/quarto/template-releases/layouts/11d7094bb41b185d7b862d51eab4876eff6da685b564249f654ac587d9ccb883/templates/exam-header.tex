@@ -1,0 +1,414 @@
+\makeatletter
+\@ifundefined{examheaderloaded}{%
+\gdef\examheaderloaded{}%
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{fancyvrb}
+\usepackage{needspace}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{etoolbox}
+\usepackage{xstring}
+\usepackage{pdflscape}
+\usetikzlibrary{calc}
+
+\definecolor{examprimary}{HTML}{1565C0}
+\definecolor{examprimarylight}{HTML}{DCE8F8}
+\definecolor{examink}{HTML}{172033}
+\definecolor{examlightgray}{HTML}{F5F5F5}
+\definecolor{exammidgray}{HTML}{CCCCCC}
+\definecolor{examrulegray}{HTML}{AAAAAA}
+\definecolor{examwarn}{HTML}{B45309}
+\definecolor{examtip}{HTML}{2E7D32}
+\definecolor{examcardback}{HTML}{F4F8FD}
+\newcommand{\headingfont}{\fontfamily{qpl}\selectfont}
+\newcommand{\uhr}{%
+  \tikz[baseline=-0.4ex, line width=0.7]{\draw (0,0) circle (0.42em); \draw (0,0) -- (0,0.3em); \draw (0,0) -- (0.24em,0);}}
+\ifPDFTeX\DeclareUnicodeCharacter{25A1}{\ensuremath{\square}}\fi
+\ifPDFTeX\DeclareUnicodeCharacter{2610}{\ensuremath{\square}}\fi
+\ifPDFTeX\DeclareUnicodeCharacter{2713}{\ensuremath{\checkmark}}\fi
+\ifPDFTeX\DeclareUnicodeCharacter{25B6}{\ensuremath{\blacktriangleright}}\fi
+\ifPDFTeX\DeclareUnicodeCharacter{2022}{\ensuremath{\bullet}}\fi
+
+\AtBeginDocument{%
+  \color{examink}%
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{0.45em}%
+  \renewcommand{\arraystretch}{1.18}%
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\makeatletter
+\newif\ifexamshownameheader
+\examshownameheadertrue
+\newcommand{\loesungsdokument}{\examshownameheaderfalse}
+\newcommand{\marksolutiondocument}[1]{%
+  \IfSubStr{#1}{Musterl}{\loesungsdokument}{}%
+}
+\newcommand{\examfollowpagegeometry}{%
+  \newgeometry{a4paper,top=14mm,right=13mm,bottom=5mm,left=14mm,headsep=3mm}%
+}
+\newcommand{\examdefaultpagegeometry}{%
+  \newgeometry{a4paper,top=14mm,right=13mm,bottom=5mm,left=14mm,headsep=3mm}%
+}
+\newcommand{\exampagebreak}{%
+  \newpage
+  \ifodd\value{page}%
+    \examdefaultpagegeometry
+  \else
+    \examfollowpagegeometry
+  \fi
+}
+\fancyhead[C]{\ifdefined\studentfieldsinheader\ifnum\value{page}=1\studentheaderrow\fi\fi}
+\fancyhead[L]{\ifexamshownameheader\ifnum\value{page}>1\ifodd\value{page}\else\footnotesize\textbf{Name:}\ \rule{8.5cm}{0.4pt}\fi\fi\fi}
+\fancyhead[R]{\ifnum\value{page}>1\ifodd\value{page}\else\footnotesize\color{gray}\@title\ $\cdot$ Seite \thepage\fi\fi}
+\makeatother
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\headheight}{13pt}
+
+\newcommand{\coverheader}[3]{%
+  \marksolutiondocument{#1}%
+  \begin{center}
+    {\headingfont\Large\bfseries\color{examprimary}#1\par}
+    \vspace{1mm}
+    {\large #2\par}
+    {\small\color{gray}#3\par}
+  \end{center}
+  \vspace{0.45cm}
+}
+
+\newcommand{\fieldline}[1][4cm]{\rule{#1}{0.4pt}}
+\newcommand{\studentheaderrow}{%
+  \begingroup\normalfont\fontsize{9.5}{11}\selectfont\color{black}%
+  \begin{tabularx}{\headwidth}{@{}lXl p{40mm}@{}}
+  \textbf{Name:} & \fieldline[\linewidth] & \textbf{Datum:} & \fieldline[\linewidth]
+  \end{tabularx}%
+  \endgroup
+}
+\newcommand{\studentfields}{%
+  \ifdefined\studentfieldsinheader\else
+  \noindent\begin{tabularx}{\linewidth}{@{}lXlX@{}}
+  \textbf{Name:} & \fieldline[\linewidth] & \textbf{Datum:} & \fieldline[\linewidth]
+  \end{tabularx}
+  \vspace{0.6cm}
+  \fi
+}
+\newcommand{\gradingfields}[1]{%
+  \noindent\begin{tabularx}{\linewidth}{@{}lXllX@{}}
+  \textbf{Punkte:} & \fieldline[\linewidth] & / #1 & \textbf{Notenpunkte:} & \fieldline[\linewidth]\\[0.45cm]
+  \textbf{Zeit:} & 90 Min & & \textbf{Hilfsmittel:} & keine
+  \end{tabularx}
+  \vspace{0.6cm}
+}
+
+\newsavebox{\miniabbox}
+\newenvironment{miniab}{%
+  \par
+  \begin{lrbox}{\miniabbox}%
+  \begin{minipage}[t]{\linewidth}%
+  \definecolor{minianswergray}{HTML}{EEEEEE}%
+  \renewcommand{\antwortkasten}[1]{%
+    \par\vspace{0.2em}\noindent
+    \begin{tikzpicture}
+      \fill[minianswergray,rounded corners=2pt] (0,0) rectangle (\linewidth,##1);
+    \end{tikzpicture}\par\vspace{0.35em}%
+  }%
+  \setlength{\parskip}{0.2em}%
+  \renewcommand{\arraystretch}{1.05}%
+  \setlength{\LTpre}{2pt}%
+  \setlength{\LTpost}{2pt}%
+  \renewcommand{\toprule}{}%
+  \renewcommand{\midrule}{}%
+  \renewcommand{\bottomrule}{}%
+  \renewcommand{\antwortlinie}[1][4.5cm]{\textcolor{examrulegray}{\rule{##1}{0.4pt}}}%
+  \renewcommand{\studentfields}{%
+    \noindent{\bfseries Name:}\ \textcolor{examrulegray}{\fieldline[6cm]}\hfill{\bfseries Datum:}\ \textcolor{examrulegray}{\fieldline[2.5cm]}\par
+    \vspace{0.15cm}%
+  }%
+  \renewenvironment{inputtable}[1][0pt]{%
+    \begingroup\renewcommand{\arraystretch}{1.15}\setlength{\extrarowheight}{\dimexpr##1+1pt\relax}%
+  }{\endgroup}%
+  \renewcommand\section{\@startsection{section}{1}{\z@}{1.1em}{0.65em}{\normalfont\bfseries\color{examprimary}}}%
+  \renewcommand\subsection{\@startsection{subsection}{2}{\z@}{1.1em}{0.65em}{\normalfont\bfseries\color{examprimary}}}%
+}{%
+  \end{minipage}%
+  \end{lrbox}%
+  \noindent\usebox{\miniabbox}\par
+  \vfill
+  \noindent{\color{exammidgray}\dotfill}\par
+  \vfill
+  \noindent\usebox{\miniabbox}\par
+}
+
+\newenvironment{hinweis}{\begingroup\small}{\par\endgroup}
+
+% Farbiger Rahmenkasten ohne Titelleiste (Textinhalt beginnt meist mit
+% \textbf{...}); #1 ist eine LaTeX-Farbangabe. Shortcut: [Box farbe=...]...[/Box].
+\newenvironment{farbbox}[1]{\begin{tcolorbox}[colback=white,colframe=#1,boxrule=0.7pt,arc=1mm,left=1mm,right=1mm,top=1mm,bottom=1mm]}{\end{tcolorbox}}
+
+\newtcolorbox{infobox}[1]{%
+  enhanced, breakable,
+  colback=examlightgray,
+  colframe=examprimary,
+  colbacktitle=examprimary,
+  coltitle=white,
+  fonttitle=\headingfont\bfseries\small,
+  title={#1},
+  boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=3pt, bottom=3pt,
+  before skip=0.5em, after skip=0.6em
+}
+
+\newtcolorbox{warnbox}[1]{%
+  enhanced, breakable,
+  colback=examlightgray,
+  colframe=examwarn,
+  colbacktitle=examwarn,
+  coltitle=white,
+  fonttitle=\headingfont\bfseries\small,
+  title={#1},
+  boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=3pt, bottom=3pt,
+  before skip=0.5em, after skip=0.6em
+}
+
+\newtcolorbox{tippbox}[1]{%
+  enhanced, breakable,
+  colback=examlightgray,
+  colframe=examtip,
+  colbacktitle=examtip,
+  coltitle=white,
+  fonttitle=\headingfont\bfseries\small,
+  title={#1},
+  boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=3pt, bottom=3pt,
+  before skip=0.5em, after skip=0.6em
+}
+
+\newenvironment{aufgabe}[3]{%
+  \par\vspace{0.45em}
+  \Needspace{8cm}
+  \noindent{\headingfont\large\bfseries\color{examprimary}Aufgabe #1 - #2\hfill{\normalsize \ifstrempty{#3}{}{#3 Punkte}}}\par
+  \vspace{0.05em}
+}{\par\vspace{0.25em}}
+
+\newcommand{\fortsetzung}[2]{%
+  \par\vspace{0.2em}
+  \noindent{\headingfont\bfseries\color{examprimary}Aufgabe #1 - #2 (Fortsetzung)}\par
+}
+
+\newcommand{\currentteilpunkte}{}
+\newenvironment{teil}[2]{%
+  \renewcommand{\currentteilpunkte}{#2}%
+  \par\vspace{0.25em}\noindent
+  \textbf{#1)}\hspace{0.45em}%
+  \begin{minipage}[t]{0.82\linewidth}\ignorespaces
+}{%
+  \end{minipage}\hfill{\small\color{gray}(\currentteilpunkte\ P)}\par
+}
+
+\newcommand{\antwortkasten}[1]{%
+  \par\vspace{0.2em}\noindent
+  \begin{tikzpicture}
+    \draw[fill=examlightgray,draw=exammidgray,line width=0.4pt,rounded corners=2pt] (0,0) rectangle (\linewidth,#1);
+  \end{tikzpicture}
+  \par\vspace{0.35em}
+}
+
+\newcommand{\answergrid}[3]{%
+  \par\vspace{0.35em}\noindent
+  \begin{tikzpicture}
+    \fill[examlightgray,rounded corners=2pt] (0,0) rectangle ({#3*#1},{#2*#1});
+    \draw[rounded corners=2pt,draw=exammidgray,line width=0.4pt] (0,0) rectangle ({#3*#1},{#2*#1});
+    \draw[step=#1,draw=examrulegray,line width=0.25pt] (0,0) grid ({#3*#1},{#2*#1});
+  \end{tikzpicture}
+  \par\vspace{0.45em}
+}
+
+\newcommand{\antwortlinie}[1][4.5cm]{\rule{#1}{0.4pt}}
+
+\definecolor{examanswerfield}{HTML}{EEEEEE}
+\newcommand{\platz}[1][1.5cm]{\colorbox{examanswerfield}{\rule[-0.9mm]{0pt}{0.45cm}\makebox[#1][c]{}}}
+
+% \blank, \checkline und \smallblank sind historische Namen fuer
+% Antwortlinien aus dem Foerdermaterial; zentral auf \antwortlinie
+% umgeleitet, damit sie nicht mehr pro Blatt/Header neu definiert werden.
+\newcommand{\blank}[1][2.8cm]{\antwortlinie[#1]}
+\newcommand{\checkline}{\rule{0pt}{0.9cm}\antwortlinie[\linewidth]}
+\newcommand{\smallblank}{\antwortlinie[1.25cm]}
+
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\small}
+\newenvironment{Shaded}{\par\smallskip}{\smallskip}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\KeywordTok}[1]{\textbf{\textcolor{examprimary}{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textbf{\textcolor{examprimary}{#1}}}
+\newcommand{\ImportTok}[1]{\textbf{\textcolor{examprimary}{#1}}}
+\newcommand{\BuiltInTok}[1]{\textcolor{purple}{#1}}
+\newcommand{\OperatorTok}[1]{#1}
+\newcommand{\DecValTok}[1]{\textcolor{brown}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor{brown}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor{brown}{#1}}
+\newcommand{\CharTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\StringTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\CommentTok}[1]{\textit{\textcolor{gray}{#1}}}
+\newcommand{\OtherTok}[1]{#1}
+\newcommand{\FunctionTok}[1]{\textcolor{purple}{#1}}
+\newcommand{\VariableTok}[1]{#1}
+\newcommand{\AttributeTok}[1]{#1}
+\newcommand{\DataTypeTok}[1]{\textcolor{purple}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor{brown}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor{red}{#1}}
+\newcommand{\AlertTok}[1]{\textbf{\textcolor{red}{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor{gray}{#1}}
+\newcommand{\WarningTok}[1]{\textbf{\textcolor{red}{#1}}}
+
+\newenvironment{codehinweis}{\begingroup\small\itshape\color{gray}}{\par\endgroup}
+\newenvironment{referenz}{\begingroup\footnotesize}{\par\endgroup}
+\newenvironment{wahrfalschlayout}{\begingroup\renewcommand{\arraystretch}{1.55}}{\endgroup}
+\newenvironment{inputtable}[1][0pt]{\begingroup\renewcommand{\arraystretch}{1.45}\setlength{\extrarowheight}{#1}}{\endgroup}
+\newenvironment{prooftable}{\begingroup\renewcommand{\arraystretch}{1.6}}{\endgroup}
+\newenvironment{columnstwo}{\begin{multicols}{2}}{\end{multicols}}
+
+\newenvironment{kartensatz}[1]{%
+  \par\vspace{0.4em}%
+  \ifstrempty{#1}{}{{\headingfont\large\bfseries\color{examprimary}#1}\par\vspace{0.15em}}%
+}{%
+  \par\vspace{0.2em}%
+}
+\newcommand{\kartezelle}[2]{%
+  \begin{tcolorbox}[enhanced, colback=examcardback, colframe=examprimary,
+    boxrule=0.8pt, arc=4pt, left=4pt, right=4pt, top=3pt, bottom=3pt,
+    before skip=0pt, after skip=0pt, height=17mm, valign=center, halign=center]
+    \ifstrempty{#1}{}{%
+      {\setlength{\fboxsep}{1.5pt}\colorbox{examprimary}{\textcolor{white}{\footnotesize\textbf{#1}}}}%
+      \par\vspace{2pt}%
+    }%
+    {\normalsize #2}%
+  \end{tcolorbox}%
+}
+
+\newcommand{\notenspiegeltable}{%
+  \par\small
+  \begin{tabularx}{\linewidth}{|X|*{17}{>{\centering\arraybackslash}p{0.037\linewidth}|}}
+  \hline
+  \textbf{NP} & \textbf{15} & \textbf{14} & \textbf{13} & \textbf{12} & \textbf{11} & \textbf{10} & \textbf{9} & \textbf{8} & \textbf{7} & \textbf{6} & \textbf{5} & \textbf{4} & \textbf{3} & \textbf{2} & \textbf{1} & \textbf{0} & \textbf{ø}\\
+  \hline
+  \textbf{Anzahl} &&&&&&&&&&&&&&&&&\\
+  \hline
+  \end{tabularx}
+  \normalsize\par
+}
+
+\newenvironment{erwartungshorizont}[1]{%
+  \clearpage
+  \begin{landscape}
+  \thispagestyle{empty}
+  \par\vspace{0.4em}
+  \noindent{\headingfont\large\bfseries\color{examprimary}#1}\par
+  \vspace{0.1em}
+  \begingroup\small
+}{\par\endgroup\end{landscape}}
+
+\newenvironment{erwartungstabelle}{%
+  \par\vspace{0.2em}
+  \renewcommand{\arraystretch}{1.25}%
+  \setlength{\tabcolsep}{4pt}%
+  \begin{longtable}{|>{\raggedright\arraybackslash}p{0.49\linewidth}|>{\raggedright\arraybackslash}p{0.35\linewidth}|>{\centering\arraybackslash}p{2cm}|}
+  \hline
+  \textbf{Erwartete Lösung} & \textbf{Schülerlösung} & \textbf{Punkte / erreichte Punkte}\\
+  \hline
+  \endfirsthead
+  \hline
+  \textbf{Erwartete Lösung} & \textbf{Schülerlösung} & \textbf{Punkte / erreichte Punkte}\\
+  \hline
+  \endhead
+}{%
+  \end{longtable}
+}
+
+\long\def\ehzeile#1#2{%
+  #1 & \rule[-5cm]{0pt}{5cm} & #2 / \\
+  \hline
+}
+
+\newenvironment{loesung}[1]{%
+  \par\vspace{0.25em}
+  {\bfseries\color{examprimary}Aufgabe #1}\par
+  \begingroup\small
+}{\par\endgroup}
+
+\newenvironment{versionen}{\par\noindent}{\par}
+\newenvironment{versionleft}{\begin{minipage}[t]{0.48\linewidth}}{\end{minipage}\hfill}
+\newenvironment{versionright}{\begin{minipage}[t]{0.48\linewidth}}{\end{minipage}}
+
+\newenvironment{mathedeckblatt}[2]{%
+  \marksolutiondocument{#1}%
+  \begin{center}
+  {\headingfont\Large\bfseries\color{examprimary}#1\par}
+  \vspace{-3pt}
+  {\color{examprimary}\rule{0.55\linewidth}{0.55pt}\par}
+  \ifexamshownameheader
+    \vspace{0.8cm}
+    \begin{tabularx}{\linewidth}{@{}Xr@{}}
+    Name: \fieldline[6.4cm] & Datum: #2\fieldline[3cm]
+    \end{tabularx}
+  \fi
+  \end{center}
+  \vspace{0.3cm}
+}{}
+
+\newcommand{\notetable}{%
+  \par
+  \begin{tabularx}{\linewidth}{|X|*{7}{>{\centering\arraybackslash}X|}}
+  \hline
+  Note & 1 & 2 & 3 & 4 & 5 & 6 & ø\\
+  \hline
+  Anzahl &&&&&&&\\
+  \hline
+  Notw. Punkte &&&&&&&\\
+  \hline
+  \end{tabularx}
+  \par
+}
+
+\newcommand{\foerderplankopf}[6]{%
+  {\Large\bfseries Christian-Wirth-Schule}\hfill
+  \includegraphics[width=3.4cm]{assets/cws-logo.png}\par
+  {\small Schloßplatz 1 · 61250 Usingen}\par
+  \rule{\linewidth}{0.6pt}\par
+  \vspace{0.2cm}
+  \begin{tabularx}{\linewidth}{|X|X|X|}
+  \hline
+  \textbf{Förderplan für:} #1 & \textbf{Klasse:} #2 & \textbf{Schuljahr:} #3\\
+  \hline
+  \textbf{Verfasser:} #4 & \textbf{Fach:} #5 & \textbf{Datum:} #6\\
+  \hline
+  \end{tabularx}
+}
+
+\newenvironment{foerderbereich}[1]{%
+  \par\vspace{0.45cm}
+  \noindent{\headingfont\large\bfseries Förderbereich: #1}\par
+  \rule{\linewidth}{0.5pt}\par
+  \begingroup\renewcommand{\arraystretch}{1.3}
+}{\endgroup}
+
+\newcommand{\unterschriften}{%
+  \par\vspace{1.2cm}
+  \begin{tabularx}{\linewidth}{XXX}
+  \rule{\linewidth}{0.4pt} & \rule{\linewidth}{0.4pt} & \rule{\linewidth}{0.4pt}\\
+  {\footnotesize Ort, Datum, Unterschrift}\newline\textbf{Lehrer/in} &
+  {\footnotesize Ort, Datum, Unterschrift}\newline\textbf{Erziehungsberechtigte/r} &
+  {\footnotesize Ort, Datum, Unterschrift}\newline\textbf{Schüler/in}
+  \end{tabularx}
+}
+}{}
+\makeatother

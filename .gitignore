@@ -1,0 +1,105 @@
+# Werkzeug-Repository: nur Quellcode, Tests, Doku und freigegebene Vorlagen.
+# Alles Private (Unterrichtsmaterial, Zugangsdaten, personenbezogene Daten, private Plugins,
+# nicht freigegebene Vorlagen) bleibt lokal und wird hier ausgeschlossen. `inv oss-pruefen`
+# und der pre-commit-Hook (`inv oss-hook`) pruefen das zusaetzlich.
+
+# --- Build-Ausgaben ---------------------------------------------------------------------
+# Zentraler Build-Ordner: alle PDFs (build/pdf/), Artefakte (build/artefakte/) und der
+# Kurs-Site-Export (build/site/) -- nie committen oder synchronisieren
+build/
+**/build/
+.quarto/
+/.quarto/
+audit/
+**/*.quarto_ipynb
+**/*.aux
+**/*.fdb_latexmk
+**/*.fls
+**/*.lof
+**/*.log
+**/*.lot
+**/*.out
+**/*.synctex.gz
+**/*.toc
+**/*.listing
+# .typ ist ausschliesslich ein erzeugtes Build-Artefakt (Vorlagen heissen .typst)
+*.typ
+# Quarto-Direktrender-Rueckstaende (Mediabag-Ausgaben): regenerierbar
+**/*_files/
+# Build-Artefakte liegen zentral in build/artefakte/; .bak-* sind Editor-Sicherungen
+**/*.excalidraw
+**/*.bak-*
+
+# --- Lokale Zustaende und Caches ---------------------------------------------------------
+**/__pycache__/
+*.egg-info/
+**/.pytest_cache/
+# pytest-Basetemp liegt absichtlich auf Platte (siehe pyproject.toml addopts), nicht in /tmp
+**/.pytest-basetemp/
+**/.material-history/
+**/.material-annotations/
+**/.material-ui/
+**/material-ui-render-*
+**/node_modules/
+/.venv/
+/.vscode/
+# Present-App (inv deck-present): Build-Output wird lokal erzeugt
+/src/excalideck/present/dist/
+
+# --- Zugangsdaten ------------------------------------------------------------------------
+# Lokale Zugangsdaten (Moodle u.a.) -- niemals committen, .env.example bleibt versioniert
+/.env
+
+# --- Private Inhalte (eigene Repos oder nur lokal) --------------------------------------
+# Unterrichtsmaterial und Kurse leben in eigenen privaten Repos (siehe AGENTS.md,
+# Abschnitt "Repo-Aufteilung"); sie werden hier als Arbeitskopien eingehaengt.
+/unterricht/
+/foerdermaterial/
+# Personenbezogene Daten: niemals versionieren, auch keine Platzhalter.
+/foerderempfehlungen/
+/_eingang/
+/archiv/
+/ressourcen/quellen/
+/ressourcen/vorlagen/
+/ressourcen/libraries/
+/wissen/
+# Blog-Inhalte werden getrennt vom Werkzeugcode gepflegt.
+/blog/
+# Altmaterial-Ordner: nie versionieren
+**/alt/
+*.pdf
+*.docx
+
+# --- Private Plugins und Agenten-Konfiguration -------------------------------------------
+# Projektlokale Plugins (z. B. die Wissensbasis als Symlink auf das private Wissens-Repo)
+/plugins/
+/.claude/skills/fachdidaktik
+/AGENTS.local.md
+/CLAUDE.local.md
+
+# --- Private Vorlagen, Designs und Assets ------------------------------------------------
+# Vorlagen sind standardmaessig privat: neue Vorlagen, Freigaben, Designs, Schriften,
+# Hooks und Tests entstehen unter src/quarto/_local/. In den eingebauten Ordnern liegt nur,
+# was in src/quarto/builtin-templates.json steht (`inv template-freigeben`).
+**/_local/
+/src/quarto/template-releases/*/drafts/
+
+# --- Interne Berichte und lokale Notizen -------------------------------------------------
+/docs/audits/
+/docs/course-sync/original-root/
+/docs/oop-2026-*.md
+/docs/material-ui-stundenplan.md
+
+# --- H5P ---------------------------------------------------------------------------------
+# H5P-Libraries werden ueber `inv kurse.update-h5p-libraries` bezogen, nicht im Repo gepflegt
+# Lokaler H5P-Runtime-Bootstrap (heruntergeladene Standard-Libraries, Vorschau-Content, Scratch)
+/.h5p-runtime/
+# Generierte Scratch-/Ausgabeordner von course-sync (Root-Ebene)
+/content/
+/uploads/
+/.course-export-*/
+/exports/
+
+# Interne Arbeitsregeln fuer KI-Agenten: nur lokal
+/AGENTS.md
+/CLAUDE.md

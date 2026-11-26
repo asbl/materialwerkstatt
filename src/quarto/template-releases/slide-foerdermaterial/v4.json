@@ -1,0 +1,52 @@
+{
+  "checksum": "c6787dcddee9a948e8abda7146f648a2241f93eef53d92a549ba87514eca17fa",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    },
+    "typst": {
+      "font-paths": [
+        "src/quarto/fonts/static",
+        "src/quarto/_local/fonts"
+      ]
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/checkup.lua": "b1a5c5acdf785d4776cb5580e3a8f2686ac8dd8fb5b12bdf7049ef16273f7be6",
+    "filters/exam.lua": "36d9f9f181c2c379a89b62300071c134bd1d649e218c38b15d484762c0c14373",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/slide-foerdermaterial.typst": "289ec14559601904430744f0037a9eb15c3aca1190202e0f82e1bdc9e86119b4",
+    "templates/slide-layout.typst": "932e3886c55abb2b8b667b7705635efc3cc8ff7571e7e687f7451072ca63820a"
+  },
+  "layout": "src/quarto/template-releases/layouts/ebe4520daf6e567f5a65a60cf8d074535f8ddf774aed3bdfd39ac665e17bf908",
+  "note": "Neue Titel- und Überschriftentypografie; getrennte Schriftwahl und mindestens 0.65 em Zeilenabstand.",
+  "settings": {},
+  "slide-design": {
+    "accent": "#ffc933",
+    "description": "Klare Lernflächen, gelbe Register und kräftige Pixelrahmen für die Klasse 5.",
+    "font": "CutePixel",
+    "id": "foerdermaterial",
+    "ink": "#1e1b3a",
+    "label": "Fördermaterial · Klasse 5 (Retro)",
+    "motif": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 58\"><path d=\"M18 2h8v8h8v8h-8v8h-8v-8h-8v-8h8z\" fill=\"#ffc933\"/><path d=\"M43 27h6v6h6v6h-6v6h-6v-6h-6v-6h6z\" fill=\"#2f5bea\"/></svg>",
+    "paper": "#fff6d6",
+    "primary": "#2f5bea",
+    "radius": 0,
+    "slide_background": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1600\" height=\"900\" viewBox=\"0 0 1600 900\"><rect width=\"1600\" height=\"900\" fill=\"#fff6d6\"/><rect x=\"40\" y=\"40\" width=\"1536\" height=\"120\" rx=\"0\" fill=\"#1e1b3a\" stroke=\"#1e1b3a\" stroke-width=\"0\"/><rect x=\"32\" y=\"32\" width=\"1536\" height=\"120\" rx=\"0\" fill=\"#ffc933\" stroke=\"#1e1b3a\" stroke-width=\"3\"/><rect x=\"40\" y=\"184\" width=\"1536\" height=\"644\" rx=\"0\" fill=\"#1e1b3a\" stroke=\"#1e1b3a\" stroke-width=\"0\"/><rect x=\"32\" y=\"176\" width=\"1536\" height=\"644\" rx=\"0\" fill=\"white\" stroke=\"#2f5bea\" stroke-width=\"4\"/><rect x=\"32\" y=\"32\" width=\"12\" height=\"120\" rx=\"0\" fill=\"#2f5bea\" stroke=\"#2f5bea\" stroke-width=\"0\"/><rect x=\"32\" y=\"176\" width=\"12\" height=\"644\" rx=\"0\" fill=\"#ffc933\" stroke=\"#ffc933\" stroke-width=\"0\"/><rect x=\"24\" y=\"24\" width=\"16\" height=\"16\" rx=\"0\" fill=\"#2f5bea\" stroke=\"#2f5bea\" stroke-width=\"0\"/><rect x=\"24\" y=\"808\" width=\"16\" height=\"16\" rx=\"0\" fill=\"#2f5bea\" stroke=\"#2f5bea\" stroke-width=\"0\"/><rect x=\"1560\" y=\"24\" width=\"16\" height=\"16\" rx=\"0\" fill=\"#2f5bea\" stroke=\"#2f5bea\" stroke-width=\"0\"/><rect x=\"1560\" y=\"808\" width=\"16\" height=\"16\" rx=\"0\" fill=\"#2f5bea\" stroke=\"#2f5bea\" stroke-width=\"0\"/><path d=\"M40 840H1560\" fill=\"none\" stroke=\"#2f5bea\" stroke-width=\"4\" /></svg>"
+  },
+  "template": "slide-foerdermaterial.typst",
+  "version": 4
+}

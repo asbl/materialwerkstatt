@@ -1,0 +1,40 @@
+{
+  "checksum": "c36fb9e1097902a1d4ec6325aecc69331d1457cc1183ed484b7381626650dc54",
+  "defaults": {
+    "pdf": {
+      "include-in-header": "src/quarto/templates/exam-header.tex",
+      "keep-tex": true,
+      "papersize": "a4",
+      "pdf-engine": "pdflatex",
+      "template": "src/quarto/templates/latex-template.tex",
+      "toc": false
+    },
+    "typst": {
+      "font-paths": [
+        "src/quarto/_local/fonts"
+      ]
+    }
+  },
+  "files": {
+    "filters/algorithm_sketches.lua": "75d2a7eb9de6feaaf92f7fd3201636d3e804b494fcb979d5571ac529fbc6abec",
+    "filters/antwortfelder.lua": "7f8dd965b82ea91aee22784483a06791c4228b2fc631ddcf1c18fc6294d85c3e",
+    "filters/checkup.lua": "dc135d788bf64c907a4f67823834979c2c7d4c5465741a19dab3d95c422bee6a",
+    "filters/exam.lua": "668ee3dfba6fdd0f86909fe0ee4e2444b4a14bccdbac69d08661014420171c7f",
+    "filters/fraction-rectangle.lua": "bd6ac3014a436b0453125620b9b7df084da0e3b5f9d7379784d33bedeeb0854d",
+    "filters/mini-diagnose.lua": "a59c3f6569bb63128f594d52cb0609ce20f2df99b96d25f2b46ffdf1c72894b2",
+    "filters/rechenfolge.lua": "05acc1cc68b886b88ad55577723d7f732adc6c67aa2bd136d99820523dd5d036",
+    "filters/slide-pages.lua": "83f9f50c7e4451beccb7641e5caeb47c28f8811c5c1c33526409645b15db5d6d",
+    "filters/student-dialog.lua": "3d7c199a17cb53502a77816606047b6a8b21853e1418109e7a11ef5dc5599753",
+    "filters/template-context.lua": "b1a18b8d6a4669c07c353881063bd2975e50ae448a292ebf7d0edd354e13e163",
+    "filters/written-multiplication.lua": "91234114d35e95b076b1614cfc9e3e2a447e6d051e7eecc11656a21d658e98e3",
+    "templates/exam-functions.typst": "792a3320a7d19efec7b0e9fd9cf8a1c96317dbc6e3c079a2f441b82413258716",
+    "templates/student-fields.typst": "d4488249c326a53d04b49d7bc385ee236c3bfffd620c2915f71a8ae2ae42edd7",
+    "templates/worksheet-anime.typst": "695ddf265d38e9a0e65e2547770005b1c55cf9eb5ec6ffc5c02def7488905168",
+    "templates/worksheet-design.typst": "a799ddc58b5f60c5d2b49ac7d1e59835925512a6bf1413f7b4418fe08ac04e63"
+  },
+  "layout": "src/quarto/template-releases/layouts/d8a5ebfb1cbad12b298d3df3747a9d43b16133349b8c58f59114228e4cbf243f",
+  "note": "Aktualisiertes Layout",
+  "settings": {},
+  "template": "worksheet-anime.typst",
+  "version": 5
+}

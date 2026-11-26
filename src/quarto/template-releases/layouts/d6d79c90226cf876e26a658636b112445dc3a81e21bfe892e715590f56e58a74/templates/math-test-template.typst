@@ -1,0 +1,137 @@
+#let student-fields-in-header = $if(student-fields-header)$true$else$false$endif$
+$student-fields.typst()$
+
+#let student-header-offset = if student-fields-in-header { 1.5mm } else { 0mm }
+
+#let primary = rgb("#0f4a64")
+#let grid-gray = rgb("#8d8d8d")
+#let light-gray = rgb("#f5f5f5")
+#let warn = rgb("#b45309")
+#let tip = rgb("#2e7d32")
+#let heading-font = ("Aptos Display", "Aptos", "Noto Sans")
+#let body-font = ("Aptos", "Noto Sans", "Liberation Sans")
+
+#set page(
+  header-ascent: 3mm,
+  header: context {
+    if counter(page).get().first() == 1 and student-fields-in-header { move(dy: student-header-offset, student_fields_row()) }
+  },
+  paper: "a4",
+  margin: (top: 1.35cm, right: 1.35cm, bottom: 1.2cm, left: 1.35cm),
+)
+
+#set text(font: body-font, size: $if(template-fontsize)$$template-fontsize$$else$11pt$endif$, lang: "de")
+#set par(justify: false, leading: 0.55em)
+#set raw(block: true)
+
+#show heading.where(level: 1): it => block(above: 8pt, below: 4pt)[
+  #text(font: heading-font, size: 11.5pt, weight: "bold")[#it.body]
+]
+
+#show heading.where(level: 2): it => block(above: 7pt, below: 3pt)[
+  #text(font: heading-font, size: 11pt, weight: "bold")[#it.body]
+]
+
+#show table: it => {
+  set text(size: 11pt)
+  it
+}
+
+#let field_line(width: 4cm) = box(width: width, line(length: 100%, stroke: 0.6pt + black))
+
+#let infobox(title, body) = block(above: 6pt, below: 7pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + primary, radius: 3pt, inset: (x: 7pt, y: 6pt))[
+    #block(below: 3pt)[
+      #text(size: 11pt, weight: "bold", fill: primary)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.78em)
+    #body
+  ]
+]
+
+#let warnbox(title, body) = block(above: 6pt, below: 7pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + warn, radius: 3pt, inset: (x: 7pt, y: 6pt))[
+    #block(below: 3pt)[
+      #text(size: 11pt, weight: "bold", fill: warn)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.78em)
+    #body
+  ]
+]
+
+#let tippbox(title, body) = block(above: 6pt, below: 7pt)[
+  #rect(width: 100%, fill: light-gray, stroke: 0.5pt + tip, radius: 3pt, inset: (x: 7pt, y: 6pt))[
+    #block(below: 3pt)[
+      #text(size: 11pt, weight: "bold", fill: tip)[#title]
+    ]
+    #set text(size: 11pt)
+    #set par(leading: 0.78em)
+    #body
+  ]
+]
+
+#let student_fields() = if not student-fields-in-header { student_fields_row() }
+
+#let title_page(title, date, body) = [
+  #if not student-fields-in-header { student_fields_row(date: date) }
+  #v(0.4cm)
+  #align(center)[#text(font: heading-font, size: 18pt, fill: primary)[#title]]
+  #v(0.4cm)
+  #body
+]
+
+#let antwortlinie(width: 100%) = block(width: width, above: 14pt, below: 6pt, line(length: 100%, stroke: 0.5pt + grid-gray))
+
+#let aufgabe(nr, titel, punkte, body) = block(above: 8pt, below: 5pt)[
+  #grid(
+    columns: (1fr, auto),
+    [#text(weight: "bold")[#nr #titel]],
+    [#text(weight: "bold")[#punkte P]],
+  )
+  #v(4pt)
+  #body
+]
+
+#let subtask(label, body) = block(above: 4pt, below: 2pt)[
+  #grid(columns: (1.6em, 1fr), [#label)], [#body])
+]
+
+#let answer_grid(cell_size: 0.5cm, rows: 10, cols: 36) = block(above: 4pt, below: 8pt)[
+  #table(
+    columns: (cell_size,) * cols,
+    rows: (cell_size,) * rows,
+    stroke: 0.35pt + grid-gray,
+    inset: 0pt,
+    ..range(rows * cols).map(_ => [])
+  )
+]
+
+#let checkbox_table(body) = block(above: 4pt, below: 6pt)[
+  #set table(stroke: 0.55pt + black, inset: (x: 5pt, y: 4pt))
+  #body
+]
+
+#let note_table() = block(above: 4pt, below: 8pt)[
+  #set table(stroke: 0.6pt + black, inset: (x: 4pt, y: 6pt))
+  #table(
+    columns: (1.2fr,) + (1fr,) * 7,
+    [Note], [1], [2], [3], [4], [5], [6], [ø],
+    [Anzahl], [], [], [], [], [], [], [],
+    [Notw. Punkte], [], [], [], [], [], [], [],
+  )
+]
+
+#let proof_table(body) = block(above: 5pt, below: 6pt)[
+  #set table(
+    stroke: 0.6pt + black,
+    inset: (x: 5pt, y: 6pt),
+    rows: (auto, 1.35cm, 1.35cm, 2.1cm, 1.35cm),
+  )
+  #body
+]
+
+#if student-header-offset > 0mm { v(student-header-offset + 2mm, weak: false) }
+
+$body$

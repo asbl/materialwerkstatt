@@ -1,0 +1,26 @@
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{geometry}
+$for(geometry)$
+\geometry{$geometry$}
+$endfor$
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\newenvironment{importseite}{%
+  \noindent\begin{tikzpicture}[remember picture,overlay,x=1bp,y=-1bp,shift={(current page.north west)}]
+}{%
+  \end{tikzpicture}\null\newpage
+}
+\newcommand{\importbild}[5]{%
+  \node[anchor=north west,inner sep=0pt,outer sep=0pt] at (#1,#2) {\includegraphics[width=#3bp,height=#4bp]{#5}};
+}
+\newcommand{\importtext}[6]{%
+  \definecolor{importtextcolor}{RGB}{#5}
+  \node[anchor=base west,inner sep=0pt,outer sep=0pt,text=importtextcolor] at (#1,#2) {\fontspec{#4}\fontsize{#3bp}{#3bp}\selectfont #6};
+}
+\begin{document}
+$body$
+\end{document}
