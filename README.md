@@ -19,8 +19,11 @@ per Quarto nach LaTeX/PDF gerendert. Das Repository buendelt vier Werkzeuge:
 - Quarto
 - LaTeX mit `pdflatex`
 - `rsvg-convert` (Einheitskreis-/Skizzen-PDFs) und `pdftocairo` (TikZ-SVG-Assets)
-- optional: Node.js mit `npx` (markdownlint, Editor-Bundle), Playwright-Browser
-  (Moodle-Uploads), Chromium/Chrome (Material-UI als Desktop-App)
+- optional: Playwright-Browser (Moodle-Uploads), Chromium/Chrome (Material-UI als Desktop-App)
+- nur mit dem jeweiligen Plugin (siehe [Optionale Plugins](#optionale-plugins)): LibreOffice und
+  Pandoc (`office`), Tesseract und Ghostscript (`ocr`)
+- nur zum Mitarbeiten: Node.js mit `npx` (markdownlint, Editor-Bundle, Praesentationsansicht
+  `inv deck-present`)
 
 `inv doctor` prueft all das und zeigt fuer Fehlendes konkrete Installationshinweise.
 
@@ -38,9 +41,27 @@ python3 src/material_core/systemcheck.py --befehl   # nur den Installationsbefeh
 ```
 
 Der Check (`src/material_core/systemcheck.py`, auch als `inv doctor`) erkennt den Paketmanager
-(pacman, apt, dnf, zypper), meldet je Stufe (Basis, PDF-Build, empfohlen, optional) was
+(pacman, apt, dnf, zypper), meldet je Stufe (Basis, PDF-Build, empfohlen, aktivierte Plugins,
+optional, Entwicklung) was
 vorhanden ist und nennt die passenden Pakete, bei Quarto und Typst auch Fremdquellen (AUR,
 Release-Download). Mit `--json` und `--pakete` ist er fuer Paketbauer maschinenlesbar.
+
+### Optionale Plugins
+
+Zwei eingebaute Plugins sind ab Werk **aus**, damit ihre Programme nur braucht, wer sie nutzt:
+
+| Plugin | Wofuer | Programme |
+| --- | --- | --- |
+| `office` | DOCX-Import in der Material-UI, `inv import-onlyoffice` | LibreOffice, Pandoc |
+| `ocr` | `inv wissen-ocr`, `wissen-komprimieren`, `wissen-update --ocr/--komprimieren` | Tesseract, Ghostscript |
+
+```sh
+inv plugin-enable office            # nennt gleich die fehlenden Pakete; danach Server neu starten
+./install.sh --system-pakete        # installiert auch die Pakete aktivierter Plugins
+```
+
+Der PDF-Import braucht keines der beiden. Wer DOCX oder OCR schon vor dieser Aufteilung genutzt
+hat, muss das Plugin einmal aktivieren (je Inhaltsordner, Zustand in `.material-ui/plugins.json`).
 
 **Programm und Inhalte trennen:** Unter Einstellungen, Reiter „Ordner“, laesst sich ein
 Inhaltsordner waehlen (z. B. in einem Nextcloud- oder Syncthing-Ordner); danach den Server neu
@@ -67,11 +88,12 @@ cd material-datenbank
 # git clone <inhalts-repo> unterricht
 # git clone <kurs-repo> unterricht/kurse
 # Ohne diese Ordner laufen Werkzeuge und Tests unveraendert; `unterricht/` ist gitignoriert.
-inv setup      # pip install -e '.[dev]', .env anlegen, H5P-Libraries, Playwright-Browser
+inv setup      # pip install -e ., .env anlegen, H5P-Libraries, Playwright-Browser
+# Zum Mitarbeiten (Testwerkzeuge): inv setup --entwicklung bzw. ./install.sh --entwicklung
 inv doctor     # Umgebungspruefung mit Installationshinweisen
 ```
 
-Manuell statt `inv setup`: `pip install -e '.[dev]'` im Repo-Root. Optional fuer die
+Manuell statt `inv setup`: `pip install -e .` im Repo-Root. Optional fuer die
 Schulportal-Anmeldung bei Moodle-Zielen: `inv setup --schulportal` bzw.
 `pip install -e src/sph_login`. Fuer H5P-Kurse
 zusaetzlich `inv kurse.update-h5p-libraries`; fuer Moodle-Uploads `.env.example`
@@ -185,7 +207,8 @@ samt `.quarto/`, laesst dabei aber `build/scratch/` stehen. Mit
 `inv clean --artefakte` werden zusaetzlich die lokalen Scratch-Ausgaben unter
 `build/scratch/` entfernt.
 
-Onlyoffice-Dokumente seitenstabil nach QMD importieren:
+Onlyoffice-Dokumente seitenstabil nach QMD importieren (Plugin `office`,
+einmalig `inv plugin-enable office`):
 
 ```sh
 inv import-onlyoffice \
@@ -426,6 +449,7 @@ invoke wissen-status                 # Stand ohne Scan
 invoke wissen-suche "Grundvorstellung Bruch"   # Volltext über Quellen, Karten und Dossiers
 invoke wissen-suche fehlerkultur --karten      # nur Karten und Dossiers (--ohne-literatur: Literaturseiten ausblenden)
 invoke wissen-lies grundvorstellungen --von 4 --bis 5   # Seiten einer Quelle lesen
+invoke plugin-enable ocr             # einmalig, Voraussetzung fuer OCR und Verkleinern
 invoke wissen-ocr --match "Fehler"   # gescannte PDFs per OCR nachziehen (langsam, ca. 2 s/Seite)
 invoke wissen-komprimieren --trocken # PDFs verkleinern testen, ohne etwas zu ändern (danach ohne --trocken)
 invoke wissen-update --ocr --komprimieren   # Scan, OCR, dann Verkleinerung, dann Index (in dieser Reihenfolge)

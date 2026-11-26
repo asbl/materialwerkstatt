@@ -8,7 +8,8 @@ Reine Standardbibliothek, damit der Check vor `pip install` laeuft (z. B. aus `i
     python3 src/material_core/systemcheck.py --json     # maschinenlesbar
     python3 src/material_core/systemcheck.py --pakete   # nur die Paketnamen (z. B. fuer PKGBUILD)
 
-Stufen: `basis` (ohne geht nichts), `bauen` (PDF-Build), `empfohlen`, `optional`.
+Stufen: `basis` (ohne geht nichts), `bauen` (PDF-Build), `empfohlen`, `optional`, `plugin`
+(nur fuer aktivierte Plugins, aus deren `plugin.json`), `entwicklung` (nur zum Mitarbeiten).
 Der Exit-Code ist 1, wenn Programme der Stufen `basis` oder `bauen` fehlen.
 """
 
@@ -23,9 +24,13 @@ import shutil
 import sys
 from pathlib import Path
 
+if __package__ in {None, ""}:  # als Skript gestartet (install.sh): src/ fuer die Projektmodule ergaenzen
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 MANAGERS = ("pacman", "apt", "dnf", "zypper")
 REQUIRED_LEVELS = ("basis", "bauen")
-LEVELS = ("basis", "bauen", "empfohlen", "optional")
+LEVELS = ("basis", "bauen", "empfohlen", "plugin", "optional", "entwicklung")
+DEFAULT_LEVELS = ("basis", "bauen", "empfohlen", "plugin")
 
 # Je Eintrag: Schluessel, Stufe, Programme (eines genuegt), Zweck, Pakete je Paketmanager,
 # Hinweis fuer Fremdquellen. Fehlt ein Manager in `pakete`, ist das Programm dort nicht
@@ -126,45 +131,16 @@ TOOLS: list[dict] = [
     },
     {
         "key": "node",
-        "level": "optional",
+        "level": "entwicklung",
         "binaries": ["node", "npx"],
-        "purpose": "markdownlint, Editor-Bundle und Excalideck neu bauen",
+        "purpose": "markdownlint, Editor-Bundle und Praesentationsansicht bauen",
         "packages": {m: ["nodejs", "npm"] for m in MANAGERS},
-    },
-    {
-        "key": "pandoc",
-        "level": "optional",
-        "binaries": ["pandoc"],
-        "purpose": "Import von Office-Dateien",
-        "packages": {"pacman": ["pandoc-cli"], "apt": ["pandoc"], "dnf": ["pandoc"], "zypper": ["pandoc"]},
-    },
-    {
-        "key": "libreoffice",
-        "level": "optional",
-        "binaries": ["libreoffice", "soffice"],
-        "purpose": "Import von Office-Dateien",
-        "packages": {"pacman": ["libreoffice-fresh"], "apt": ["libreoffice"], "dnf": ["libreoffice"], "zypper": ["libreoffice"]},
-    },
-    {
-        "key": "tesseract",
-        "level": "optional",
-        "binaries": ["tesseract"],
-        "purpose": "OCR in der Wissensbasis",
-        "packages": {"pacman": ["tesseract", "tesseract-data-deu"], "apt": ["tesseract-ocr", "tesseract-ocr-deu"],
-                     "dnf": ["tesseract", "tesseract-langpack-deu"], "zypper": ["tesseract-ocr", "tesseract-ocr-traineddata-german"]},
-    },
-    {
-        "key": "ghostscript",
-        "level": "optional",
-        "binaries": ["gs"],
-        "purpose": "PDFs der Wissensbasis komprimieren",
-        "packages": {m: ["ghostscript"] for m in MANAGERS},
     },
     {
         "key": "imagemagick",
         "level": "optional",
         "binaries": ["magick", "convert"],
-        "purpose": "Bildkonvertierung beim Import",
+        "purpose": "editierbare SVG-Bilder in H5P-Kursen rendern",
         "packages": {m: ["imagemagick"] for m in MANAGERS},
     },
     {
@@ -220,10 +196,38 @@ def _python_ok() -> tuple[bool, str]:
     return sys.version_info >= (3, 12), f"{found or sys.executable} (laeuft unter {version})"
 
 
-def check_tools() -> list[dict]:
-    """Ergebnisliste: je Werkzeug `ok`, gefundener Pfad und die uebrigen Felder aus TOOLS."""
+def requirement_tool(plugin_id: str, requirement) -> dict:
+    """Werkzeug-Eintrag fuer die Anforderung eines Plugins."""
+    return {
+        "key": requirement.key,
+        "level": "plugin",
+        "binaries": list(requirement.binaries),
+        "purpose": f"Plugin {plugin_id}: {requirement.purpose}",
+        "packages": {manager: list(names) for manager, names in requirement.packages},
+        "hint": requirement.hint,
+    }
+
+
+def plugin_tools() -> list[dict]:
+    """Programme, die die aktivierten Plugins des Arbeitsbereichs brauchen."""
+    try:
+        from material_core import plugin_state
+
+        manifests = plugin_state.enabled_manifests()
+    except Exception as error:  # noqa: BLE001 - der Kern-Check laeuft auch ohne lesbaren Arbeitsbereich
+        print(f"Plugin-Anforderungen nicht pruefbar: {error}", file=sys.stderr)
+        return []
+    return [requirement_tool(manifest.id, requirement)
+            for manifest in manifests for requirement in manifest.system_requirements]
+
+
+def check_tools(tools: list[dict] | None = None) -> list[dict]:
+    """Ergebnisliste: je Werkzeug `ok`, gefundener Pfad und die uebrigen Felder aus TOOLS.
+
+    Ohne `tools` werden der Kern (TOOLS) und die aktivierten Plugins geprueft.
+    """
     results = []
-    for tool in TOOLS:
+    for tool in [*TOOLS, *plugin_tools()] if tools is None else tools:
         entry = dict(tool)
         found = None
         if tool["key"] == "python":
@@ -273,10 +277,13 @@ def install_command(plan: dict) -> str:
     return f"{verbs[manager]} {' '.join(shlex.quote(p) for p in packages)}"
 
 
-def report(results: list[dict], manager: str | None, levels: tuple[str, ...] = ("basis", "bauen", "empfohlen")) -> str:
+def report(results: list[dict], manager: str | None, levels: tuple[str, ...] = DEFAULT_LEVELS) -> str:
     lines = [f"Paketmanager: {manager or 'unbekannt'}", ""]
-    labels = {"basis": "Basis", "bauen": "PDF-Build", "empfohlen": "Empfohlen", "optional": "Optional"}
+    labels = {"basis": "Basis", "bauen": "PDF-Build", "empfohlen": "Empfohlen", "plugin": "Aktivierte Plugins",
+              "optional": "Optional", "entwicklung": "Entwicklung"}
     for level in LEVELS:
+        if not any(r["level"] == level for r in results):
+            continue
         lines.append(f"{labels[level]}:")
         for r in (r for r in results if r["level"] == level):
             state = "ok" if r["ok"] else ("FEHLT" if level in REQUIRED_LEVELS else "fehlt")
@@ -295,6 +302,8 @@ def report(results: list[dict], manager: str | None, levels: tuple[str, ...] = (
         lines.append("Nichts zu installieren.")
     if "optional" not in levels and missing(results, ("optional",)):
         lines.append("Optionale Programme fehlen; mit --alles in den Befehl aufnehmen.")
+    if "entwicklung" not in levels and missing(results, ("entwicklung",)):
+        lines.append("Entwicklerwerkzeuge fehlen (nur zum Mitarbeiten); mit --entwicklung aufnehmen.")
     return "\n".join(lines)
 
 
@@ -304,12 +313,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--befehl", action="store_true", help="nur den Installationsbefehl ausgeben")
     parser.add_argument("--pakete", action="store_true", help="nur die fehlenden Paketnamen ausgeben")
     parser.add_argument("--alles", action="store_true", help="Befehl auch fuer optionale Programme (Standard: ohne Stufe optional)")
+    parser.add_argument("--entwicklung", action="store_true", help="Befehl auch fuer Entwicklerwerkzeuge")
     parser.add_argument("--manager", choices=MANAGERS, help="Paketmanager erzwingen (Standard: erkennen)")
     args = parser.parse_args(argv)
 
     manager = args.manager or detect_manager()
     results = check_tools()
-    levels = LEVELS if args.alles else ("basis", "bauen", "empfohlen")
+    levels = DEFAULT_LEVELS + (("optional",) if args.alles else ()) + (("entwicklung",) if args.entwicklung else ())
     plan = install_plan(results, manager, levels)
     if args.json:
         print(json.dumps({"manager": manager, "tools": [

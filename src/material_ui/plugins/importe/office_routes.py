@@ -21,6 +21,13 @@ def build_blueprint(ctx, max_office_bytes: int) -> Blueprint:
         except LookupError as error:
             raise InvalidInput("KI-Umbau nicht verfügbar: Das Chat-Plugin ist nicht aktiv.") from error
 
+    def docx_converter():
+        """Interface des optionalen Plugins office; None, wenn es nicht aktiv ist."""
+        try:
+            return ctx.require_service("docx-converter")
+        except LookupError:
+            return None
+
     @bp.post("/api/document/import/office")
     def office_import_upload():
         upload = request.files.get("file")
@@ -29,7 +36,8 @@ def build_blueprint(ctx, max_office_bytes: int) -> Blueprint:
         payload = upload.read(max_office_bytes + 1)
         if len(payload) > max_office_bytes:
             raise InvalidInput(f"Die Datei darf höchstens {max_office_bytes // (1024 * 1024)} MiB groß sein.")
-        record = office_import.stage_office_upload(payload, upload.filename, root=config.root)
+        record = office_import.stage_office_upload(
+            payload, upload.filename, root=config.root, docx_converter=docx_converter())
         suggested = record.suggested
         subject = sanitize_stem(suggested.get("subject") or "material")
         grade = suggested.get("grade") or "05"

@@ -1,0 +1,29 @@
+{
+  "id": "ocr",
+  "name": "OCR und PDF-Verkleinerung (Wissensbasis)",
+  "version": "0.1.0",
+  "minAppApi": 3,
+  "capabilities": ["repo-read", "state-write"],
+  "pythonEntry": "register",
+  "defaultEnabled": false,
+  "provides": ["ocr-engine"],
+  "systemRequirements": [
+    {
+      "key": "tesseract",
+      "binaries": ["tesseract"],
+      "purpose": "Texterkennung in Scans (mit deutschen Sprachdaten)",
+      "packages": {
+        "pacman": ["tesseract", "tesseract-data-deu", "tesseract-data-eng"],
+        "apt": ["tesseract-ocr", "tesseract-ocr-deu"],
+        "dnf": ["tesseract", "tesseract-langpack-deu"],
+        "zypper": ["tesseract-ocr", "tesseract-ocr-traineddata-german"]
+      }
+    },
+    {
+      "key": "ghostscript",
+      "binaries": ["gs"],
+      "purpose": "PDFs verkleinern",
+      "packages": {"pacman": ["ghostscript"], "apt": ["ghostscript"], "dnf": ["ghostscript"], "zypper": ["ghostscript"]}
+    }
+  ]
+}

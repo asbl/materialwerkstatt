@@ -23,6 +23,16 @@ class ManifestError(ValueError):
 
 
 @dataclass(frozen=True)
+class SystemRequirement:
+    """Systemprogramm, das nur dieses Plugin braucht (eines der `binaries` genuegt)."""
+    key: str
+    binaries: tuple[str, ...]
+    purpose: str
+    packages: tuple[tuple[str, tuple[str, ...]], ...] = ()  # (Paketmanager, Paketnamen)
+    hint: str = ""
+
+
+@dataclass(frozen=True)
 class PluginManifest:
     id: str
     name: str
@@ -39,6 +49,13 @@ class PluginManifest:
     depends_on: tuple[tuple[str, str], ...] = ()  # (Ziel: Plugin-ID oder "@interface", kommagetrennte Bedingung)
     provides: tuple[str, ...] = ()                # angebotene Interfaces (ohne @)
     host_apis: tuple[str, ...] = ()               # Frontend-Schnittstellen des Hosts, die das JS-Modul braucht
+    default_enabled: bool = True                  # False: auch eingebaut erst nach `inv plugin-enable` aktiv
+    system_requirements: tuple[SystemRequirement, ...] = ()
+
+    @property
+    def active_by_default(self) -> bool:
+        """Eingebaute und projektlokale (bewusst abgelegte, private) Plugins sind vorab aktiv."""
+        return self.default_enabled and self.source in {"builtin", "project"}
 
     def asset_files(self) -> list[tuple[str, Path]]:
         """Nur Manifest-benannte Dateien dürfen über die Asset-Route ausgeliefert werden."""
@@ -112,6 +129,10 @@ def load_manifest(directory: Path, source: str, *, check_dir_name: bool = True) 
         not isinstance(item, str) or not INTERFACE_NAME_PATTERN.fullmatch(item) for item in host_apis
     ):
         raise ManifestError("Manifest-Feld hostApis muss eine Liste von Namen ([a-z0-9-]+) sein.", plugin_id)
+    default_enabled = data.get("defaultEnabled", True)
+    if not isinstance(default_enabled, bool):
+        raise ManifestError("Manifest-Feld defaultEnabled muss true oder false sein.", plugin_id)
+    system_requirements = _parse_system_requirements(data.get("systemRequirements", []), plugin_id)
     return PluginManifest(
         id=locus,
         name=name,
@@ -128,7 +149,35 @@ def load_manifest(directory: Path, source: str, *, check_dir_name: bool = True) 
         depends_on=tuple(depends_on),
         provides=provides,
         host_apis=tuple(host_apis),
+        default_enabled=default_enabled,
+        system_requirements=system_requirements,
     )
+
+
+def _strings(value) -> bool:
+    return isinstance(value, list) and bool(value) and all(isinstance(item, str) and item for item in value)
+
+
+def _parse_system_requirements(raw, plugin_id: str) -> tuple[SystemRequirement, ...]:
+    error = ManifestError(
+        "Manifest-Feld systemRequirements muss eine Liste von {key, binaries, purpose, packages?, hint?} sein.",
+        plugin_id)
+    if not isinstance(raw, list):
+        raise error
+    result: list[SystemRequirement] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise error
+        key, purpose, hint = item.get("key"), item.get("purpose"), item.get("hint", "")
+        packages = item.get("packages", {})
+        if (not all(isinstance(value, str) and value for value in (key, purpose)) or not isinstance(hint, str)
+                or not _strings(item.get("binaries")) or not isinstance(packages, dict)
+                or not all(_strings(names) for names in packages.values())):
+            raise error
+        result.append(SystemRequirement(
+            key=key, binaries=tuple(item["binaries"]), purpose=purpose, hint=hint,
+            packages=tuple((manager, tuple(names)) for manager, names in packages.items())))
+    return tuple(result)
 
 
 def _parse_provides(raw, plugin_id: str) -> tuple[str, ...]:

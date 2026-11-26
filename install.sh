@@ -8,13 +8,14 @@
 #   ./install.sh --deinstallieren   Starter und Installationsordner entfernen
 #
 # Optionen: --prefix <dir>  --repo <url>  --ref <branch|tag>  --yes  --ohne-h5p  --ohne-playwright
+#           --entwicklung (Testwerkzeuge und Node.js)
 set -euo pipefail
 
 PREFIX="${MATERIAL_UI_PREFIX:-${XDG_DATA_HOME:-$HOME/.local/share}/material-ui}"
 REPO="${MATERIAL_UI_REPO:-}"   # nur noetig, wenn das Skript nicht im Klon liegt
 REF="${MATERIAL_UI_REF:-main}"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
-ONLY_CHECK=0 SYSTEM_PACKAGES=0 UNINSTALL=0 ASSUME_YES=0 SETUP_FLAGS=()
+ONLY_CHECK=0 SYSTEM_PACKAGES=0 UNINSTALL=0 ASSUME_YES=0 SETUP_FLAGS=() CHECK_FLAGS=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -24,10 +25,11 @@ while [ $# -gt 0 ]; do
     --yes|-y) ASSUME_YES=1 ;;
     --ohne-h5p) SETUP_FLAGS+=(--skip-h5p) ;;
     --ohne-playwright) SETUP_FLAGS+=(--skip-playwright) ;;
+    --entwicklung) SETUP_FLAGS+=(--entwicklung); CHECK_FLAGS+=(--entwicklung) ;;
     --prefix) PREFIX="$2"; shift ;;
     --repo) REPO="$2"; shift ;;
     --ref) REF="$2"; shift ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -64,7 +66,7 @@ for candidate in python3.14 python3.13 python3.12 python3; do
   fi
 done
 
-run_check() { "${PYTHON:-python3}" "$SRC/src/material_core/systemcheck.py" "$@"; }
+run_check() { "${PYTHON:-python3}" -B "$SRC/src/material_core/systemcheck.py" ${CHECK_FLAGS[@]+"${CHECK_FLAGS[@]}"} "$@"; }
 
 if [ ! -f "$SRC/src/material_core/systemcheck.py" ]; then
   [ -n "$REPO" ] || die "Repository-URL fehlt: --repo <url> oder MATERIAL_UI_REPO setzen (oder das Skript im Klon starten)."

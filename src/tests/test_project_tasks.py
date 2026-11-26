@@ -593,14 +593,17 @@ def test_setup_installs_sph_dependency_only_on_request(tmp_path, monkeypatch):
     commands = []
     monkeypatch.setattr(project_tasks, "_run", lambda args, **kwargs: commands.append(args))
     project_tasks._pip_install_editable()
+    assert commands == [[sys.executable, "-m", "pip", "install", "-e", "."]]
+    commands.clear()
+    project_tasks._pip_install_editable(entwicklung=True)
     assert commands == [[sys.executable, "-m", "pip", "install", "-e", ".[dev]"]]
     commands.clear()
     project_tasks._pip_install_editable(schulportal=True)
-    assert commands == [[sys.executable, "-m", "pip", "install", "-e", ".[dev]", "-e", "src/sph_login"]]
+    assert commands == [[sys.executable, "-m", "pip", "install", "-e", ".", "-e", "src/sph_login"]]
     venv_pip = _write(tmp_path / ".venv/bin/pip")
     commands.clear()
     project_tasks._pip_install_editable()
-    assert commands == [[str(venv_pip), "install", "-e", ".[dev]"]]
+    assert commands == [[str(venv_pip), "install", "-e", "."]]
 
 
 def test_portsuche_ohne_lsof_ueberspringt_fremde_prozesse(monkeypatch):

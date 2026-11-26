@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import tempfile
@@ -12,6 +11,8 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 import pymupdf
+
+from material_ui.plugins.ocr import engine
 
 from .config import ROOT, TEXT_CACHE
 from .text import clean_page, fix_ligatures
@@ -266,13 +267,10 @@ def _ocr_page(pdf: Path, number: int | None, image: Path | None = None, language
                 image = target.with_suffix(".png")
             if language not in OCR_LANGUAGES:
                 language = OCR_DEFAULT_LANGUAGE
-            result = subprocess.run(
-                ["tesseract", str(image), "stdout", "-l", language, "--psm", "3"],
-                capture_output=True, check=True, timeout=OCR_TIMEOUT, env={**os.environ, "OMP_THREAD_LIMIT": "1"},
-            )
+            text = engine.recognise(image, language, OCR_TIMEOUT)
     except (subprocess.SubprocessError, OSError) as error:
         raise OcrError(f"Seite {number}: {type(error).__name__}") from error
-    return clean_page(result.stdout.decode("utf-8", "replace"))
+    return clean_page(text)
 
 
 def ocr_document(doc: dict, workers: int = 6, log=print) -> int:
