@@ -37,6 +37,9 @@ dependencies = [
   "mcp>=2,<3",
 ]
 
+[project.urls]
+Repository = "https://github.com/asbl/materialwerkstatt"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8,<10",

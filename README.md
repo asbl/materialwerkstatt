@@ -46,6 +46,23 @@ optional, Entwicklung) was
 vorhanden ist und nennt die passenden Pakete, bei Quarto und Typst auch Fremdquellen (AUR,
 Release-Download). Mit `--json` und `--pakete` ist er fuer Paketbauer maschinenlesbar.
 
+### Updates
+
+Die Material-UI sucht beim Start und danach alle paar Stunden nach einem neueren Release
+(hoechstens eine Anfrage pro Tag: `git ls-remote --tags` auf das oeffentliche Repository, ohne
+Daten ueber Rechner oder Inhalte). Gibt es eines, erscheint im Kopfbereich „Update X.Y.Z“;
+Einstellungen, Reiter „Version“, zeigt Details. „Später“ blendet den Hinweis bis zur naechsten
+Version aus.
+
+- **Git-Klon** (auch `install.sh`): „Jetzt aktualisieren“ setzt den Klon per Fast-Forward auf das
+  Release, zieht in einer virtuellen Umgebung die Abhaengigkeiten nach und startet den Server neu.
+  Bei lokalen Aenderungen oder eigenen Commits passiert nichts.
+- **Paketinstallation:** Es bleibt beim Hinweis; aktualisiert wird ueber die Paketverwaltung.
+
+`MATERIAL_UI_UPDATE_CHECK=0` schaltet die Pruefung ab, `MATERIAL_UI_UPDATE_URL` waehlt eine andere
+Quelle (z. B. einen Fork); beides auch in der `.env` des Inhaltsordners. Ein Release ist ein Tag
+`vX.Y.Z`, dessen `pyproject.toml` dieselbe Versionsnummer traegt.
+
 ### Optionale Plugins
 
 Zwei eingebaute Plugins sind ab Werk **aus**, damit ihre Programme nur braucht, wer sie nutzt:

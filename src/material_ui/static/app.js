@@ -1094,8 +1094,8 @@ function closeNewMenu() {
   elements.newMenuToggle.setAttribute("aria-expanded", "false");
 }
 
-async function restartServer() {
-  if (!window.confirm("Material-UI-Server jetzt neu starten? Die Seite lädt danach neu; ungespeicherte Änderungen gehen verloren.")) return;
+async function restartServer(options) {
+  if (options?.confirmed !== true && !window.confirm("Material-UI-Server jetzt neu starten? Die Seite lädt danach neu; ungespeicherte Änderungen gehen verloren.")) return;
   let previousPid = null;
   try {
     previousPid = (await api("/api/desktop-status")).pid || null;

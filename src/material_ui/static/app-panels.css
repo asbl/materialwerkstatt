@@ -232,6 +232,10 @@
 .settings-tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--token-highlight); color: inherit; font-weight: 600; }
 .settings-body [role="tabpanel"][hidden] { display: none; }
 .marketplace-restart[hidden] { display: none; }
+.update-notice { border-color: var(--token-highlight); background: color-mix(in srgb, var(--token-highlight) 12%, var(--panel)); white-space: nowrap; }
+.update-notice[hidden] { display: none; }
+.update-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.update-actions [hidden] { display: none; }
 .workspace-heading { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-weight: 600; }
 #workspacePath { width: 100%; box-sizing: border-box; }
 .workspace-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
