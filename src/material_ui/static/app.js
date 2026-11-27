@@ -2,6 +2,7 @@ import { createMarkdownPreview } from "./markdown-preview.js";
 import { createDocumentState } from "./document-state.js";
 import { createSearchState } from "./search-state.js";
 import { createSearchProviderRegistry } from "./search-providers.js";
+import { createPrintHandlerRegistry } from "./print-handlers.js";
 import { createFulltextState } from "./fulltext-state.js";
 import { createTemplateUpdateController } from "./template-updates.js";
 import { createImageImportController } from "./image-import.js";
@@ -48,6 +49,7 @@ const elements = collectElements();
 const search = createSearchState({ elements, getContext: () => state.navigationView });
 // Lokale Such-Quellen der Plugins (ctx.search.registerProvider) fuer den Picker.
 const searchProviders = createSearchProviderRegistry();
+const printHandlers = createPrintHandlerRegistry();
 // Volltext-Zustand des Pickers (eigenes Modul statt globalem App-State).
 const fulltext = createFulltextState();
 
@@ -460,6 +462,7 @@ async function init() {
     documents: pathResolvers,
     documentPreview: markdownPreview,
     search: searchProviders,
+    printHandlers,
     openDocument: path => selectDocument(path),
     saveCurrentDocument: () => flushPendingSave(),
     hostApis: {
@@ -1200,9 +1203,8 @@ function closeDeckModal() {
   closeModal(elements.deckModal);
 }
 
-// Druckt das aktuelle PDF über einen unsichtbaren Frame (Druckdialog des Browsers).
-// Meldet den Start als `material:print-started`, damit Plugins (z. B. ein Druckverlauf)
-// mitlesen können, ohne dass der Kern sie kennt.
+// Druckt das aktuelle PDF. Ein Plugin-Druckweg (print-handlers.js) darf den Druck übernehmen;
+// sonst öffnet ein unsichtbarer Frame den Druckdialog des Browsers.
 async function printCurrentPdf() {
   const source = elements.pdfPreview.getAttribute("src");
   if (!source) {
@@ -1211,6 +1213,24 @@ async function printCurrentPdf() {
   }
   const url = new URL(source, window.location.href);
   url.hash = "";
+  const handler = printHandlers.active();
+  if (handler) {
+    try {
+      const handled = await handler.print({
+        path: state.qmdPath || "", pdf: url.searchParams.get("path") || "", url: url.href,
+        browserPrint: () => browserPrintPdf(url),
+      });
+      if (handled !== false) return;
+    } catch (error) {
+      setStatus(`Druckweg fehlgeschlagen: ${error.message}`, "error");
+    }
+  }
+  await browserPrintPdf(url);
+}
+
+// Meldet den Start als `material:print-started`, damit Plugins (z. B. ein Druckverlauf)
+// mitlesen können, ohne dass der Kern sie kennt.
+async function browserPrintPdf(url) {
   let objectUrl = "";
   try {
     const response = await fetch(url.href, { credentials: "same-origin" });

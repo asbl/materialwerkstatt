@@ -20,6 +20,7 @@
   "worksheet-canvas-import",
   "plugin-marketplace",
   "plugin-services",
+  "plugin-print-handlers",
     "workspace-settings"
  ]
 }

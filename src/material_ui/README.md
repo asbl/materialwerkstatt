@@ -451,6 +451,18 @@ in der Host-Registry, `ctx.service(name)` liefert es einem abhängigen Plugin
 KI-Chat des Plugins `chat` für den Umbau gestagter Dokumente nutzt. Die Capability
 `plugin-services` gehört zum API-Vertrag (apiVersion 3).
 
+### Druckwege (`ctx.print`)
+
+`ctx.print.registerHandler({ id, label, print })` lässt ein Plugin den Knopf „PDF drucken“
+übernehmen (Fähigkeit `plugin-print-handlers`, Registry `static/print-handlers.js`). `print`
+erhält `{ path, pdf, url, browserPrint }` (QMD-Pfad, PDF-Pfad relativ zum Inhaltsordner,
+PDF-URL, Rückfall auf den Browserdialog) und liefert `false`, wenn es den Druck nicht
+übernimmt; dann öffnet der Kern wie bisher den Druckdialog des Browsers. Der zuletzt
+registrierte Handler gewinnt, die Rückgabe ist eine Abmeldefunktion. Ein Plugin, das selbst
+druckt, meldet den Start ebenfalls als `material:print-started` (zusätzlich `copies`,
+`printer`, `source`). Das externe Plugin `lerngruppen` nutzt den Haken für Direktdruck über
+CUPS mit Exemplarzahl aus der Lerngruppe und Duplex nach Seitenformat.
+
 ## Private Projekt-Plugins
 
 Neben eingebauten Plugins und dem Benutzerordner (`~/.local/share/material-ui/plugins/`) lädt

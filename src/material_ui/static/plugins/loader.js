@@ -18,7 +18,7 @@ function hostDependencies(plugin, hostApis) {
   return deps;
 }
 
-function pluginContext({ plugin, api, views, ui, state, units, workspace, documents, documentPreview, search, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis }) {
+function pluginContext({ plugin, api, views, ui, state, units, workspace, documents, documentPreview, search, printHandlers, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis }) {
   const pluginState = state.plugins[plugin.id] || (state.plugins[plugin.id] = {});
   return {
     plugin,
@@ -34,6 +34,10 @@ function pluginContext({ plugin, api, views, ui, state, units, workspace, docume
       sources: () => search.sources(),
     } : null,
     workspace: workspace ? { registerMode: mode => workspace.register(mode) } : null,
+    // Druckweg für „PDF drucken“ übernehmen (siehe static/print-handlers.js); liefert eine Abmeldefunktion.
+    print: printHandlers ? {
+      registerHandler: handler => printHandlers.register({ ...handler, id: `${plugin.id}:${handler?.id || "druck"}` }),
+    } : null,
     documents: documents ? {
       registerPathResolver: fn => documents.register(fn),
       resolve: path => documents.resolve(path),
@@ -59,7 +63,7 @@ function pluginContext({ plugin, api, views, ui, state, units, workspace, docume
   };
 }
 
-export async function loadPlugins({ api, views, ui, state, units, workspace, documents, documentPreview, search, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis = {}, onStatus = () => {} }) {
+export async function loadPlugins({ api, views, ui, state, units, workspace, documents, documentPreview, search, printHandlers, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis = {}, onStatus = () => {} }) {
   let plugins = [];
   try {
     plugins = (await api("/api/plugins")).plugins || [];
@@ -78,7 +82,7 @@ export async function loadPlugins({ api, views, ui, state, units, workspace, doc
     if (!plugin.jsUrl) continue;
     try {
       const module = await import(plugin.jsUrl);
-      const context = pluginContext({ plugin, api, views, ui, state, units, workspace, documents, documentPreview, search, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis });
+      const context = pluginContext({ plugin, api, views, ui, state, units, workspace, documents, documentPreview, search, printHandlers, openDocument, saveCurrentDocument, newDocument, shortcuts, hostApis });
       await module.register?.(context);
     } catch (error) {
       console.error(`Plugin ${plugin.id} ist fehlgeschlagen:`, error);
