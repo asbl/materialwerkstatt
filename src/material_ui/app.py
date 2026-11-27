@@ -26,6 +26,7 @@ from material_ui.worksheet_routes import register_worksheet_routes
 from material_ui.slides_routes import register_slides_routes
 from material_ui.window_routes import register_window_routes
 from material_ui.settings_routes import register_settings_routes
+from material_ui.update_routes import register_update_routes
 from material_ui.plugins.host import PluginHost
 from material_ui.plugin_routes import register_plugin_routes
 from material_ui.marketplace_routes import register_marketplace_routes
@@ -122,6 +123,7 @@ def create_app(runtime: RuntimeState | None = None, config: AppConfig | None = N
     register_slides_routes(app, runtime)
     register_window_routes(app, runtime)
     register_settings_routes(app, runtime)
+    register_update_routes(app, runtime)
     # Plugin-Host ist wie die Services singleton pro Runtime: mehrere create_app-Aufrufe
     # (z. B. Tests) teilen sich Kontexte und Dienste, Blueprints werden je App registriert.
     if runtime.plugins is None:

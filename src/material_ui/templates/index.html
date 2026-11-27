@@ -70,6 +70,7 @@
     <button id="toggleFocusMode" class="header-action icon-button" type="button" aria-label="Fokus-Modus (Seitenleiste ausblenden)" aria-pressed="false" title="Fokus-Modus (Seitenleiste ausblenden)">{{ icon('maximize') }}</button>
     <div class="header-actions" role="group" aria-label="Status und Einstellungen">
       <button id="renderStatus" type="button" class="status-badge ready" title="Bereit. – Render-Ausgabe anzeigen" aria-controls="renderPanel" aria-live="polite">{{ icon('log') }}<span class="visually-hidden">Bereit.</span></button>
+      <button id="updateNotice" type="button" class="header-action update-notice" hidden>{{ icon('refresh') }} <span id="updateNoticeLabel">Update</span></button>
       <button id="showChat" type="button" class="header-action icon-button" aria-pressed="false" aria-controls="chatDock" aria-label="Chat öffnen" title="Chat mit Wissensbasis öffnen">{{ icon('chat') }}</button>
       <button id="showHelp" type="button" class="header-action icon-button" aria-haspopup="dialog" aria-controls="helpModal" aria-label="Hilfe" title="Hilfe: Bedienelemente und Tastenkürzel">{{ icon('help') }}</button>
       <div class="header-menu">
@@ -843,6 +844,7 @@
       <div class="settings-tabs" role="tablist" aria-label="Einstellungsbereiche">
         <button id="settingsTabFolders" type="button" role="tab" aria-selected="true" aria-controls="settingsFolders">Ordner</button>
         <button id="settingsTabPlugins" type="button" role="tab" aria-selected="false" aria-controls="settingsPlugins" tabindex="-1">Plugins</button>
+        <button id="settingsTabVersion" type="button" role="tab" aria-selected="false" aria-controls="settingsVersion" tabindex="-1">Version</button>
       </div>
       <div class="settings-body">
         <section id="settingsFolders" role="tabpanel" aria-labelledby="settingsTabFolders">
@@ -893,6 +895,21 @@
           <ul id="marketplaceInstalled" class="plugin-list" aria-live="polite"></ul>
           <h4>Verfügbar</h4>
           <ul id="marketplaceAvailable" class="plugin-list" aria-live="polite"></ul>
+        </section>
+        <section id="settingsVersion" role="tabpanel" aria-labelledby="settingsTabVersion" hidden>
+          <dl class="workspace-places">
+            <dt>Installierte Version</dt><dd id="updateCurrent"></dd>
+          </dl>
+          <p id="updateSummary" role="status"></p>
+          <p id="updateHint" class="muted"></p>
+          <div class="update-actions">
+            <button id="updateApply" type="button" class="primary" hidden>Jetzt aktualisieren</button>
+            <button id="updateRestart" type="button" hidden>{{ icon('refresh') }} <span>Server neu starten</span></button>
+            <button id="updateDismiss" type="button" hidden>Später</button>
+            <button id="updateCheck" type="button">Nach Updates suchen</button>
+            <a id="updateRelease" target="_blank" rel="noopener" hidden>Was ist neu?</a>
+          </div>
+          <p id="updateStatus" class="muted" role="status"></p>
         </section>
       </div>
     </section>

@@ -19,6 +19,12 @@ def isolate_git_discovery(monkeypatch, tmp_path_factory):
 
 
 @pytest.fixture(autouse=True)
+def no_update_check(monkeypatch):
+    """Die Oberflaeche fragt beim Laden nach Releases; Tests bleiben ohne Netzzugriff."""
+    monkeypatch.setenv("MATERIAL_UI_UPDATE_CHECK", "0")
+
+
+@pytest.fixture(autouse=True)
 def no_course_runtime_prewarm(monkeypatch):
     """App tests must not download H5P libraries as a startup side effect.
 

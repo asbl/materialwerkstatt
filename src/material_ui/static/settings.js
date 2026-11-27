@@ -1,7 +1,8 @@
 import { createWorkspaceSettings } from "./workspace-settings.js";
 import { createMarketplaceController } from "./marketplace.js";
+import { createUpdateController } from "./app-update.js";
 
-// Einstellungen-Dialog mit den Reitern „Ordner“ und „Plugins“ (Marketplace).
+// Einstellungen-Dialog mit den Reitern „Ordner“, „Plugins“ (Marketplace) und „Version“.
 
 export function createSettingsController({ elements, api, openModal, closeModal, setStatus, restartServer }) {
   const marketplace = createMarketplaceController({
@@ -12,7 +13,9 @@ export function createSettingsController({ elements, api, openModal, closeModal,
   });
 
   const folders = createWorkspaceSettings({ api, restartServer });
-  const tabs = [["settingsTabFolders", "settingsFolders", folders], ["settingsTabPlugins", "settingsPlugins", marketplace]]
+  const updates = createUpdateController({ api, restartServer, openUpdateSettings: () => openSettingsModal("settingsTabVersion") });
+  const tabs = [["settingsTabFolders", "settingsFolders", folders], ["settingsTabPlugins", "settingsPlugins", marketplace],
+    ["settingsTabVersion", "settingsVersion", updates]]
     .map(([tab, panel, controller]) => ({ tab: document.getElementById(tab), panel: document.getElementById(panel), controller }));
 
   async function select(chosen) {
@@ -30,14 +33,16 @@ export function createSettingsController({ elements, api, openModal, closeModal,
     entry.tab.addEventListener("click", () => select(entry));
     entry.tab.addEventListener("keydown", event => {
       if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-      const next = tabs[(index + 1) % tabs.length];
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      const next = tabs[(index + step + tabs.length) % tabs.length];
       next.tab.focus();
       select(next);
     });
   });
 
-  async function openSettingsModal() {
-    const current = tabs.find(entry => !entry.panel.hidden) || tabs[0];
+  // Als Klick-Handler bekommt die Funktion ein Event; nur eine Reiter-ID waehlt gezielt.
+  async function openSettingsModal(tabId) {
+    const current = tabs.find(entry => entry.tab.id === tabId) || tabs.find(entry => !entry.panel.hidden) || tabs[0];
     openModal(elements.settingsModal, current.tab);
     await select(current);
   }
@@ -50,6 +55,8 @@ export function createSettingsController({ elements, api, openModal, closeModal,
   elements.closeSettingsModalButton.addEventListener("click", closeSettingsModal);
   elements.marketplaceRefresh.addEventListener("click", () => marketplace.refresh());
   elements.marketplaceRestart.addEventListener("click", () => restartServer());
+
+  updates.start();
 
   return { openSettingsModal, closeSettingsModal };
 }
