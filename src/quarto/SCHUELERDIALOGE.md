@@ -77,7 +77,7 @@ In der Material-UI gibt es unter **Arbeitsblatt** drei Shortcuts:
 Namen und Aussagen werden im Einfügedialog angepasst; Figuren können dort
 gewählt werden. Unter `src/quarto/filters/examples/schuelerdialoge/ab_beispiele.qmd`
 liegen vier ausgearbeitete Beispiele: Rechenkette, Nullzeilen, Vergleich von
-Malkreuz und schriftlicher Multiplikation sowie Bruchrechnung.
+Malkreuz und schriftlicher Multiplikation sowie Bruchrechnung. Alle Rechnungen\nund Modelle darin entstehen aus `[Modell ...]`-Shortcuts, ohne Bilddateien.
 
 Bauen: `inv build --source src/quarto/filters/examples/schuelerdialoge/ab_beispiele.qmd`.
 Die PDF liegt zentral unter `build/pdf/src/quarto/filters/examples/schuelerdialoge/`.

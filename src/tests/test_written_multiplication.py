@@ -43,11 +43,31 @@ def test_products_and_digit_columns(a,b,zero,tmp_path):
 
 @pytest.mark.parametrize('args', ['aufgabe=12*_', 'aufgabe=01*2', 'aufgabe=1234567*2',
                                   'aufgabe=12*3 | nullzeile=vielleicht',
-                                  'aufgabe=12*3 | bildbreite=2mm', 'aufgabe=12*3 | falsch=ja', 'aufgabe=12*3 | gruppen=falsch'])
+                                  'aufgabe=12*3 | bildbreite=2mm', 'aufgabe=12*3 | falsch=ja', 'aufgabe=12*3 | gruppen=falsch',
+                                  'aufgabe=12*3 | endnullen=falsch', 'aufgabe=12*3 | teilrechnungen=falsch'])
 def test_invalid_options_fail(args,tmp_path):
     output=render('[Modell schriftlich | '+args+']',tmp_path)
     assert output.returncode != 0
     assert 'Modell schriftlich' in output.stderr
+
+
+@pytest.mark.parametrize('task,zero,expected,notes', [
+    ('346*107', 'nein', ['34600', '2422'], ['346 · 100', '346 · 7']),
+    ('346*107', 'ja', ['34600', '0000', '2422'], ['346 · 100', '346 · 0', '346 · 7']),
+    ('68*8', 'nein', [], ['68 · 8']),
+])
+def test_trailing_zeros_and_partial_task_labels(task, zero, expected, notes, tmp_path):
+    output = render(f'[Modell schriftlich | aufgabe={task} | nullzeile={zero} | endnullen=ja | teilrechnungen=ja]', tmp_path)
+    assert output.returncode == 0, output.stderr
+    drawing = ET.parse(next(tmp_path.glob('*.svg'))).getroot()
+    rows = {}
+    for t in drawing.findall('s:text', NS):
+        if t.get('class') == 'teilprodukt':
+            rows[t.get('y')] = rows.get(t.get('y'), '') + t.text
+    assert list(rows.values()) == expected
+    labels = [t for t in drawing.findall('s:text', NS) if t.get('class') == 'teilrechnung']
+    assert [t.text for t in labels] == notes
+    assert all(float(t.get('x')) < float(drawing.get('width')) for t in labels)
 
 
 def test_three_part_malkreuz_has_all_six_products(tmp_path):

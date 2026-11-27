@@ -57,7 +57,9 @@ const PARAMETERS = {
 };
 
 const EXTRA_OPTIONS = {
-  "modell-schriftlich": [["gruppen", "Teilprodukte farbig zuordnen", "Zeilenfarben passen zur zeilenweisen Gruppierung im Malkreuz.", ["", "keine", "zeilen"]]],
+  "modell-schriftlich": [["gruppen", "Teilprodukte farbig zuordnen", "Zeilenfarben passen zur zeilenweisen Gruppierung im Malkreuz.", ["", "keine", "zeilen"]],
+    ["endnullen", "Endnullen ausschreiben", "ja füllt verschobene Teilprodukte rechts mit Nullen auf.", ["", "ja", "nein"]],
+    ["teilrechnungen", "Teilrechnungen anzeigen", "ja schreibt neben jede Zeile, was dort gerechnet wird.", ["", "ja", "nein"]]],
   "modell-punktefeld": [["produkt", "Produkt anzeigen", "ja schreibt die Gesamtzahl der Punkte unter das Feld.", ["", "ja", "nein"]]],
   "modell-vierhundertfeld": [
     ["zeilen", "Zeilen des Rechtecks", "Zusammen mit spalten wird ein Rechteck oben links eingefärbt."],
@@ -150,6 +152,8 @@ export function configuredShortcut(item, fields, values) {
   const extras = fields.flatMap((field, i) => field.parameter && values[i].trim()
     ? [` | ${field.parameter}=${values[i].trim()}`] : []).join("");
   if (extras) code = code.replace(/(\[(?:Modell|Skizze) [^\]\n]*)(\])/, (_, start, end) => start + extras + end);
+  // Offener Rechenstrich ohne Sprünge: den leeren Parameter weglassen.
+  if (item.id === "modell-rechenstrich" && byKey.offen === "ja" && !byKey.spruenge.trim()) code = code.replace(/ \| spruenge=\s*\|/, " |");
   if (item.id === "schuelerfelder" && byKey.abstand.trim()) code = `[Schuelerfelder ${byKey.abstand.trim().replace(",", ".").replace(/\s+/g, "").replace(/^\./, "0.")}]`;
   for (const key of ["enableDueDate", "visibleToLearner", "learnerEditable"]) {
     const indent = key === "enableDueDate" ? "  " : "    ";
@@ -193,7 +197,7 @@ export function shortcutErrors(item, fields, values) {
   if (item.id === "modell-rechenstrich") {
     const nodes = list(values[0]), jumps = list(values[1]);
     const open = values[fields.findIndex(field => field.key === "offen")] === "ja";
-    if (nodes.length < 2 || nodes.length > 6) set(0, "Bitte 2–6 Zahlen oder Platzhalter mit Kommas trennen.");
+    if (nodes.length < 2 || nodes.length > (open ? 13 : 6)) set(0, `Bitte 2–${open ? 13 : 6} Zahlen oder Platzhalter mit Kommas trennen.`);
     if (jumps.length !== nodes.length - 1 && !(open && !jumps.length)) set(1, `Für ${nodes.length} Knoten werden ${Math.max(0, nodes.length - 1)} Sprünge benötigt${open ? "; alternativ das Feld leer lassen" : ""}.`);
   }
   if (item.id === "schuelerdialog-farben") {

@@ -1227,11 +1227,14 @@ local function arithmetic_image(args)
   elseif kind == "rechenstrich" then
     local nodes = entries(options.knoten)
     -- Fehlendes spruenge (bei offen=ja erlaubt) darf keinen leeren Eintrag ergeben.
-    local jumps = options.spruenge and entries(options.spruenge) or {}
     -- offen=ja zeichnet nur Strich und Knoten: Die Sprünge ergänzt man selbst.
     local open_steps = options.offen == "ja"
-    if #nodes < 2 or #nodes > 6 then
-      error("Modell rechenstrich: 2–6 knoten nötig.")
+    -- Dort zählt auch ein leer gelassenes "spruenge=" als fehlend.
+    local jumps = options.spruenge and not (open_steps and options.spruenge == "") and entries(options.spruenge) or {}
+    -- Ohne Bögen passen auch feinere Teilungen auf den Strich (bis Zwölftel).
+    local max_nodes = open_steps and 13 or 6
+    if #nodes < 2 or #nodes > max_nodes then
+      error("Modell rechenstrich: 2–6 knoten nötig (bei offen=ja bis 13).")
     end
     if #jumps ~= #nodes - 1 and not (open_steps and #jumps == 0) then
       error("Modell rechenstrich: Je ein spruenge-Eintrag zwischen benachbarten Knoten nötig (bei offen=ja darf spruenge fehlen).")

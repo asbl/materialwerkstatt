@@ -1,3 +1,11 @@
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+
 def test_basic_rechenstrich_still_renders(render_exam_lua):
     result = render_exam_lua("[Modell rechenstrich | knoten=456,462,532,932 | spruenge=+6,+70,+400]")
     assert result.returncode == 0, result.stderr
@@ -49,4 +57,36 @@ def test_unknown_nodes_with_question_marks(render_exam_lua):
 
 def test_blank_fill_in_template_with_offen(render_exam_lua):
     result = render_exam_lua("[Modell rechenstrich | knoten=2486,,,, | offen=ja]")
+    assert result.returncode == 0, result.stderr
+
+
+def test_open_line_allows_six_equal_intervals(render_exam_lua):
+    result = render_exam_lua("[Modell rechenstrich | knoten=0,,,,,,1 | offen=ja]")
+    assert result.returncode == 0, result.stderr
+    too_many = render_exam_lua("[Modell rechenstrich | knoten=0,,,,,,,,,,,,,1 | offen=ja]")
+    assert too_many.returncode != 0
+
+
+def test_open_line_accepts_empty_jumps_parameter(render_exam_lua):
+    result = render_exam_lua("[Modell rechenstrich | knoten=2400,2900,3000 | spruenge= | offen=ja]")
+    assert result.returncode == 0, result.stderr
+    closed = render_exam_lua("[Modell rechenstrich | knoten=2400,2900,3000 | spruenge=]")
+    assert closed.returncode != 0
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node fehlt")
+def test_editor_omits_empty_jumps_for_open_line():
+    static = Path(__file__).resolve().parents[1] / "material_ui/static"
+    script = f"""
+import assert from 'node:assert/strict';
+import {{ SHORTCUTS }} from {json.dumps((static / 'shortcuts.js').as_uri())};
+import {{ shortcutFields, configuredShortcut }} from {json.dumps((static / 'shortcut-options.js').as_uri())};
+const item = SHORTCUTS.find(item => item.id === 'modell-rechenstrich');
+const fields = shortcutFields(item);
+const values = fields.map(field => field.value);
+values[fields.findIndex(field => field.key === 'spruenge')] = '';
+values[fields.findIndex(field => field.key === 'offen')] = 'ja';
+assert.equal(configuredShortcut(item, fields, values), '[Modell rechenstrich | knoten=3987,4000,4002 | offen=ja]');
+"""
+    result = subprocess.run(["node", "--input-type=module", "-e", script], text=True, capture_output=True, timeout=30)
     assert result.returncode == 0, result.stderr

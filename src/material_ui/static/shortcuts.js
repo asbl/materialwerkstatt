@@ -161,7 +161,7 @@ export const SHORTCUTS = [
     id: "modell-rechenstrich",
     label: "Modell: Rechenstrich",
     tags: ["klausur", "arbeitsblatt"],
-    hint: "Schematische Pfeilsprünge zwischen 2–6 Zahlen mit markiertem Anfang. Kommagetrennte Beschriftungen; _ oder ? erzeugt ein leeres Kästchen. Mit offen=ja fehlen die Sprünge – nur Strich und Knoten. Nicht maßstäblich.",
+    hint: "Schematische Pfeilsprünge zwischen 2–6 Zahlen mit markiertem Anfang. Kommagetrennte Beschriftungen; _ oder ? erzeugt ein leeres Kästchen. Mit offen=ja fehlen die Sprünge – nur Strich und bis zu 13 Knoten. Nicht maßstäblich.",
     code: "[Modell rechenstrich | knoten={{3987,4000,4002}} | spruenge={{+_,+_}}]"
   },
   {
