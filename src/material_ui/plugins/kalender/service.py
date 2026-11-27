@@ -567,7 +567,7 @@ class KalenderService:
                      description=payload.get('description', ''), url='', unitPath=unit_path, recurring=bool(recurrence),
                      recurrence=_recurrence_json(recurrence), lesson=lesson)
         with self.lock:
-            path = self.storage.path('local-events.json')
+            path = self.storage.shared_path('local-events.json')
             events = self.storage.read_json(path, default=[])
             events = [e for e in events if not original or e['key'] != original['key']]
             events.append(event)
@@ -585,7 +585,7 @@ class KalenderService:
             raise InvalidInput('Ungültiger Eintrag.')
         with self._sync_lock:
             cache = self.storage.read_json(self._cache_path(), default={})
-            local_path = self.storage.path('local-events.json')
+            local_path = self.storage.shared_path('local-events.json')
             local = self.storage.read_json(local_path, default=[])
             original = next((e for e in [*cache.get('events', []), *local]
                              if e.get('key') == payload.get('key') and e.get('account', '') == payload.get('originalAccount', '')
@@ -624,7 +624,7 @@ class KalenderService:
                 old_id, new_id = self._task_identity(original), self._task_identity(result)
                 if old_id != new_id:
                     with self.lock:
-                        plan_path = self.storage.path('task-plans.json')
+                        plan_path = self.storage.shared_path('task-plans.json')
                         plans = self.storage.read_json(plan_path, default={})
                         if old_id in plans:
                             plans[new_id] = plans.pop(old_id)
@@ -648,7 +648,7 @@ class KalenderService:
         return json.dumps([entry.get('account', ''), entry.get('calendar', '')], ensure_ascii=False)
 
     def _visibility(self):
-        return self.storage.read_json(self.storage.path('visibility.json'), default={'entries': {}, 'calendars': {}})
+        return self.storage.read_json(self.storage.shared_path('visibility.json'), default={'entries': {}, 'calendars': {}})
 
     def _is_hidden(self, entry, visibility, *, apply_selection=True):
         field = 'selectedTodoCalendars' if entry.get('kind') == 'todo' else 'selectedEventCalendars'
@@ -664,7 +664,7 @@ class KalenderService:
             visibility = self._visibility()
             cache = self.storage.read_json(self._cache_path(), default={})
             entries = list(cache.get('events', []))
-            entries.extend(self.storage.read_json(self.storage.path('local-events.json'), default=[]))
+            entries.extend(self.storage.read_json(self.storage.shared_path('local-events.json'), default=[]))
             calendars = {self._calendar_identity(e): e for e in entries}
             for calendar in self.status().get('calendars', []):
                 entry = {'account': calendar['account'], 'calendar': calendar['name']}
@@ -687,16 +687,16 @@ class KalenderService:
                 values[payload['id']] = payload.get('label') or payload['id']
             else:
                 values.pop(payload['id'], None)
-            self.storage.write_json(self.storage.path('visibility.json'), visibility)
+            self.storage.write_json(self.storage.shared_path('visibility.json'), visibility)
         return {'ok': True}
 
     def tasks(self):
         with self.lock:
             cache = self.storage.read_json(self._cache_path(), default={})
             entries = list(cache.get('events', []))
-            entries.extend(self.storage.read_json(self.storage.path('local-events.json'), default=[]))
-            plans = self.storage.read_json(self.storage.path('task-plans.json'), default={})
-            completed = self.storage.read_json(self.storage.path('completed-tasks.json'), default={})
+            entries.extend(self.storage.read_json(self.storage.shared_path('local-events.json'), default=[]))
+            plans = self.storage.read_json(self.storage.shared_path('task-plans.json'), default={})
+            completed = self.storage.read_json(self.storage.shared_path('completed-tasks.json'), default={})
         visibility = self._visibility()
         tasks = []
         for entry in entries:
@@ -737,7 +737,7 @@ class KalenderService:
                 except (TypeError, ValueError):
                     raise InvalidInput('Bitte ein gültiges Planungsdatum angeben.') from None
                 with self.lock:
-                    path = self.storage.path('task-plans.json')
+                    path = self.storage.shared_path('task-plans.json')
                     plans = self.storage.read_json(path, default={})
                     plans[task['id']] = {'plannedDate': planned}
                     self.storage.write_json(path, plans)
@@ -776,14 +776,14 @@ class KalenderService:
                         except Exception:
                             pass
             with self.lock:
-                path = self._cache_path() if task.get('account') else self.storage.path('local-events.json')
+                path = self._cache_path() if task.get('account') else self.storage.shared_path('local-events.json')
                 data = self.storage.read_json(path, default={} if task.get('account') else [])
                 entries = data.get('events', []) if task.get('account') else data
                 for entry in entries:
                     if self._task_identity(entry) == task['id']:
                         entry['status'] = 'COMPLETED'
                 self.storage.write_json(path, data)
-                completed_path = self.storage.path('completed-tasks.json')
+                completed_path = self.storage.shared_path('completed-tasks.json')
                 completed = self.storage.read_json(completed_path, default={})
                 completed[task['id']] = {**task, 'status': 'COMPLETED',
                     'completedDate': datetime.now(_zone(self.settings()['timezone'])).date().isoformat()}
@@ -791,7 +791,7 @@ class KalenderService:
             return {'ok': True}
 
     def group_defaults(self):
-        return self.storage.read_json(self.storage.path('unit-groups.json'), default=[
+        return self.storage.read_json(self.storage.shared_path('unit-groups.json'), default=[
             {'year': '2026/2027', 'grade': '05', 'group': '05C'},
             {'year': '2026/2027', 'grade': '10', 'group': '10C'},
         ])
@@ -803,7 +803,7 @@ class KalenderService:
             or not isinstance(row.get('group'), str) or not row['group'].strip() for row in rows
         ):
             raise InvalidInput('Bitte Schuljahr, Klassenstufe und Lerngruppe ausfüllen.')
-        self.storage.write_json(self.storage.path('unit-groups.json'), rows)
+        self.storage.write_json(self.storage.shared_path('unit-groups.json'), rows)
         return {'rows': rows}
 
     def link_units(self, events):
@@ -861,7 +861,7 @@ class KalenderService:
         begin, finish = _normalise_dates(start, end, zone)
         cache = self.storage.read_json(self._cache_path(), default={})
         entries = list(cache.get("events") or []) if isinstance(cache, dict) else []
-        entries.extend(self.storage.read_json(self.storage.path('local-events.json'), default=[]))
+        entries.extend(self.storage.read_json(self.storage.shared_path('local-events.json'), default=[]))
         matches = []
         for event in entries or []:
             if not event.get("startDate") or event.get("status") == "COMPLETED":
@@ -892,7 +892,7 @@ class KalenderService:
                     'holiday': self._calendar_identity(e) == holiday_key} for e in matches
                    if not self._is_hidden(e, visibility, apply_selection=id(e) not in source_entries)]
         self.link_units(matches)
-        cancellations = self.storage.read_json(self.storage.path('lesson-cancellations.json'), default={})
+        cancellations = self.storage.read_json(self.storage.shared_path('lesson-cancellations.json'), default={})
         for event in matches:
             event['lessonId'] = self._task_identity(event) + '|' + str(event.get('start') or event['startDate'])
             event['cancelled'] = cancellations.get(event['lessonId'], False) is True
@@ -940,7 +940,7 @@ class KalenderService:
         if event is None:
             raise InvalidInput('Unterrichtstermin nicht mehr verfügbar. Bitte aktualisieren.')
         with self.lock:
-            path = self.storage.path('lesson-cancellations.json')
+            path = self.storage.shared_path('lesson-cancellations.json')
             values = self.storage.read_json(path, default={})
             if payload['cancelled']:
                 values[event['lessonId']] = True
@@ -950,7 +950,7 @@ class KalenderService:
         return {'cancelled': payload['cancelled']}
 
     def planning_markers(self):
-        return {'rows': self.storage.read_json(self.storage.path('planning-markers.json'), default=[])}
+        return {'rows': self.storage.read_json(self.storage.shared_path('planning-markers.json'), default=[])}
 
     def planning_marker_events(self, start, end):
         # One persisted record backs both the divider and its calendar event.
@@ -999,7 +999,7 @@ class KalenderService:
                 marker = {'id': original['id'] if original else str(uuid4()), 'revision': str(uuid4()),
                           'titel': title.strip(), 'datum': day, 'farbe': color.lower(), 'klasse': grade}
                 rows.append(marker)
-            self.storage.write_json(self.storage.path('planning-markers.json'), rows)
+            self.storage.write_json(self.storage.shared_path('planning-markers.json'), rows)
         return {'deleted': True} if deleting else marker
 
     def holidays(self, start: str, end: str) -> dict[str, Any]:
@@ -1010,7 +1010,7 @@ class KalenderService:
         holiday = settings.get("holidayCalendar") or {}
         cache = self.storage.read_json(self._cache_path(), default={})
         entries = list(cache.get("events") or []) if isinstance(cache, dict) else []
-        entries.extend(self.storage.read_json(self.storage.path('local-events.json'), default=[]))
+        entries.extend(self.storage.read_json(self.storage.shared_path('local-events.json'), default=[]))
         holiday_key = self._calendar_identity({"account": holiday.get("account", ""), "calendar": holiday.get("name", "")})
         # Enddatum ganztägiger Ferien ist inklusiv im Event; auf Tage ausdehnen.
         expanded: set[str] = set()

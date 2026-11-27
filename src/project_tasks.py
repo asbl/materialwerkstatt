@@ -2038,7 +2038,9 @@ def a5_druck(_ctx, source: str) -> None:
 def _plugin_enabled_store():
     from material_ui.plugins.storage import PluginEnabledStore
 
-    return PluginEnabledStore(ROOT_DIR / ".material-ui" / "plugins.json")
+    from material_core.state import shared_file
+
+    return PluginEnabledStore(shared_file(ROOT_DIR, "plugins.json"))
 
 
 @task(name="plugin-list")

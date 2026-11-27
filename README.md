@@ -61,7 +61,7 @@ inv plugin-enable office            # nennt gleich die fehlenden Pakete; danach 
 ```
 
 Der PDF-Import braucht keines der beiden. Wer DOCX oder OCR schon vor dieser Aufteilung genutzt
-hat, muss das Plugin einmal aktivieren (je Inhaltsordner, Zustand in `.material-ui/plugins.json`).
+hat, muss das Plugin einmal aktivieren (je Inhaltsordner, Zustand in `daten/plugins.json`).
 
 **Programm und Inhalte trennen:** Unter Einstellungen, Reiter „Ordner“, laesst sich ein
 Inhaltsordner waehlen (z. B. in einem Nextcloud- oder Syncthing-Ordner); danach den Server neu
@@ -73,6 +73,15 @@ Inhaltsordner wie im Programmordner. Die Einstellung gilt je Rechner
 (`~/.config/material-ui/workspace.json`), `MATERIAL_HOME` hat Vorrang. Vom Sync auszuschliessen
 sind `build/`, `.h5p-runtime/`, `.material-ui/`, `.env` und `foerderempfehlungen/`. Vorhandene
 Inhalte werden nicht automatisch verschoben.
+
+**Mehrere Rechner:** Gemeinsame Programmdaten liegen unter `daten/` und werden mitsynchronisiert:
+Stundenplan, Erinnerungen, lokale Termine, Aufgabenplanung, Planungsmarker, Stundenausfaelle,
+Tags, aktivierte Plugins, Chat-Prompts und Loesungsverknuepfungen. `.material-ui/` bleibt je
+Rechner (Job-Verlauf, Kalender-Cache, Kalenderkonten mit Passwort); das Kalenderkonto wird deshalb
+auf jedem Rechner einmal unter demselben Namen eingerichtet. Frueher lokal abgelegte Dateien
+wandern beim ersten Zugriff nach `daten/`; liegt dort schon eine, hat sie Vorrang. Material-UI
+nicht auf zwei Rechnern gleichzeitig benutzen und vor dem Wechsel den Sync abwarten, sonst
+entstehen Konfliktkopien.
 
 Tests, die zu den Inhalten gehoeren, liegen bei ihnen (`unterricht/kurse/<kurs>/tests/`,
 `src/quarto/_local/tests/`) und laufen mit `inv test-inhalte`; `inv test` prueft das Werkzeug.

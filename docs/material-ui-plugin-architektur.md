@@ -277,7 +277,8 @@ assets/icons.svg    optional: eigene Symbole für Rail und Ansichten
 ```python
 ctx.register_routes(blueprint)               # Flask-Blueprint, url_prefix frei wählbar;
                                             # Kurse behalten ihre Pfade unter /api/kurse/…
-ctx.storage   # <repo>/.material-ui/plugins/<id>/, atomar geschrieben
+ctx.storage   # atomar geschrieben; path(): <repo>/.material-ui/plugins/<id>/ (lokal),
+              # shared_path(): <repo>/daten/plugins/<id>/ (zwischen Rechnern synchronisiert)
 ctx.settings  # JSON-Einstellungen, Dateimodus 0600 (siehe CalDAV-Passwörter)
 ctx.index.register(provider)                 # Kurs-Einträge in den Dokumentenindex einspeisen
 ctx.index.invalidate()                       # Indexinvalidierung durch das Plugin
@@ -300,7 +301,7 @@ ctx.windows.live_count()                     # lebende App-Fenster (0 = UI gesch
 - Status-API fürs Frontend: `GET /api/plugins` liefert je Plugin `{id, name, version,
   status, capabilities, jsUrl, cssUrls, iconsHref}`.
 - Aktivieren und Deaktivieren erfordern einen Neustart (Python-Module sind zu früh
-  geladen): Stand in `.material-ui/plugins.json` (git-ignoriert), UI-Dialog
+  geladen): Stand in `daten/plugins.json` (git-ignoriert), UI-Dialog
   „Plugins“ im Zahnrad-Menü sowie `inv plugin-list`, `inv plugin-enable <id>`,
   `inv plugin-disable <id>`. Der Neustartweg existiert bereits: `POST /api/server/restart`,
   ausgelöst in `static/app.js` über `restartServer()` mit anschließendem Neuladen.

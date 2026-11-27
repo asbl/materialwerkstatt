@@ -14,7 +14,7 @@ def plugin_app(tmp_path, monkeypatch):
     apps = []
 
     def build(chat=True, importe=True):
-        state = tmp_path / ".material-ui" / "plugins.json"
+        state = tmp_path / "daten" / "plugins.json"
         state.parent.mkdir(exist_ok=True)
         state.write_text(json.dumps({"enabled": {"chat": chat, "importe": importe}}))
         app = create_app(config=AppConfig(tmp_path))

@@ -39,6 +39,8 @@ audit/
 **/.material-history/
 **/.material-annotations/
 **/.material-ui/
+# Gemeinsame Programmdaten (Stundenplan, Planung), falls der Inhaltsordner der Programmordner ist
+/daten/
 **/material-ui-render-*
 **/node_modules/
 /.venv/

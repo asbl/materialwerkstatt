@@ -230,7 +230,7 @@ def _validated_prompts(raw) -> list[dict]:
 
 def _stored_prompts(ctx) -> list[dict]:
     try:
-        return _validated_prompts(ctx.storage.read_json(ctx.storage.path(PROMPTS_FILE), default=[]))
+        return _validated_prompts(ctx.storage.read_json(ctx.storage.shared_path(PROMPTS_FILE), default=[]))
     except InvalidInput:
         return []
 
@@ -341,7 +341,7 @@ def build_blueprint(ctx) -> Blueprint:
     def put_prompts():
         data = request.get_json(force=True)
         prompts = _validated_prompts(data.get("prompts"))
-        ctx.storage.write_json(ctx.storage.path(PROMPTS_FILE), prompts)
+        ctx.storage.write_json(ctx.storage.shared_path(PROMPTS_FILE), prompts)
         return jsonify({"prompts": prompts})
 
     @bp.get("/api/chat/source")

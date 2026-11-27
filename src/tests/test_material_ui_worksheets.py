@@ -54,7 +54,7 @@ def test_solution_detection_and_manual_choice_persist(worksheet_app):
     assert client.post('/api/worksheet/solution', json={'path': 'unterricht/ab_test.qmd', 'solution': 'unterricht/anders.qmd'}).status_code == 200
     result = client.get('/api/worksheet?path=unterricht/ab_test.qmd').json
     assert result['solution']['path'] == 'unterricht/anders.qmd'
-    assert (root / '.material-ui/worksheet-solutions.json').exists()
+    assert (root / 'daten/worksheet-solutions.json').exists()
 
 
 def test_crop_canvas_preserves_work_and_is_saved_by_existing_deck_api(worksheet_app):

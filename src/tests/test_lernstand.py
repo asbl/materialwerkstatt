@@ -281,7 +281,7 @@ def test_disabled_publication_plugin_keeps_unit_and_cli_usable(unit, monkeypatch
     root, folder, data = unit
     with (folder / 'einheit.yaml').open('w') as out:
         YAML().dump({'titel': 'Brüche', 'thema': 'Zahlen', 'kurzbeschreibung': '', 'datumsneutral': True, 'lernstand': data}, out)
-    PluginEnabledStore(root / '.material-ui/plugins.json').set_enabled('lernstand', False)
+    PluginEnabledStore(root / 'daten/plugins.json').set_enabled('lernstand', False)
     app = create_app(config=AppConfig(root))
     app.testing = True
     try:
@@ -307,7 +307,7 @@ def test_disabled_export_controls_preserve_diagnosis_editor_in_browser(unit):
     root, folder, data = unit
     with (folder / 'einheit.yaml').open('w') as out:
         YAML().dump({'titel': 'Brüche', 'thema': 'Zahlen', 'kurzbeschreibung': '', 'datumsneutral': True, 'lernstand': data}, out)
-    PluginEnabledStore(root / '.material-ui/plugins.json').set_enabled('lernstand', False)
+    PluginEnabledStore(root / 'daten/plugins.json').set_enabled('lernstand', False)
     app = create_app(config=AppConfig(root))
     try:
         with LiveServer(app, free_port()) as url, sync_playwright() as pw:
