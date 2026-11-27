@@ -12,7 +12,7 @@ def test_miniworlds_extensions_select_pyodide_and_include_dependencies():
 
     assert resolve_python_runner(source=source) == "pyodide"
     assert packages_for_h5p_content(packages) == [
-        {"package": "miniworlds", "remote": False},
+        "miniworlds",
         "miniworlds-robot",
         "miniworlds-turtle",
     ]
@@ -24,5 +24,5 @@ def test_extension_module_names_are_normalized_to_distributions():
     assert packages_for_h5p_content(packages) == [
         "miniworlds-robot",
         "miniworlds-turtle",
-        {"package": "miniworlds", "remote": False},
+        "miniworlds",
     ]
