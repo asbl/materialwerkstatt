@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import logging
 
+from material_core.state import shared_file
 from material_ui.errors import PluginConflict
 from material_ui.plugins.context import PluginContext, load_plugin_module
 from material_ui.plugins.manifest import PluginManifest, dependency_matches, discover_manifests
@@ -18,7 +19,7 @@ class PluginHost:
     def __init__(self, runtime, config, search_paths: list[tuple[Path, str]] | None = None) -> None:
         self.runtime = runtime
         self.config = config
-        self.enabled_store = PluginEnabledStore(config.root / ".material-ui" / "plugins.json")
+        self.enabled_store = PluginEnabledStore(shared_file(config.root, "plugins.json"))
         self.manifests: dict[str, PluginManifest] = {}
         self.contexts: dict[str, PluginContext] = {}
         self.load_errors: dict[str, str] = {}

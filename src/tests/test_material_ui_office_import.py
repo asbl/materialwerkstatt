@@ -38,7 +38,7 @@ def no_course_runtime_prewarm(monkeypatch):
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(material_app, "ROOT", tmp_path)
     # DOCX braucht das ab Werk ausgeschaltete Plugin office.
-    state = tmp_path / ".material-ui" / "plugins.json"
+    state = tmp_path / "daten" / "plugins.json"
     state.parent.mkdir(exist_ok=True)
     state.write_text(json.dumps({"enabled": {"office": True}}), encoding="utf-8")
     app = material_app.create_app()

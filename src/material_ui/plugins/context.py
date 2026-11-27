@@ -12,6 +12,7 @@ from flask import Blueprint
 
 from material_ui.jobs import JobRegistry, OperationChannel
 from material_ui.plugins.manifest import PluginManifest
+from material_core import state
 from material_ui.plugins.storage import PluginSettings, PluginStorage
 
 PLUGIN_MODULE_PREFIX = "material_ui_plugins."
@@ -179,7 +180,8 @@ class PluginContext:
         self.windows = PluginWindows(getattr(services, "windows", None))
         self.unit_service = getattr(services, "units", None)
         self.course_application = runtime.course_application
-        self.storage = PluginStorage(state_dir)
+        self.storage = PluginStorage(
+            state_dir, runtime.config.root / state.SHARED_DIR / "plugins" / manifest.id)
         self.settings = PluginSettings(self.storage)
         self.jobs = PluginJobs(runtime.jobs, runtime.start_worker)
         self.lifecycle = PluginLifecycle()

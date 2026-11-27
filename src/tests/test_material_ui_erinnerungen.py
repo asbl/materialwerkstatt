@@ -147,7 +147,7 @@ def test_calendar_interface_reads_events_tasks_and_timezone(app):
     interface = runtime.plugins.service("calendar")
     kalender = _kalender_service(app)
     day = "2026-11-21"
-    kalender.storage.write_json(kalender.storage.path("local-events.json"), [
+    kalender.storage.write_json(kalender.storage.shared_path('local-events.json'), [
         {"key": "local:e1", "kind": "event", "title": "Elternabend", "start": "2026-11-21T18:00:00+01:00",
          "end": "2026-11-21T19:30:00+01:00", "startDate": day, "endDate": day, "allDay": False,
          "calendar": "Lokale Termine", "account": "", "location": "", "description": "", "url": "",
@@ -171,7 +171,7 @@ def test_tick_only_when_ui_closed_and_reads_calendar_via_interface(app, monkeypa
     zone = ZoneInfo("Europe/Berlin")
     now = datetime(2026, 11, 21, 9, 0, tzinfo=zone)
     day = now.date().isoformat()
-    kalender.storage.write_json(kalender.storage.path("local-events.json"), [
+    kalender.storage.write_json(kalender.storage.shared_path('local-events.json'), [
         {"key": "local:e1", "kind": "event", "title": "Elternabend",
          "start": (now + timedelta(minutes=10)).isoformat(), "end": (now + timedelta(minutes=70)).isoformat(),
          "startDate": day, "endDate": day, "allDay": False, "calendar": "Lokale Termine", "account": "",

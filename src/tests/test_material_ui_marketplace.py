@@ -121,7 +121,7 @@ def test_install_pulls_dependencies_and_writes_lock(marketplace):
     lock = json.loads((marketplace.root / ".material-ui" / "plugins.lock.json").read_text(encoding="utf-8"))
     assert lock["plugins"]["foo"]["version"] == "1.1.0"
     assert lock["plugins"]["bar"]["source"] == "marketplace"
-    enabled = json.loads((marketplace.root / ".material-ui" / "plugins.json").read_text(encoding="utf-8"))
+    enabled = json.loads((marketplace.root / "daten" / "plugins.json").read_text(encoding="utf-8"))
     assert enabled["enabled"]["foo"] is True and enabled["enabled"]["bar"] is True
 
 
@@ -175,7 +175,7 @@ def test_uninstall_blocks_dependents_and_removes_files(marketplace):
     assert not (marketplace.user_dir / "foo").exists()
     lock = json.loads((marketplace.root / ".material-ui" / "plugins.lock.json").read_text(encoding="utf-8"))
     assert "foo" not in lock["plugins"]
-    enabled = json.loads((marketplace.root / ".material-ui" / "plugins.json").read_text(encoding="utf-8"))
+    enabled = json.loads((marketplace.root / "daten" / "plugins.json").read_text(encoding="utf-8"))
     assert enabled["enabled"]["foo"] is False
 
 

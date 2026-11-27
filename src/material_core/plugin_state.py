@@ -4,6 +4,7 @@ from __future__ import annotations
 import shutil
 
 from material_core import workspace
+from material_core.state import shared_file
 from material_ui.plugins.manifest import PluginManifest, discover_manifests
 from material_ui.plugins.paths import project_plugin_paths
 from material_ui.plugins.storage import PluginEnabledStore
@@ -16,7 +17,7 @@ class PluginUnavailable(RuntimeError):
 def enabled_manifests() -> list[PluginManifest]:
     """Im Arbeitsbereich aktivierte Plugins (wie sie der Server beim Start laden wuerde)."""
     root = workspace.root()
-    store = PluginEnabledStore(root / ".material-ui" / "plugins.json")
+    store = PluginEnabledStore(shared_file(root, "plugins.json"))
     return [manifest for manifest, _error in discover_manifests(tuple(project_plugin_paths(root)))
             if manifest is not None and store.is_enabled(manifest.id, default=manifest.active_by_default)]
 

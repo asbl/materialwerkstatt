@@ -20,7 +20,7 @@ def workspace_root(tmp_path, monkeypatch):
 
 
 def enable(root: Path, **plugins: bool) -> None:
-    state = root / ".material-ui" / "plugins.json"
+    state = root / "daten" / "plugins.json"
     state.parent.mkdir(exist_ok=True)
     state.write_text(json.dumps({"enabled": plugins}), encoding="utf-8")
 

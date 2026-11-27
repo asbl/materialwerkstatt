@@ -5,6 +5,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from material_core import state
 from material_core.filesystem import atomic_write_text
 from material_ui.errors import InvalidInput
 
@@ -43,16 +44,34 @@ def _unmask(current: Any, incoming: Any) -> Any:
 
 
 class PluginStorage:
-    """Plugin-eigener Datenspeicher unter <repo>/.material-ui/plugins/<id>/."""
+    """Plugin-eigener Datenspeicher.
 
-    def __init__(self, base: Path) -> None:
+    `path()` ist rechnerlokal (<repo>/.material-ui/plugins/<id>/): Caches, Zugangsdaten.
+    `shared_path()` liegt unter <repo>/daten/plugins/<id>/ und wird mitsynchronisiert.
+    """
+
+    def __init__(self, base: Path, shared_base: Path | None = None) -> None:
         self.base = base
+        self.shared_base = shared_base
         self.lock = threading.RLock()
 
     def path(self, *parts: str) -> Path:
-        candidate = self.base.joinpath(*[part for part in parts if part])
+        return self._inside(self.base, parts)
+
+    def shared_path(self, *parts: str) -> Path:
+        """Gemeinsame Datei; uebernimmt beim ersten Zugriff den bisher lokalen Stand."""
+        if self.shared_base is None:
+            return self.path(*parts)
+        target = self._inside(self.shared_base, parts)
+        with self.lock:
+            state.adopt(self.path(*parts), target)
+        return target
+
+    @staticmethod
+    def _inside(base: Path, parts: tuple[str, ...]) -> Path:
+        candidate = base.joinpath(*[part for part in parts if part])
         resolved = candidate.resolve()
-        if resolved != self.base.resolve() and not resolved.is_relative_to(self.base.resolve()):
+        if resolved != base.resolve() and not resolved.is_relative_to(base.resolve()):
             raise InvalidInput("Plugin-Speicherpfad liegt ausserhalb des Plugin-Bereichs.")
         return candidate
 
@@ -97,7 +116,7 @@ class PluginSettings:
 
 
 class PluginEnabledStore:
-    """Aktivierungszustand aller Plugins, dauerhaft unter .material-ui/plugins.json."""
+    """Aktivierungszustand aller Plugins, dauerhaft unter daten/plugins.json."""
 
     def __init__(self, path: Path) -> None:
         self.path = path
