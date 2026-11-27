@@ -19,6 +19,9 @@ export function createWorksheetTools({ state, api, openDeckModal, setStatus, flu
   discussion.hidden = true;
   const menu = document.createElement("details");
   menu.className = "discussion-menu";
+  // Gleicher Name wie das Dokumentmenue: Der Browser schliesst das jeweils andere sofort
+  // beim Oeffnen, nicht erst im spaeter eintreffenden toggle-Ereignis.
+  menu.name = "document-menu";
   menu.hidden = true;
   const summary = document.createElement("summary");
   summary.textContent = "▾";
