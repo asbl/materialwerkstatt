@@ -20,6 +20,10 @@ def register_unit_routes(app, runtime):
     def append_unit_dates():
         return service.append_dates(request.get_json(force=True))
 
+    @app.route('/api/units/material', methods=['POST', 'DELETE'])
+    def unit_material():
+        return service.link_material(request.get_json(force=True), remove=request.method == 'DELETE')
+
     @app.post('/api/units/attach')
     def attach_unit():
         return service.attach(request.get_json(force=True))

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+import pymupdf
 
 from material_ui.app import create_app
 from material_ui.config import AppConfig
@@ -58,8 +59,8 @@ def test_index_reuses_text_and_metadata_and_tracks_external_changes(application,
     assert [hit['path'] for hit in client.get('/api/search?q=wurzel').json['results']] == ['c.qmd']
     (tmp_path / 'c.qmd').unlink()
     assert client.get('/api/search?q=wurzel').json['results'] == []
-    index = application.extensions['material_runtime'].services.search
-    assert second not in index.index
+    index = application.extensions['material_runtime'].services.search.index
+    assert index.db.execute('SELECT path FROM files').fetchall() == [('a.qmd',)]
 
 
 def test_index_refreshes_pdf_presence_without_rereading_source(application, tmp_path, monkeypatch):
@@ -89,15 +90,15 @@ def test_generated_decks_inherit_source_facets_without_walking_build(application
     ignored = tmp_path / 'build/site/ignored.excalidraw'
     ignored.parent.mkdir(parents=True)
     ignored.write_text(deck.read_text())
-    import material_ui.search as search_module
-    original = search_module.os.walk
+    import material_ui.catalog as catalog_module
+    original = catalog_module.os.walk
 
     def walk(root):
         for directory, children, files in original(root):
             assert Path(directory) != tmp_path / 'build'
             yield directory, children, files
 
-    monkeypatch.setattr(search_module.os, 'walk', walk)
+    monkeypatch.setattr(catalog_module.os, 'walk', walk)
     results = application.test_client().get('/api/search?q=wurzel&subject=mathe&grade=klasse-07&tags=mathe&kind=Deck').json['results']
     assert [hit['path'] for hit in results] == [str(deck.relative_to(tmp_path))]
     assert results[0]['source_path'] == str(source.relative_to(tmp_path))
@@ -121,13 +122,14 @@ def test_search_pdf_filters_solution_and_sorting(application, tmp_path):
     assert [hit['path'] for hit in client.get('/api/search?q=wurzel&pdf=without-pdf').json['results']] == ['ab.qmd']
 
 
-def test_index_is_bounded_and_does_not_serve_previous_text(application, tmp_path, monkeypatch):
+def test_index_skips_oversized_sources_and_does_not_serve_previous_text(application, tmp_path, monkeypatch):
     import material_ui.search as search_module
-    monkeypatch.setattr(search_module, 'MAX_INDEX_BYTES', 500)
+    monkeypatch.setattr(search_module, 'MAX_SEARCH_BYTES', 500)
+    client = application.test_client()
+    write_source(tmp_path, 'a.qmd', 'Wurzel')
+    assert client.get('/api/search?q=wurzel').json['results']
     write_source(tmp_path, 'a.qmd', 'Wurzel ' * 200)
-    assert application.test_client().get('/api/search?q=wurzel').json['results']
-    service = application.extensions['material_runtime'].services.search
-    assert service.index_bytes <= 500
+    assert client.get('/api/search?q=wurzel').json['results'] == []
 
 
 def test_index_detects_later_created_explicit_deck_link(application, tmp_path):
@@ -144,6 +146,70 @@ def test_search_snippet_positions_survive_umlaut_expansion(application, tmp_path
     write_source(tmp_path, 'a.qmd', 'ä' * 200 + ' Wurzel')
     result = application.test_client().get('/api/search?q=wurzel').json['results'][0]
     assert 'Wurzel' in result['snippet']
+
+
+def write_original_pdf(root, name, *pages):
+    path = root / 'wissen' / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with pymupdf.open() as pdf:
+        for text in pages:
+            pdf.new_page().insert_text((72, 72), text)
+        pdf.save(path)
+    return path
+
+
+def test_original_pdfs_share_search_and_link_to_best_page(application, tmp_path):
+    write_source(tmp_path, 'a.qmd', 'Brüche')
+    pdf_name = 'arbeitsblatt/mathematik/klasse-06/thema/Quelle & Übungen.pdf'
+    pdf = write_original_pdf(tmp_path, pdf_name, 'Brüche', 'Brüche addieren und Brüche vergleichen')
+    write_original_pdf(tmp_path, 'nicht-erschlossen.pdf', 'Brüche addieren')
+    (tmp_path / 'wissen/_pdf-erschliessung.json').write_text(json.dumps({
+        'eintraege': {'known': {'pfad': pdf_name}, 'invalid': {'pfad': '../other.pdf'}},
+    }))
+    client = application.test_client()
+    response = client.get('/api/search?q=brueche')
+    assert response.json['sourceErrors'] == []
+    assert response.json['sources'] == [{'id': 'original-pdf', 'name': 'Original-PDFs'}]
+    source, qmd = response.json['results']
+    name = pdf.relative_to(tmp_path).as_posix()
+    assert source['path'] == source['pdf'] == name
+    assert source['page'] == 2 and 'addieren' in source['snippet']
+    assert qmd['path'] == 'a.qmd'
+    assert client.get('/api/pdf', query_string={'path': name}).mimetype == 'application/pdf'
+    assert client.get('/api/search?q=brueche&pdf=without-pdf').json['results'] == [qmd]
+    assert client.get('/api/search?q=brueche&subject=mathematik&grade=klasse-06').json['results'] == [source]
+    pdf.unlink()
+    assert client.get('/api/search?q=brueche').json['results'] == [qmd]
+
+
+def test_search_index_reuses_qmd_and_pdf_text_after_restart(tmp_path, monkeypatch):
+    source = write_source(tmp_path, 'a.qmd', 'Brüche')
+    write_original_pdf(tmp_path, 'quelle.pdf', 'Brüche')
+    (tmp_path / 'wissen/_pdf-erschliessung.json').write_text(json.dumps({
+        'eintraege': {'pdf': {'pfad': 'quelle.pdf'}},
+    }))
+    first = create_app(config=AppConfig(tmp_path))
+    try:
+        hits = first.test_client().get('/api/search?q=brueche').json['results']
+        assert len(hits) == 2
+    finally:
+        _runtime(first).close()
+
+    from material_ui.search import SearchService
+
+    restarted = create_app(config=AppConfig(tmp_path))
+    try:
+        with monkeypatch.context() as patch:
+            def unexpected(*args):
+                pytest.fail('Unveränderte Quelle erneut indexiert')
+
+            patch.setattr(SearchService, 'load_source', unexpected)
+            patch.setattr(SearchService, 'load_pdf', unexpected)
+            assert restarted.test_client().get('/api/search?q=brueche').json['results'] == hits
+        source.write_text('Terme vereinfachen')
+        assert [hit['path'] for hit in restarted.test_client().get('/api/search?q=brueche').json['results']] == ['wissen/quelle.pdf']
+    finally:
+        _runtime(restarted).close()
 
 
 # -- Such-Provider (Plugin-Schnittstelle ctx.search) ---------------------------------------------------

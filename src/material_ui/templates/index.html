@@ -59,6 +59,7 @@
             <option value="title">Titel</option>
           </select></label>
         </div>
+        <p id="fulltextStatus" class="muted search-status" role="status" hidden></p>
         <div id="documentResults" class="document-results" role="listbox"></div>
       </div>
     </section>
@@ -915,6 +916,19 @@
     </section>
   </div>
 
+  <dialog id="linkWorksheetDialog" aria-labelledby="linkWorksheetTitle">
+    <form>
+      <h2 id="linkWorksheetTitle">Arbeitsblatt zu Einheit hinzufügen</h2>
+      <p data-worksheet-title></p>
+      <label>Einheiten filtern <input type="search" name="filter" autocomplete="off"></label>
+      <label>Unterrichtseinheit <select name="unit" required></select></label>
+      <div class="unit-marker-actions">
+        <button type="submit" disabled>Hinzufügen</button>
+        <button type="button" data-cancel>Abbrechen</button>
+      </div>
+      <p class="muted" role="status"></p>
+    </form>
+  </dialog>
   <script src="{{ asset_url('editor.bundle.js') }}"></script>
   <script type="module" src="{{ asset_url('app.js') }}"></script>
 </body>

@@ -218,6 +218,8 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
     card.querySelector(':scope > summary').scrollIntoView({ block: 'nearest' });
   }
   function unitForDocument(path) {
+    const selected = displayedUnits().find(unit => unit.path === selectedUnitPath);
+    if (selected?.materialEntries?.some(entry => entry.sourcePath === path && !entry.missing)) return selected;
     const candidates = displayedUnits().filter(unit => path.startsWith(`${unit.path}/`)).sort((a, b) => b.path.length - a.path.length);
     return candidates.find(unit => section?.querySelector(`[data-unit-path="${CSS.escape(unit.path)}"]`)) || candidates[0];
   }
@@ -274,7 +276,7 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
   function bindMaterialDelegation() {
     section.addEventListener('pointerdown', event => {
       const anchor = event.target.closest('a.unit-material-link');
-      if (!anchor || event.button !== 0 || movingMaterial || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      if (!anchor || anchor.hasAttribute('data-linked-material') || event.button !== 0 || movingMaterial || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       const unitPath = anchor.closest('.unit-card')?.dataset.unitPath;
       const clearTargets = () => section.querySelectorAll('.unit-drop-target').forEach(card => card.classList.remove('unit-drop-target'));
       const targetAt = event => document.elementFromPoint(event.clientX, event.clientY)?.closest('.unit-card');
@@ -308,8 +310,9 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
       if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
       const path = anchor.dataset.documentPath;
-      await selectDocument(path);
       const unitPath = anchor.closest('.unit-card')?.dataset.unitPath;
+      if (unitPath && anchor.hasAttribute('data-linked-material')) selectUnit(unitPath);
+      await selectDocument(path);
       if (getDocumentPath() === path && unitPath) selectUnit(unitPath);
     });
   }
@@ -405,12 +408,14 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
     input.focus();
   }
   function renderMaterials(unit, list) {
-    const entries = unit.materialEntries || unit.materials.map(path => ({ path, title: path }));
+    const materials = unit.materialEntries || unit.materials.map(path => ({ path, title: path }));
+    const entries = unit.data.lernstand ? materials.filter(entry => entry.sourcePath) : materials;
     function link(entry, pairedKind = null) {
       const { type, kind: fullType, title: label } = materialDisplay(entry);
       const anchor = document.createElement('a');
-      const path = `${unit.path}/${entry.path}`;
+      const path = entry.sourcePath || `${unit.path}/${entry.path}`;
       anchor.dataset.documentPath = path;
+      if (entry.sourcePath) anchor.dataset.linkedMaterial = '';
       anchor.draggable = false;
       anchor.href = `?path=${encodeURIComponent(path)}`;
       anchor.className = pairedKind ? `unit-material-link unit-${pairedKind}-link` : 'unit-material-link';
@@ -443,6 +448,33 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
       };
       return button;
     }
+    function unlinkButton(entry) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'unit-edit';
+      button.textContent = 'Verknüpfung entfernen';
+      button.onclick = async () => {
+        const status = section.querySelector('[data-status]');
+        if (saving.has(unit.path) || drafts.has(unit.path) || quickDates.has(unit.path)) {
+          status.textContent = 'Bitte zuerst die offenen Änderungen der Einheit speichern.';
+          return;
+        }
+        saving.add(unit.path);
+        button.disabled = true;
+        try {
+          await api('/api/units/material', { method: 'DELETE', body: JSON.stringify({
+            path: unit.path, revision: unit.revision, material: entry.sourcePath,
+          }) });
+          await load();
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          saving.delete(unit.path);
+          button.disabled = false;
+        }
+      };
+      return button;
+    }
     function noteButton(entry) {
       const button = document.createElement('button');
       button.type = 'button';
@@ -457,7 +489,13 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
     for (const { entry, solutions, notes } of pairMaterialEntries(entries)) {
       const row = document.createElement('li');
       row.className = 'unit-material-row';
-      row.append(link(entry));
+      if (entry.missing) {
+        const label = document.createElement('span');
+        label.textContent = `Material fehlt · ${entry.title}`;
+        row.append(label);
+      } else {
+        row.append(link(entry));
+      }
       if (hasDoneToggle(entry)) {
         const label = document.createElement('label');
         label.className = 'unit-toggle';
@@ -490,7 +528,8 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
         };
       }
 
-      if (deleteMaterial && !['solution', 'note'].includes(materialIcon(entry))) row.append(deleteButton(entry));
+      if (entry.sourcePath) row.append(unlinkButton(entry));
+      else if (deleteMaterial && !['solution', 'note'].includes(materialIcon(entry))) row.append(deleteButton(entry));
       // Lösung, Notizen und „+ Notiz“ bilden eine zweite, ruhige Zeile unter dem Material.
       const extras = document.createElement('div');
       extras.className = 'unit-material-extras';
@@ -608,7 +647,7 @@ export function registerUnitsView({ views, api, selectDocument, createWorksheet,
     open.onclick = () => dialog.showModal();
     panel.append(open, dialog);
     const materials = card.querySelector('[data-materials]');
-    materials.hidden = true;
+    materials.hidden = !unit.materialEntries?.some(entry => entry.sourcePath);
     materials.before(panel);
   }
   function groupSelect(value = '') {

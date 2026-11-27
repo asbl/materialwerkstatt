@@ -980,20 +980,23 @@ vollen Pfad setzen).
 
 ## Suche und Prüfhinweise
 
-Die Volltextsuche bewertet alle passenden QMDs und Decks, bevor sie die besten
-50 Treffer zurückgibt. Fach, Klasse, Typ, Tags, PDF-Status und Filterchips gelten
+Die Volltextsuche bewertet passende QMDs, Decks und erschlossene Original-PDFs aus
+`wissen/_pdf-erschliessung.json`, bevor sie die besten 50 Treffer zurückgibt.
+PDF-Treffer zeigen einen Ausschnitt und öffnen die passende Seite im PDF-Viewer.
+Fach, Klasse, Typ, Tags, PDF-Status und Filterchips gelten
 auch für Volltexttreffer; Metadaten- und Volltexttreffer werden gemeinsam sortiert.
 Beim Ändern der Suche werden laufende Anfragen abgebrochen und verspätete
 Antworten verworfen. Umlaute sind auch über ae/oe/ue auffindbar.
 
-Ein an die Repository-Instanz gebundener Textindex hält bis zu 64 MiB an
-Quelltext und normalisiertem Suchtext im Speicher. Jede Suche prüft Dateistand,
-neue Quellen und gelöschte Dateien; nur geänderte Inhalte werden erneut gelesen
-und ausgewertet. PDF-Dateien werden unabhängig davon auf Existenz geprüft.
+Der lokale SQLite-Index unter `.material-ui/search-v1.sqlite3` bleibt nach einem
+Neustart verfügbar und lässt sich aus den Quelldateien neu aufbauen. Die Suche
+gleicht Dateistände ab und liest nur neue oder geänderte Texte ein. SQLite
+grenzt die Kandidaten über einen Trigrammindex ein, sofern verfügbar.
+Bei QMD-Treffern wird die Existenz gerenderter PDFs separat geprüft.
 `build/`, `h5p/`, `node_modules/` und das Root-Archiv werden nicht durchlaufen.
 Erzeugte Decks werden gezielt über ihre QMD-Quellen unter
 `build/artefakte/<Quellpfad>.excalidraw` gefunden. Sie übernehmen Fach, Klasse und
-Tags ihrer Quelle. Der Index ist nach einem Serverneustart regenerierbar.
+Tags ihrer Quelle.
 
 QMD-Prüfungen laufen 600 ms nach einer Editoränderung auf dem aktuellen,
 gegebenenfalls ungespeicherten Text. `POST /api/check` akzeptiert dafür neben

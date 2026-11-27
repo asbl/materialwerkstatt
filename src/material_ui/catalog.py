@@ -32,6 +32,11 @@ class SourceCatalog:
         self.max_metas = max_metas
 
     def sources(self, suffix):
+        _, (paths,) = self.snapshot(suffix)
+        return paths
+
+    def snapshot(self, *suffixes):
+        """Dateilisten und Generation nach demselben Verzeichnisabgleich."""
         with self.lock:
             changed = time.monotonic() >= self.expires
             if not changed:
@@ -41,7 +46,7 @@ class SourceCatalog:
                     changed = True
             if changed:
                 self._scan()
-            return list(self.paths[suffix])
+            return self.generation, tuple(list(self.paths[suffix]) for suffix in suffixes)
 
     def _scan(self):
         paths = {".qmd": [], ".md": [], ".excalidraw": []}

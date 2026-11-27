@@ -43,7 +43,8 @@ einsatz:
 Das Beispiel illustriert das Dateiformat; die tatsächlichen Einsatzdaten werden
 bewusst von der Lehrkraft eingetragen. `material` ist relativ zum Einheitenordner;
 ein leerer Wert bezeichnet die gesamte Einheit. Jedes Datum ist ein eigener Einsatz,
-auch bei Wiederverwendung derselben Datei in einem anderen Schuljahr.
+auch bei Wiederverwendung derselben Datei in einem anderen Schuljahr. Verknüpfte
+Arbeitsblätter können auch aus einem anderen Unterrichtsordner stammen.
 
 In der Ansicht eine Einheit aufklappen und **Zusammenfassung und Einsätze bearbeiten**
 wählen. Das Formular beginnt mit dem Thema als Auswahlliste, gefolgt vom Titel der
@@ -163,6 +164,15 @@ Die Zuordnung erfolgt anhand des gleichen relativen Dateistamms mit dem Suffix
 `-loesung` oder `-loesungen`. Nicht zugeordnete Lösungen bleiben eigene Listeneinträge.
 Lange Titel werden gekürzt; der vollständige Titel, Typ und Dateipfad erscheinen
 im Tooltip. Alle Dokumente bleiben über Links per Tastatur und in neuen Tabs erreichbar.
+
+Über **Zu Einheit hinzufügen** in der Materialsuche lässt sich ein vorhandenes
+Arbeitsblatt in einer weiteren Einheit verwenden. Die Einheit speichert unter
+`verlinkte_materialien` einen Pfad relativ zu ihrem Ordner. Das Arbeitsblatt
+erscheint in ihrer Materialliste und steht im Feld **Material** eines Einsatzes
+zur Auswahl. Die Quelle und ihre Ressourcen bleiben an ihrem Pfad. Beim
+Umbenennen über die Material-UI werden Verknüpfungen und Einsätze mitgeführt.
+Sobald die Einsätze dieses Blatts entfernt sind, kann auch die Verknüpfung
+entfernt werden.
 
 Das Datum steht nur im Einheitenkopf. Einsatzdetails mit Lerngruppe, Material oder
 Notiz werden separat aufklappbar angeboten. Automatisch erzeugte Zusammenfassungen,

@@ -1404,6 +1404,71 @@ def test_move_material_keeps_dates_and_parent_references(unit_app):
     assert response.json['path'] == service.config.relative(target)
 
 
+def test_linked_worksheet_can_be_planned_in_two_units_and_follows_renames(tmp_path):
+    from material_ui.app import create_app
+
+    source = tmp_path / 'unterricht/mathematik/klasse-05/bruch/ab_bruch.qmd'
+    source.parent.mkdir(parents=True)
+    text = '---\ntitle: Brüche\n---\n\n![Bild](bild.svg)\n'
+    source.write_text(text)
+    (source.parent / 'bild.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
+    target = tmp_path / 'unterricht/mathematik/klasse-06/wiederholung'
+    target.mkdir(parents=True)
+    (target / 'einheit.yaml').write_text('titel: Wiederholung\nthema: Brüche\nkurzbeschreibung: ""\n')
+    app = create_app(config=AppConfig(tmp_path))
+    app.testing = True
+    try:
+        client = app.test_client()
+        owner, recipient = client.get('/api/units').json['units']
+        name = source.relative_to(tmp_path).as_posix()
+        payload = {'path': recipient['path'], 'material': name, 'revision': recipient['revision']}
+        link = client.post('/api/units/material', json=payload)
+        assert link.status_code == 200, link.json
+        relative = link.json['data']['verlinkte_materialien'][0]
+        assert client.post('/api/units/material', json=payload).status_code == 409
+        payload['revision'] = link.json['revision']
+        assert client.post('/api/units/material', json=payload).json['revision'] == payload['revision']
+        for unit, material in [(owner, source.name), (link.json, relative)]:
+            saved = client.post('/api/units/dates', json={
+                'path': unit['path'], 'revision': unit['revision'],
+                'dates': ['2026-11-27'], 'material': material,
+            })
+            assert saved.status_code == 200, saved.json
+        unlink = client.delete('/api/units/material', json={**payload, 'revision': saved.json['revision']})
+        assert unlink.status_code == 400
+        renamed = client.post('/api/file/rename', json={'path': name, 'name': 'ab_neu.qmd'})
+        assert renamed.status_code == 200, renamed.json
+        owner, recipient = client.get('/api/units').json['units']
+        assert owner['data']['einsatz'][0]['material'] == 'ab_neu.qmd'
+        assert recipient['data']['einsatz'][0]['material'] == relative.replace('ab_bruch', 'ab_neu')
+        linked, = recipient['materialEntries']
+        assert linked['sourcePath'] == renamed.json['path']
+        assert linked['path'] == recipient['data']['einsatz'][0]['material']
+        assert (tmp_path / linked['sourcePath']).read_text() == text
+        assert (source.parent / 'bild.svg').is_file()
+        assert list(target.iterdir()) == [target / 'einheit.yaml']
+
+        renamed_folder = client.post('/api/folder/rename', json={'path': owner['path'], 'name': 'bruchrechnung'})
+        assert renamed_folder.status_code == 200, renamed_folder.json
+        _, recipient = client.get('/api/units').json['units']
+        linked, = recipient['materialEntries']
+        assert linked['sourcePath'] == renamed_folder.json['path'] + '/ab_neu.qmd'
+        assert (tmp_path / renamed_folder.json['path'] / 'bild.svg').is_file()
+        removed = client.post('/api/units/dates', json={
+            'path': recipient['path'], 'revision': recipient['revision'],
+            'remove': [{'datum': '2026-11-27', 'material': linked['path']}],
+        })
+        assert removed.status_code == 200, removed.json
+        unlink = client.delete('/api/units/material', json={
+            'path': recipient['path'], 'revision': removed.json['revision'], 'material': linked['sourcePath'],
+        })
+        assert unlink.status_code == 200, unlink.json
+        assert (tmp_path / linked['sourcePath']).is_file()
+        assert client.get('/api/units').json['units'][1]['materialEntries'] == []
+    finally:
+        app.extensions['material_runtime'].close()
+
+
 def test_move_material_refuses_collision(unit_app):
     app, service, parent = unit_app
     source = parent / '01_einstieg/ab.qmd'

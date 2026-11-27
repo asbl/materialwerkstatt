@@ -256,10 +256,8 @@ class DocumentService:
         `catalog.sources()` stoesst dabei den Verzeichnis-Fingerprint-Check an, damit
         externe Aenderungen (Rename/Neu/Loeschen) auch innerhalb der TTL erkannt werden.
         """
-        qmd_paths = self.catalog.sources(".qmd")
-        md_paths = self.catalog.sources(".md")
+        generation, (qmd_paths, md_paths) = self.catalog.snapshot(".qmd", ".md")
         with self.entry_lock:
-            generation = self.catalog.generation
             if self._sources_cache is not None and self._sources_generation == generation:
                 sources, warnings = self._sources_cache
                 return list(sources), list(warnings)

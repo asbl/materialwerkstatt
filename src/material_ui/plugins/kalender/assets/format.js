@@ -54,7 +54,14 @@ export function lessonHint(lesson) {
 // Einheitenlink einer Stunde plus je ein Knopf für das im Einsatz genannte Material
 // (`unit.materials`, relativ zum Einheitenordner). Der Kern öffnet beides über Ereignisse.
 export function unitHintsHtml(units) {
-  return (units || []).map(unit => `<button type="button" class="kal-unit-hint" data-kal-unit="${escapeHtml(unit.path)}" title="Unterrichtseinheit öffnen">↳ ${escapeHtml(unit.title)}</button>${(unit.materials || []).map(material => `<button type="button" class="kal-unit-hint kal-material-hint" data-kal-material="${escapeHtml(`${unit.path}/${material}`)}" title="Material öffnen">${escapeHtml(material.split('/').pop())}</button>`).join('')}`).join('');
+  return (units || []).map(unit => `<button type="button" class="kal-unit-hint" data-kal-unit="${escapeHtml(unit.path)}" title="Unterrichtseinheit öffnen">↳ ${escapeHtml(unit.title)}</button>${(unit.materials || []).map(material => {
+    const path = [];
+    for (const part of `${unit.path}/${material}`.split('/')) {
+      if (part === '..') path.pop();
+      else if (part && part !== '.') path.push(part);
+    }
+    return `<button type="button" class="kal-unit-hint kal-material-hint" data-kal-material="${escapeHtml(path.join('/'))}" title="Material öffnen">${escapeHtml(path.at(-1))}</button>`;
+  }).join('')}`).join('');
 }
 
 const PALETTE_SIZE = 8;

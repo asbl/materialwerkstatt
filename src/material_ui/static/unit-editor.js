@@ -62,7 +62,11 @@ export function createUnitEditor({ api, drafts, saving, persistDrafts, groupSele
       const row = document.createElement('fieldset');
       row.innerHTML = `<legend>Einsatz</legend><label>Datum<input type="date" name="datum" required value="${esc(use.datum || '')}"></label>
         <label>Lerngruppe${groupSelect(use.lerngruppe || '')}</label>
-        <label>Material<select name="material"><option value="">Gesamte Einheit</option>${[...new Set([...unit.materials, ...(use.material ? [use.material] : [])])].map(material => `<option value="${esc(material)}" ${material === use.material ? 'selected' : ''}>${esc(material)}</option>`).join('')}</select></label>
+        <label>Material<select name="material"><option value="">Gesamte Einheit</option>${[...new Set([...unit.materials, ...(use.material ? [use.material] : [])])].map(material => {
+          const entry = unit.materialEntries?.find(item => item.path === material);
+          const label = entry?.sourcePath ? `${entry.title} (verknüpft)` : material;
+          return `<option value="${esc(material)}" ${material === use.material ? 'selected' : ''}>${esc(label)}</option>`;
+        }).join('')}</select></label>
         <label>Notiz<input name="notiz" value="${esc(use.notiz || '')}"></label><button type="button">Einsatz entfernen</button>`;
       row.querySelector('button').onclick = () => { row.remove(); remember(); };
       rows.append(row);

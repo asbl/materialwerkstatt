@@ -96,6 +96,16 @@ class UnitService:
         self.config.safe_visible_path(str(relative / FILENAME))
         return folder
 
+    def linked_material_path(self, folder, name):
+        if not isinstance(name, str) or not name or Path(name).is_absolute():
+            raise InvalidInput('Bitte einen relativen Arbeitsblattpfad angeben.')
+        path = self.config.safe_visible_path(str(folder / name))
+        if (not path.is_relative_to(self.config.root / 'unterricht')
+                or path.is_relative_to(folder) or path.suffix != '.qmd'
+                or path.name.endswith('-old.qmd') or os.path.relpath(path, folder) != name):
+            raise InvalidInput('Verknüpfte Arbeitsblätter müssen in einem anderen Unterrichtsordner liegen.')
+        return path
+
     def validate(self, data, folder):
         if not isinstance(data, dict):
             raise InvalidInput('Die Einheit muss eine YAML-Zuordnung sein.')
@@ -143,6 +153,13 @@ class UnitService:
                 validate(data['lernstand'], folder, self.config.root)
             except LernstandError as error:
                 raise InvalidInput(str(error)) from error
+        linked = data.get('verlinkte_materialien', [])
+        if not isinstance(linked, list):
+            raise InvalidInput('verlinkte_materialien muss eine Liste von Arbeitsblattpfaden sein.')
+        for name in linked:
+            self.linked_material_path(folder, name)
+        if 'verlinkte_materialien' in data:
+            data['verlinkte_materialien'] = list(dict.fromkeys(linked))
         uses = data.get('einsatz', [])
         if not isinstance(uses, list):
             raise InvalidInput('einsatz muss eine Liste sein.')
@@ -160,7 +177,7 @@ class UnitService:
             for key in ('lerngruppe', 'notiz', 'material'):
                 if key in use and not isinstance(use[key], str):
                     raise InvalidInput(f'{key} muss Text sein.')
-            if use.get('material'):
+            if use.get('material') and use['material'] not in linked:
                 target = self.config.safe_visible_path(str(folder.relative_to(self.config.root) / use['material']))
                 if Path(use['material']).is_absolute() or not target.is_relative_to(folder):
                     raise InvalidInput('Material muss innerhalb der Einheit liegen.')
@@ -198,11 +215,12 @@ class UnitService:
                 material['fertig'] = states.get(name, stored if material['kind'] == 'presentation' else False)
         if materials and states is not None:
             data['fertig'] = all(material['fertig'] for material in materials.values())
+        referenced = set(data.get('verlinkte_materialien', []))
+        referenced.update(use['material'] for use in data.get('einsatz', []) if use.get('material'))
         unit = {'path': folder.relative_to(self.config.root).as_posix(),
                 'klasse': parts[index], 'fach': parts[1], 'data': data,
                 'revision': revision(text), 'gespeichert': path.exists(),
-                'missingMaterials': sorted({use['material'] for use in data.get('einsatz', [])
-                                            if use.get('material') and not (folder / use['material']).is_file()})}
+                'missingMaterials': sorted(name for name in referenced if not (folder / name).is_file())}
         return unit, materials
 
     def material_entry(self, folder, path):
@@ -232,7 +250,7 @@ class UnitService:
                 'loesung': DocumentService.header_text(metadata, 'loesung'),
             }
         return {
-            'path': path.relative_to(folder).as_posix(),
+            'path': os.path.relpath(path, folder),
             'title': meta['title'],
             'kind': meta['kind'],
             'solution': meta['solution'],
@@ -341,6 +359,13 @@ class UnitService:
                 unit, tracked = self._read(self.folder(folder.relative_to(self.config.root).as_posix()), candidates)
                 # A parent sequence includes child units too. Each child keeps its own summary.
                 entries = [entry for entry in (self.material_entry(folder, path) for path in sorted(candidates)) if entry]
+                for name in unit['data'].get('verlinkte_materialien', []):
+                    path = self.linked_material_path(folder, name)
+                    entry = self.material_entry(folder, path) if path.is_file() else None
+                    entries.append({
+                        **(entry or {'path': name, 'title': path.stem, 'kind': 'Arbeitsblatt', 'missing': True}),
+                        'sourcePath': self.config.relative(path),
+                    })
                 unit['materials'] = [entry['path'] for entry in entries]
                 unit['materialEntries'] = entries
                 for entry in unit['materialEntries']:
@@ -367,30 +392,36 @@ class UnitService:
         changes = []
         base = self.config.root / 'unterricht'
         is_folder = source.is_dir()
+
+        def moved_path(path):
+            if path.is_relative_to(source):
+                return target / path.relative_to(source) if is_folder else target
+            return path
+
         if source.is_relative_to(base):
             candidates = {parent for parent in [source.parent, *source.parent.parents] if parent.is_relative_to(base)}
-            # Shared material can be referenced by diagnostics in other units too.
+            # Linked worksheets and diagnostics can refer to other unit folders.
             from material_core.lernstand import manifests
             for manifest in manifests(self.config.root):
                 if is_folder and manifest.parent.is_relative_to(source):
                     candidates.add(manifest.parent)
-                if manifest.parent in candidates:
+                if manifest.parent in candidates or manifest.is_symlink():
                     continue
                 try:
                     raw = YAML(typ='safe').load(manifest.read_text(encoding='utf-8'))
                 except (YAMLError, OSError):
                     continue
-                learning = raw.get('lernstand') if isinstance(raw, dict) else None
-                if not isinstance(learning, dict) or not isinstance(learning.get('materialien'), list):
+                if not isinstance(raw, dict):
                     continue
-                for item in learning['materialien']:
-                    if not isinstance(item, dict):
-                        continue
-                    for key in ('quelle', 'loesung'):
-                        if isinstance(item.get(key), str):
-                            material = (manifest.parent / item[key]).resolve()
-                            if material == source or (is_folder and material.is_relative_to(source)):
-                                candidates.add(manifest.parent)
+                references = raw.get('verlinkte_materialien')
+                references = list(references) if isinstance(references, list) else []
+                learning = raw.get('lernstand')
+                if isinstance(learning, dict) and isinstance(learning.get('materialien'), list):
+                    references.extend(item[key] for item in learning['materialien'] if isinstance(item, dict)
+                                      for key in ('quelle', 'loesung') if key in item)
+                if any(isinstance(name, str) and (manifest.parent / name).resolve().is_relative_to(source)
+                       for name in references):
+                    candidates.add(manifest.parent)
             for folder in sorted(candidates):
                 path = folder / FILENAME
                 if not path.is_file():
@@ -408,11 +439,24 @@ class UnitService:
                 new_folder = target / folder.relative_to(source) if is_folder and folder.is_relative_to(source) else folder
                 new_path = new_folder / FILENAME
                 changed = False
+                linked = data.get('verlinkte_materialien', [])
+                if linked:
+                    destinations = [moved_path((folder / name).resolve()) for name in linked]
+                    if any(path.suffix != '.qmd' or path.name.endswith('-old.qmd') for path in destinations):
+                        raise InvalidInput('Verknüpfte Arbeitsblätter müssen sichtbare QMD-Dateien bleiben.')
+                    updated = list(dict.fromkeys(os.path.relpath(path, new_folder) for path in destinations
+                                                 if not path.is_relative_to(new_folder)))
+                    if updated != linked:
+                        changed = True
+                        if updated:
+                            data['verlinkte_materialien'] = updated
+                        else:
+                            del data['verlinkte_materialien']
                 if 'arbeitsblaetter_fertig' in data:
                     states = {}
                     for name, done in data['arbeitsblaetter_fertig'].items():
                         material = (folder / name).resolve()
-                        destination = target / material.relative_to(source) if is_folder and material.is_relative_to(source) else (target if material == source else material)
+                        destination = moved_path(material)
                         if destination.is_relative_to(new_folder):
                             states[destination.relative_to(new_folder).as_posix()] = done
                     if states != data['arbeitsblaetter_fertig']:
@@ -422,20 +466,24 @@ class UnitService:
                     if not use.get('material'):
                         continue
                     material = (folder / use['material']).resolve()
-                    if material == source or (is_folder and material.is_relative_to(source)):
-                        destination = target / material.relative_to(source) if is_folder else target
-                        if destination.is_relative_to(new_folder):
-                            use['material'] = destination.relative_to(new_folder).as_posix()
-                        else:
-                            # Keep the unit's dates/notes when its material leaves.
-                            del use['material']
+                    destination = moved_path(material)
+                    if destination == material and new_folder == folder:
+                        continue
+                    updated = os.path.relpath(destination, new_folder)
+                    if use['material'] in linked or destination.is_relative_to(new_folder):
+                        if updated != use['material']:
+                            use['material'] = updated
+                            changed = True
+                    else:
+                        # Keep the unit's dates/notes when its local material leaves.
+                        del use['material']
                         changed = True
                 for item in data.get('lernstand', {}).get('materialien', []):
                     for key in ('quelle', 'loesung'):
                         if key not in item:
                             continue
                         material = (folder / item[key]).resolve()
-                        destination = target / material.relative_to(source) if is_folder and material.is_relative_to(source) else (target if material == source else material)
+                        destination = moved_path(material)
                         updated = os.path.relpath(destination, new_folder)
                         if updated != item[key]:
                             item[key] = updated
@@ -626,6 +674,46 @@ class UnitService:
                     uses.append({'datum': value, **({'lerngruppe': group} if group else {}),
                                  **({'material': material} if material else {})})
             return self.save(payload['path'], data, payload['revision'])
+
+    def link_material(self, payload, *, remove=False):
+        if not isinstance(payload, dict) or any(
+            not isinstance(payload.get(key), str) or not payload[key].strip()
+            for key in ('path', 'material', 'revision')
+        ):
+            raise InvalidInput('Einheit, Arbeitsblatt und Revision müssen angegeben werden.')
+        with self.documents.repository.lock:
+            folder = self.folder(payload['path'])
+            path = self.config.safe_visible_path(payload['material'])
+            if (not path.is_relative_to(self.config.root / 'unterricht')
+                    or path.suffix != '.qmd' or path.name.endswith('-old.qmd')):
+                raise InvalidInput('Bitte ein Arbeitsblatt aus dem Unterrichtsordner auswählen.')
+            name = os.path.relpath(path, folder)
+            current = self.read(folder)
+            if current['revision'] != payload['revision']:
+                raise RevisionConflict('Die Einheit wurde geändert. Bitte neu laden.')
+            linked = current['data'].get('verlinkte_materialien', [])
+            if remove:
+                if name not in linked:
+                    return current
+                if any(use.get('material') == name for use in current['data'].get('einsatz', [])):
+                    raise InvalidInput('Bitte zuerst die Einsätze dieses Arbeitsblatts in der Einheit entfernen.')
+                linked = [item for item in linked if item != name]
+            else:
+                entry = self.material_entry(folder, path) if path.is_file() else None
+                if (not entry or entry['solution']
+                        or not (re.search(r'arbeitsblatt|aufgabenblatt|^mini[ _-]?ab$', entry['kind'], re.I)
+                                or re.match(r'^ab(?:$|[_-])', path.stem, re.I))):
+                    raise InvalidInput('Bitte ein vorhandenes Arbeitsblatt auswählen.')
+                if path.is_relative_to(folder) or name in linked:
+                    return current
+                self.linked_material_path(folder, name)
+                linked = [*linked, name]
+            data = current['data']
+            if linked:
+                data['verlinkte_materialien'] = linked
+            else:
+                data.pop('verlinkte_materialien', None)
+            return self.save(payload['path'], data, current['revision'])
 
     def delete_theme(self, payload):
         """Thema der Fach/Klasse-Teilmenge loeschen.

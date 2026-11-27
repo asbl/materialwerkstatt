@@ -25,11 +25,10 @@ from pathlib import Path
 from material_core.filesystem import atomic_write_text
 from material_core.metadata import split_frontmatter
 from material_core import workspace
+from material_core.pdf_sources import MANIFEST_NAME, WISSEN_DIR_NAME, manifest_pfad, read_manifest
 
 
 ROOT_DIR = workspace.root()
-WISSEN_DIR_NAME = "wissen"
-MANIFEST_NAME = "_pdf-erschliessung.json"
 ORIGINAL_SUFFIX = "-original"
 ERLAUBTE_SUFFIXE = {".pdf", ".png", ".jpg", ".jpeg"}
 
@@ -47,18 +46,8 @@ class ErschliessungErgebnis:
     duplikat_von: Path | None = None
 
 
-def manifest_pfad(root: Path) -> Path:
-    return root / WISSEN_DIR_NAME / MANIFEST_NAME
-
-
 def manifest_laden(root: Path) -> dict:
-    pfad = manifest_pfad(root)
-    if not pfad.is_file():
-        return {"version": 1, "eintraege": {}}
-    daten = json.loads(pfad.read_text(encoding="utf-8"))
-    if not isinstance(daten, dict) or not isinstance(daten.get("eintraege"), dict):
-        raise ValueError(f"Ungueltiges Erschliessungs-Manifest: {pfad}")
-    return daten
+    return read_manifest(manifest_pfad(root), missing_ok=True)
 
 
 def manifest_speichern(root: Path, daten: dict) -> None:

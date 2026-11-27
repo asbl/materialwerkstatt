@@ -77,6 +77,7 @@ export function createAppState() {
 
 export function collectElements() {
   return {
+    fulltextStatus: document.getElementById("fulltextStatus"),
     workspace: document.getElementById("workspace"),
     viewRail: document.getElementById("viewRail"),
     documentTabs: document.getElementById("documentTabs"),

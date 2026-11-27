@@ -4,7 +4,7 @@ import { createFulltextState } from "./fulltext-state.js";
 const FULLTEXT_MIN_CHARS = 3;
 const FULLTEXT_DEBOUNCE_MS = 300;
 
-export function createPickerController({ search, searchProviders = null, fulltext = createFulltextState(), state, elements, api, escapeHtml, normalizeSearch, selectDocument, uiIcon }) {
+export function createPickerController({ search, searchProviders = null, fulltext = createFulltextState(), state, elements, api, escapeHtml, normalizeSearch, selectDocument, assignWorksheet, uiIcon }) {
   const KIND_CHIP_LABELS = {
     "Arbeitsblatt": "Arbeitsblätter",
     "Klausur": "Klausuren",
@@ -15,7 +15,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
   };
 
   function activeChips() {
-    const chips = [{ id: "alle", label: "Unterrichtsmaterial", match: (entry) => !/^(src|docs|build)\//.test(entry.path) }, { id: "everything", label: "Alle Bereiche", match: () => true }];
+    const chips = [{ id: "alle", label: "Unterrichtsmaterial", match: (entry) => !/^(src|docs|build)\//.test(entry.source_path || entry.path) }, { id: "everything", label: "Alle Bereiche", match: () => true }];
     if (state.qmds.some((entry) => entry.area === "unterricht")) {
       chips.push({ id: "unterricht", label: "Unterricht", match: (entry) => entry.area === "unterricht" });
     }
@@ -176,17 +176,18 @@ export function createPickerController({ search, searchProviders = null, fulltex
       return;
     }
     commandResults = [];
-    const query = normalizeSearch(documentSearchQuery());
-    const candidates = new Map(state.qmds.map(entry => [entry.path, { entry, score: scoreDocument(entry, query) }]));
+    const terms = normalizeSearch(documentSearchQuery()).split(/\s+/).filter(Boolean);
+    const chip = activeChips().find(candidate => candidate.id === state.activeFilter);
+    const candidates = new Map(state.qmds.map(entry => [entry.path, { entry, score: scoreDocument(entry, terms) }]));
     const currentKey = searchKey();
     const hits = fulltext.key == null || fulltext.key === currentKey ? fulltext.results || [] : [];
     for (const hit of hits) {
       const previous = candidates.get(hit.path);
       const entry = { ...previous?.entry, ...hit };
-      candidates.set(hit.path, { entry, score: Math.max(0, scoreDocument(entry, query)) + Math.min(9, hit.score || 0) + 1 });
+      candidates.set(hit.path, { entry, score: Math.max(0, scoreDocument(entry, terms)) + Math.min(9, hit.score || 0) + 1 });
     }
     state.filteredQmds = [...candidates.values()]
-      .filter(({ entry, score }) => score > -1 && filterMatches(entry))
+      .filter(({ entry, score }) => score > -1 && filterMatches(entry) && (!chip || chip.match(entry)))
       .sort(compareDocumentMatches)
       .slice(0, 80)
       .map(({ entry }) => entry);
@@ -209,8 +210,20 @@ export function createPickerController({ search, searchProviders = null, fulltex
     if (state.filteredQmds.length) elements.documentResults.setAttribute("aria-activedescendant", `document-option-${state.activeResult}`);
     else elements.documentResults.removeAttribute("aria-activedescendant");
     for (const button of elements.documentResults.querySelectorAll(".document-option")) {
-      button.addEventListener("click", async () => selectDocument(button.dataset.path, { line: Number(button.dataset.line) || null }));
+      button.addEventListener("click", () => openResult(state.filteredQmds[Number(button.dataset.result)]));
     }
+    for (const button of elements.documentResults.querySelectorAll("[data-assign-result]")) {
+      button.addEventListener("click", () => assignWorksheet(state.filteredQmds[Number(button.dataset.assignResult)]));
+    }
+  }
+
+  function openResult(entry) {
+    if (Number.isInteger(entry.page) && entry.page > 0 && entry.path === entry.pdf && /\.pdf$/i.test(entry.path)) {
+      window.open(`/api/pdf?path=${encodeURIComponent(entry.path)}#page=${entry.page}`, "_blank", "noopener");
+      closePicker();
+      return;
+    }
+    return selectDocument(entry.path, { line: entry.line || null });
   }
 
   function materialGroupKey(entry) {
@@ -221,7 +234,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
   function documentOptionHtml(entry, index) {
     const tags = [...new Set([entry.subject, entry.grade && labelValue(entry.grade), entry.kind, entry.solution ? "Lösung" : ""].filter(Boolean))].join(" · ");
     const snippet = entry.snippet
-      ? `<span class="document-snippet">${escapeHtml(entry.line ? `Zeile ${entry.line}: ` : "")}${escapeHtml(readableSnippet(entry.snippet))}</span>`
+      ? `<span class="document-snippet">${escapeHtml(entry.page ? `Seite ${entry.page} · ` : entry.line ? `Zeile ${entry.line}: ` : "")}${escapeHtml(readableSnippet(entry.snippet))}</span>`
       : "";
     const badge = entry.kind === "Deck"
       ? '<span class="document-fulltext-badge">Deck</span>'
@@ -232,12 +245,18 @@ export function createPickerController({ search, searchProviders = null, fulltex
       ? (fulltext.sources || []).find((source) => source.id === entry.source)?.name
       : null;
     const sourceBadge = sourceName ? `<span class="document-fulltext-badge">${escapeHtml(sourceName)}</span>` : "";
-    return `<button type="button" id="document-option-${index}" class="document-option${index === state.activeResult ? " active" : ""}" data-path="${escapeHtml(entry.path)}" data-line="${entry.line || ""}" role="option" aria-selected="${index === state.activeResult}">
+    const option = `<button type="button" id="document-option-${index}" class="document-option${index === state.activeResult ? " active" : ""}" data-path="${escapeHtml(entry.path)}" data-line="${entry.line || ""}" data-result="${index}" role="option" aria-selected="${index === state.activeResult}">
     <span class="document-title">${uiIcon(materialIcon(entry))}${kindBadgeHtml(entry)}${escapeHtml(entry.title || entry.stem)}${badge}${sourceBadge}</span>
     <span class="document-meta">${escapeHtml(tags)}</span>
     <span class="document-path-hint" title="${escapeHtml(entry.path)}">${escapeHtml(entry.path.split("/").slice(-2).join(" / "))}</span>
     ${snippet}
   </button>`;
+    const worksheet = ["worksheet", "mini-worksheet"].includes(materialIcon(entry))
+      || (!entry.solution && entry.path.endsWith("/ab.qmd"));
+    if (!assignWorksheet || !worksheet || !entry.path.startsWith("unterricht/") || !entry.path.endsWith(".qmd")) return option;
+    return `<div class="document-result-row" role="presentation">${option}
+      <button type="button" class="document-assign" data-assign-result="${index}" aria-label="${escapeHtml(entry.title || entry.path)} zu Einheit hinzufügen">Zu Einheit hinzufügen</button>
+    </div>`;
   }
 
   function readableSnippet(text) {
@@ -271,8 +290,6 @@ export function createPickerController({ search, searchProviders = null, fulltex
     if (facets.tag && !(entry.tags || []).some((tag) => tag === facets.tag || tag.startsWith(`${facets.tag}/`))) return false;
     if (facets.pdf === "with-pdf" && !entry.pdf) return false;
     if (facets.pdf === "without-pdf" && entry.pdf) return false;
-    const chip = activeChips().find((candidate) => candidate.id === state.activeFilter);
-    if (chip && !chip.match(entry)) return false;
     return true;
   }
 
@@ -287,10 +304,9 @@ export function createPickerController({ search, searchProviders = null, fulltex
     }
   }
 
-  function scoreDocument(entry, query) {
-    if (!query) return entry.area === "unterricht" ? 5 : 1;
+  function scoreDocument(entry, parts) {
+    if (!parts.length) return entry.area === "unterricht" ? 5 : 1;
     const haystack = normalizeSearch([entry.title, entry.path, entry.kind, entry.grade, entry.subject, (entry.tags || []).join(" ")].join(" "));
-    const parts = query.split(/\s+/).filter(Boolean);
     if (!parts.every((part) => haystack.includes(part))) return -1;
     let score = 10;
     for (const part of parts) {
@@ -337,7 +353,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
         return;
       }
       const entry = state.filteredQmds[state.activeResult];
-      if (entry) selectDocument(entry.path, { line: entry.line || null });
+      if (entry) openResult(entry);
     }
   }
 
@@ -355,6 +371,12 @@ export function createPickerController({ search, searchProviders = null, fulltex
     return JSON.stringify([normalizeSearch(documentSearchQuery()).trim(), state.activeFilter, state.facetFilters]);
   }
 
+  function showSearchStatus(message = "") {
+    if (!elements.fulltextStatus) return;
+    elements.fulltextStatus.textContent = message;
+    elements.fulltextStatus.hidden = !message;
+  }
+
   function scheduleFulltextSearch() {
     clearFulltextSearch();
     const query = documentSearchQuery();
@@ -366,6 +388,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
       fulltext.timer = null;
       const controller = new AbortController();
       searchController = controller;
+      showSearchStatus("Volltextsuche läuft …");
       try {
         const params = new URLSearchParams({ q: query });
         for (const field of ["subject", "grade", "kind", "pdf", "sort"]) {
@@ -378,10 +401,12 @@ export function createPickerController({ search, searchProviders = null, fulltex
         if (chip === "loesung") params.set("solution", "true");
         if (chip.startsWith("subject:") && !params.has("subject")) params.set("subject", chip.slice(8));
         if (chip.startsWith("kind:") && !params.has("kind")) params.set("kind", chip.slice(5));
-        const data = await api(`/api/search?${params}`, { signal: controller.signal });
+        const data = await api(`/api/search?${params}`, { signal: controller.signal, timeout: 60000 });
         if (load !== fulltext.load || key !== searchKey()) return;
         fulltext.results = data.results || [];
         fulltext.sources = data.sources || [];
+        const unavailable = (data.sourceErrors || []).map(error => error.name);
+        showSearchStatus(unavailable.length ? `Suchquellen ausgefallen (${unavailable.join(", ")}).` : "");
         if (searchProviders) {
           // Lokale Plugin-Quellen (ctx.search.registerProvider) hinten anhaengen.
           const local = searchProviders.run(query, Object.fromEntries(params.entries()));
@@ -392,6 +417,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
       } catch {
         if (load !== fulltext.load || key !== searchKey()) return;
         fulltext.results = [];
+        showSearchStatus("Volltextsuche konnte nicht abgeschlossen werden.");
       } finally {
         if (searchController === controller) searchController = null;
       }
@@ -407,6 +433,7 @@ export function createPickerController({ search, searchProviders = null, fulltex
     fulltext.load += 1;
     fulltext.results = [];
     fulltext.key = null;
+    showSearchStatus();
   }
 
   return {
