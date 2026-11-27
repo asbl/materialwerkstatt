@@ -497,6 +497,44 @@ def test_browser_checks_external_changes_when_editor_receives_focus(client, tmp_
         browser.close()
 
 
+def test_browser_rechecks_when_focus_arrives_during_a_slow_change_check(client, tmp_path):
+    """Ein noch laufender Abruf darf eine danach erfolgte externe Änderung nicht verdecken."""
+    if sync_playwright is None:
+        pytest.skip("Playwright ist nicht installiert")
+    with LiveServer(client.application, free_port()) as url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.add_init_script('''
+            localStorage.setItem("material-ui:auto-render", "false");
+            localStorage.setItem("material-ui:auto-save", "false");
+        ''')
+        page.goto(url, wait_until="domcontentloaded")
+        page.wait_for_function("window.materialEditor && window.materialEditor.getText() === 'Text\\n'")
+        held = []
+
+        def hold_first_check(route):
+            if held:
+                route.continue_()
+            else:
+                held.append((route, route.fetch()))
+
+        page.route("**/api/document?*", hold_first_check)
+        # Der Klick in den Editor startet die erste Prüfung; sie liest noch den alten Stand.
+        replace_editor_text(page, "Eigene Änderungen")
+        deadline = time.monotonic() + 10
+        while not held and time.monotonic() < deadline:
+            page.wait_for_timeout(50)
+        assert held
+        page.locator("#documentSearch").focus()
+        (tmp_path / "blatt.qmd").write_text("Extern geändert\n", encoding="utf-8")
+        page.locator(".cm-content").focus()
+        held[0][0].fulfill(response=held[0][1])
+        page.get_by_role("dialog", name="Entwurf wiederherstellen").wait_for()
+        assert page.locator("#recoveryDraft").input_value() == "Eigene Änderungen"
+        assert page.locator("#recoveryFile").input_value() == "Extern geändert\n"
+        browser.close()
+
+
 def test_browser_restores_draft_and_resolves_revision_conflict(client, tmp_path):
     if sync_playwright is None:
         pytest.skip("Playwright ist nicht installiert")

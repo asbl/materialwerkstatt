@@ -88,6 +88,18 @@ def test_browser_document_controls_and_shared_search(tmp_path):
             expect(page.locator('.discussion-menu')).not_to_have_attribute('open', '')
             expect(page.locator('.discussion-menu > summary')).to_be_focused()
             expect(page.locator('#workspace')).to_have_class(__import__('re').compile('focus-mode'))
+            # Die Menues schliessen einander sofort, nicht erst im spaeteren toggle-Ereignis:
+            # Sonst bleibt nach einem schnellen Escape ein Menue offen und schluckt das naechste.
+            assert page.evaluate('''() => {
+                const settings = document.querySelector('.document-settings');
+                const discussion = document.querySelector('.discussion-menu');
+                settings.open = true;
+                discussion.open = true;
+                const bothOpen = settings.open && discussion.open;
+                discussion.open = false;
+                return bothOpen;
+            }''') is False
+            expect(page.locator('.document-settings')).not_to_have_attribute('open', '')
             page.locator('#toggleFocusMode').click()
             page.locator('#tagTreeViewButton').click()
             expect(page.locator('#tagSearch')).to_be_hidden()

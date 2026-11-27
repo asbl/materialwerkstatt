@@ -246,9 +246,14 @@ def test_drafts_survive_filters_refresh_other_save_and_reload(tmp_path):
                 open_unit_menu(page, '[data-options-menu]')
                 page.locator('[data-refresh]').click()
             assert b.locator('[name=titel]').input_value() == 'Entwurf B'
+            from playwright.sync_api import expect
             page.locator('#folderViewButton').click()
             page.locator('#viewButton-units').click()
+            # input_value() liest auch die noch verborgene Ansicht: Erst der abgeschlossene,
+            # gespeicherte Wechsel garantiert, dass der Reload wieder bei den Einheiten startet.
+            expect(page.locator('#viewButton-units')).to_have_attribute('aria-pressed', 'true')
             assert b.locator('[name=notiz]').input_value() == 'Noch ohne Datum'
+            page.wait_for_function('localStorage.getItem("material-ui:active-view") === "units"')
             page.reload(wait_until='networkidle')
             assert page.locator('.units-view [name=titel]').input_value() == 'Entwurf B'
             expand_unit(b)
