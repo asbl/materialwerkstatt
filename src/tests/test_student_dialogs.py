@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
@@ -103,10 +102,8 @@ def test_latex_output_keeps_figures_and_spoken_text(tmp_path):
 
 
 def test_gallery_renders_two_compact_pages_with_aligned_speakers(tmp_path):
-    shutil.copytree(EXAMPLES.parent / 'assets', tmp_path / 'assets')
     source = tmp_path / 'ab_beispiele.qmd'
-    # A temporary project has no immutable release store; use live built-ins.
-    source.write_text(re.sub(r'^template-(?:release|context):.*\n', '', EXAMPLES.read_text(), flags=re.MULTILINE))
+    source.write_text(EXAMPLES.read_text())
     result = BuildService(tmp_path, subprocess.run).build_document(source)
     with pymupdf.open(result.pdf_path) as pdf:
         assert len(pdf) == 2
@@ -151,46 +148,6 @@ for (const id of ['schuelerdialog-zwei', 'schuelerdialog-drei', 'schuelerdialog-
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize('filename,left,right', [
-    ('68-mal-8.svg', 68, 8),
-    ('544-mal-125.svg', 544, 125),
-    ('346-mal-107-nullzeile.svg', 346, 107),
-    ('346-mal-107-ohne-nullzeile.svg', 346, 107),
-    ('346-mal-107-stellen.svg', 346, 107),
-    ('356-mal-17.svg', 356, 17),
-])
-def test_worked_examples_keep_digits_in_their_place_value_columns(filename, left, right):
-    drawing = ET.parse(EXAMPLES.parent / 'assets' / filename).getroot()
-    texts = drawing.findall('.//{http://www.w3.org/2000/svg}text')
-    task = [t for t in texts if t.get('class') == 'aufgabenziffer']
-    assert ''.join(t.text for t in task) == f'{left}·{right}'
-    assert all(float(b.get('x')) - float(a.get('x')) == 28 for a, b in zip(task, task[1:]))
-    units_x = float(task[-1].get('x'))
-    rows = {}
-    for t in texts:
-        if t.get('class') not in {'teilprodukt', 'ergebnisziffer'}:
-            continue
-        place = int(t.get('data-stelle'))
-        assert float(t.get('x')) == units_x - 28 * place
-        key = (t.get('class'), t.get('y'))
-        rows[key] = rows.get(key, 0) + int(t.text) * 10 ** place
-    results = [value for (kind, _), value in rows.items() if kind == 'ergebnisziffer']
-    assert results == [left * right]
-    partials = [value for (kind, _), value in rows.items() if kind == 'teilprodukt']
-    if partials:
-        assert sum(partials) == left * right
-
-
-def test_fraction_model_divides_the_same_whole_into_six_equal_intervals():
-    drawing = ET.parse(EXAMPLES.parent / 'assets/sechstel-rechenstrich.svg').getroot()
-    paths = drawing.findall('.//{http://www.w3.org/2000/svg}path')
-    ticks = [float(p.get('d').split()[0][1:]) for p in paths if p.get('d').endswith('24V44')]
-    assert len(ticks) == 7
-    assert all(b - a == 90 for a, b in zip(ticks, ticks[1:]))
-    labels = drawing.findall('.//{http://www.w3.org/2000/svg}text')
-    assert [(float(t.get('x')), t.text) for t in labels] == [(ticks[0], '0'), (ticks[-1], '1')]
-
-
 @pytest.mark.parametrize('layout', ['', ' layout="kompakt"'])
 def test_custom_skin_color_overrides_style_for_all_skin_parts(tmp_path, layout):
     source = dialogue([('name="Mia" figur="zopf" hautfarbe="#ffe1bd" haarfarbe="#f5d553"', 'Hallo.')])
@@ -205,3 +162,10 @@ def test_custom_skin_color_overrides_style_for_all_skin_parts(tmp_path, layout):
         skin_parts = drawing.findall('.//*[@fill="#ffe1bd"]')
         assert len(skin_parts) == 5  # Neck, ears, face and hand.
         assert not drawing.findall('.//*[@fill="#bd825b"]')
+
+
+def test_gallery_draws_every_model_with_shortcuts():
+    text = EXAMPLES.read_text()
+    assert '![](' not in text
+    assert text.count('[Modell schriftlich ') == 6
+    assert '[Modell malkreuz ' in text and '[Modell rechenstrich ' in text

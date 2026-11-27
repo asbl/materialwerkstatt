@@ -19,7 +19,7 @@ Ergebnisse werden nicht automatisch eingetragen.
 
 ## Rechenstrich
 
-`knoten` enthält 2–6 kommagetrennte Beschriftungen. `spruenge` enthält genau
+`knoten` enthält 2–6 kommagetrennte Beschriftungen (mit `offen=ja` bis 13). `spruenge` enthält genau
 eine Beschriftung weniger als `knoten`; jeder Sprung führt von einem Knoten zum
 nächsten in der Liste. Zahlen, Rechenzeichen, `?` und leere
 Beschriftungen sind möglich. Die Zeichnung ist schematisch, nicht maßstäblich.
@@ -70,7 +70,8 @@ dann lesbar, wenn ein Bogen durch sie läuft.
 
 Mit `offen=ja` werden nur der Strich und die Knoten gezeichnet – Bögen,
 Pfeilspitzen und Sprungbeschriftungen fehlen, `spruenge` darf wegfallen. Die
-Sprünge ergänzt man selbst: Beispielauftrag „Zeichne die Sprünge am
+Sprünge ergänzt man selbst. Ohne Bögen sind bis zu 13 `knoten` möglich, etwa
+`knoten=0,,,,,,1` für sechs gleich große Abschnitte. Beispielauftrag „Zeichne die Sprünge am
 Rechenstrich ein und notiere ihre Weiten.“ Leere `knoten`-Einträge zwischen
 zwei beschrifteten Werten ergeben gleichmäßig verteilte, unbeschriftete
 Strichmarken zum Selbsteintragen, z. B. `knoten=2486,,,,` für einen Strich,
@@ -200,6 +201,10 @@ ungefähr 5-mm-Kästchen. In der Material-UI steht der Shortcut
 Das Modell berechnet Teilprodukte und Ergebnis automatisch. Jede Ziffer steht
 in ihrer Stellenwertspalte; rechts der verschobenen Teilprodukte bleiben
 Stellen frei. `nullzeile=ja` zeigt Nullzeilen, `nein` lässt sie weg (Standard).
+`endnullen=ja` schreibt verschobene Teilprodukte mit Nullen aus (`34600` statt
+`346` mit freien Stellen). `teilrechnungen=ja` nennt neben jeder Zeile die
+Rechnung, z. B. `346 · 100`. Beide sind standardmäßig `nein`.
+Bei versionierten Dokumenten wird ein Release mit diesen Optionen benötigt.
 Die Faktoren dürfen je 1–6 Ziffern enthalten, die Bildbreite beträgt 10–250 mm.
 Malkreuze unterstützen mit `oben` und `links` jeweils bis zu drei Teilzahlen,
 z. B. `oben=300,50,6 | links=10,7`.
