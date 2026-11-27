@@ -151,6 +151,7 @@ def warm_index(runtime) -> None:
         services = runtime.services
         if services is not None:
             qmds_payload(runtime.config, services.documents)
+            services.search.warm_documents(runtime.closing)
     except Exception:
         import traceback
         traceback.print_exc()

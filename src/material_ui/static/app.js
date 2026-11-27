@@ -7,6 +7,7 @@ import { createFulltextState } from "./fulltext-state.js";
 import { createTemplateUpdateController } from "./template-updates.js";
 import { createImageImportController } from "./image-import.js";
 import { registerUnitsView } from "./units.js";
+import { createUnitMaterialPicker } from "./unit-material-picker.js";
 import { createWorksheetTools } from "./worksheet-tools.js";
 import { createDocumentWorkspace } from "./document-workspace.js";
 import { stateView } from "./state-view.js";
@@ -246,8 +247,8 @@ const {
   ]), elements: stateView(elements, [
     "documentResults", "documentSearch", "filterChips", "gradeFilter", "kindFilter",
     "pdfFilter", "searchOverlay", "sortFilter", "subjectFilter", "tagFilter",
-    "tagFilterOptions"
-  ]), api, escapeHtml, normalizeSearch, selectDocument, uiIcon });
+    "tagFilterOptions", "fulltextStatus"
+  ]), api, escapeHtml, normalizeSearch, selectDocument, assignWorksheet: entry => assignWorksheet(entry), uiIcon });
 
 const { loadTabs, restoreTabs, registerTab, removeTab, renameTab, closeTab, bindTabs } = createTabsController({
   state: stateView(state, ["autoSave", "dirty", "qmdPath", "savePromise", "saveTimer", "tabs"]), elements: stateView(elements, ["documentTabs"]), escapeHtml, uiIcon, tabLabel, selectDocument, closeDocument,
@@ -394,6 +395,14 @@ const unitsView = registerUnitsView({ views, api, selectDocument,
   beforeMove: () => confirmDiscardOrSave(),
   onMoved: async (source, result) => { renameTab(source, result.path); applyQmds(result); if (state.qmdPath === source) await loadDocument(result.path); },
   getDocumentPath: () => state.qmdPath, createNote: unit => openNewDocModal(unit.path, { kind: "Notiz", subject: unit.fach, grade: unit.klasse.replace("klasse-", ""), topic: unit.data.thema, title: "", filename: "" }), createWorksheet: unit => openNewDocModal(unit.path, { kind: "Arbeitsblatt", subject: unit.fach, grade: unit.klasse.replace("klasse-", ""), topic: unit.data.thema, title: "", filename: "" }) });
+
+const assignWorksheet = createUnitMaterialPicker({
+  dialog: document.getElementById("linkWorksheetDialog"), api, normalizeSearch,
+  onLinked: unit => {
+    setStatus(`Arbeitsblatt zu „${unit.data.titel}“ hinzugefügt.`, "ready");
+    void unitsView.refresh();
+  }
+});
 
 const { importAsset } = createImageImportController({
   state: stateView(state, ["image", "session", "qmdPath", "revision", "dirty"]),
@@ -990,6 +999,7 @@ function bindEvents() {
     closeNewMenu();
   });
   document.addEventListener("keydown", (event) => {
+    if (event.target.closest("#linkWorksheetDialog")) return;
     if (event.key === "Escape") {
       if (document.getElementById("recoveryModal").classList.contains("open")) closeModal(document.getElementById("recoveryModal"));
       else if (document.getElementById("qmdImportModal").classList.contains("open")) cancelQmdImport();

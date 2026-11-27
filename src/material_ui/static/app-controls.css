@@ -158,6 +158,8 @@ button {
   display: none;
 }
 
+.search-status { margin: 4px 10px; }
+
 .document-option {
   display: grid;
   gap: 2px;
@@ -173,6 +175,21 @@ button {
 .document-option:hover,
 .document-option.active {
   background: color-mix(in srgb, var(--accent) 13%, var(--panel));
+}
+
+.document-result-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.document-result-row .document-option { border-bottom: 0; }
+
+.document-assign {
+  margin: 4px 8px;
+  font-size: var(--fs-xs);
+  max-width: 10em;
 }
 
 .document-title {

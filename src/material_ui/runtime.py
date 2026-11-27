@@ -64,6 +64,8 @@ class RuntimeState:
             for worker in workers:
                 if worker is not threading.current_thread():
                     worker.join(timeout=max(0, deadline - time.monotonic()))
+            if self.services is not None:
+                self.services.search.close()
 
 
 _runtime = ContextVar("material_runtime", default=None)

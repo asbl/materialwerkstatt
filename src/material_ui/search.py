@@ -1,24 +1,25 @@
 from __future__ import annotations
 
 import json
-import os
 import re
-import sys
 import threading
 import unicodedata
 from collections import OrderedDict
-from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
 
+from material_core.pdf_sources import manifest_pfad, page_texts, read_manifest
 from material_ui.assets import parse_tags, tag_path_matches
+from material_ui.catalog import fingerprint
 from material_ui.errors import InvalidInput
+from material_ui.search_index import SearchIndex, file_stamp
 
 MAX_SEARCH_BYTES = 2 * 1024 * 1024
 MAX_RESULTS = 50
-MAX_INDEX_BYTES = 64 * 1024 * 1024
 SNIPPET_RADIUS = 60
 MAX_PROVIDERS = 16
+PDF_SOURCE = "original-pdf"
+PDF_SOURCE_NAME = "Original-PDFs"
 SOURCE_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 
 
@@ -49,31 +50,26 @@ def deck_texts(scene: Any) -> str:
     return "\n".join(lines)
 
 
-@dataclass
-class IndexedSource:
-    fingerprint: tuple[int, int, int, int]
-    entry: dict[str, Any]
-    text: str
-    normalized: str
-    pdf_candidates: tuple[Path, ...] = ()
-    deck_candidates: tuple[Path, ...] = ()
-
-    @property
-    def size(self) -> int:
-        return sys.getsizeof(self.text) + sys.getsizeof(self.normalized)
-
-
 class SearchService:
-    """Incremental, bounded in-memory index; external changes are checked on each query."""
-
     def __init__(self, config, documents) -> None:
         self.config = config
         self.documents = documents
         self.lock = threading.RLock()
-        self.index: OrderedDict[Path, IndexedSource] = OrderedDict()
-        self.index_bytes = 0
-        # Such-Provider anderer Plugins (ueber ctx.search.register): source_id -> (name, provider)
+        self.index = SearchIndex(config)
+        self.pdf_manifest = manifest_pfad(config.root)
+        self.pdf_stamp = None
+        self.pdf_paths = ()
         self.providers: OrderedDict[str, tuple[str, Callable[[str, dict[str, Any]], list[dict[str, Any]]]]] = OrderedDict()
+
+    def close(self):
+        with self.lock:
+            self.index.close()
+
+    def warm_documents(self, stop):
+        with self.lock:
+            if not stop.is_set():
+                with self.index.transaction():
+                    self.refresh_documents(stop=stop)
 
     # -- Such-Provider (Plugin-Schnittstelle) ------------------------------------------------------
 
@@ -86,7 +82,7 @@ class SearchService:
         """
         if not callable(provider):
             raise ValueError("Provider muss aufrufbar sein.")
-        if not isinstance(source_id, str) or not SOURCE_ID_PATTERN.match(source_id):
+        if not isinstance(source_id, str) or not SOURCE_ID_PATTERN.fullmatch(source_id):
             raise ValueError("Ungueltige source_id (nur [a-z0-9-], max. 32 Zeichen).")
         if not isinstance(name, str):
             raise ValueError("Ungueltiger Quellenname.")
@@ -101,9 +97,15 @@ class SearchService:
 
         return unregister
 
-    def provider_sources(self) -> list[tuple[str, str]]:
+    def active_providers(self):
         with self.lock:
-            return [(source_id, name) for source_id, (name, _) in self.providers.items()]
+            providers = self.providers.copy()
+        if self.pdf_manifest.is_file():
+            providers.setdefault(PDF_SOURCE, (PDF_SOURCE_NAME, self.search_pdfs))
+        return providers
+
+    def provider_sources(self) -> list[tuple[str, str]]:
+        return [(source_id, name) for source_id, (name, _) in self.active_providers().items()]
 
     def _provider_result(self, entry: Any, source_id: str) -> dict[str, Any] | None:
         if not isinstance(entry, dict):
@@ -119,6 +121,7 @@ class SearchService:
             score = 0
         tags = entry.get("tags")
         line = entry.get("line")
+        page = entry.get("page")
         pdf = entry.get("pdf")
         snippet = entry.get("snippet")
         source_path = entry.get("source_path")
@@ -139,14 +142,13 @@ class SearchService:
             "line": line if type(line) is int else None,
             "snippet": (snippet if isinstance(snippet, str) else "")[:500],
             "source": source_id,
+            **({"page": page} if type(page) is int and page > 0 else {}),
         }
 
     def _run_providers(self, query: str, filters: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-        with self.lock:
-            providers = list(self.providers.items())
         results: list[dict[str, Any]] = []
         errors: list[dict[str, str]] = []
-        for source_id, (name, provider) in providers:
+        for source_id, (name, provider) in self.active_providers().items():
             try:
                 raw = provider(query, filters) or []
                 if not isinstance(raw, list):
@@ -165,53 +167,111 @@ class SearchService:
         results = self.search(query, _provider_errors=errors, **filters)
         return results, errors
 
-    @staticmethod
-    def fingerprint(path: Path) -> tuple[int, int, int, int]:
-        stat = path.stat()
-        return stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size, stat.st_ino
+    def load_source(self, path):
+        stamp = fingerprint(path)
+        text = self.documents.catalog.read_text(path)
+        entry, pdfs, decks = self.documents.source_details(path, text=text, expected_fingerprint=stamp)
+        entry["pdf_candidates"] = [str(candidate.relative_to(self.config.root)) for candidate in pdfs]
+        return entry, [(0, text)], [str(candidate.relative_to(self.config.root)) for candidate in decks]
 
-    def indexed_source(self, path: Path) -> IndexedSource | None:
-        with self.lock:
-            return self._indexed_source(path)
+    def load_deck(self, path):
+        text = deck_texts(json.loads(self.documents.catalog.read_text(path)))
+        return self.deck_entry(path), [(0, text)], ()
 
-    def _indexed_source(self, path: Path) -> IndexedSource | None:
-        try:
-            path = self.config.safe_visible_path(str(path))
-            fingerprint = self.fingerprint(path)
-            if fingerprint[2] > MAX_SEARCH_BYTES:
-                self.discard(path)
-                return None
-            cached = self.index.get(path)
-            if cached and cached.fingerprint == fingerprint:
-                self.index.move_to_end(path)
-                return cached
-            text = self.documents.catalog.read_text(path)
-            candidates, decks = (), ()
-            if path.suffix == ".excalidraw":
-                text = deck_texts(json.loads(text))
-                entry = self.deck_entry(path)
-            else:
-                entry, candidates, decks = self.documents.source_details(path, text=text, expected_fingerprint=fingerprint)
-            # Do not cache text and metadata from different filesystem versions.
-            if self.fingerprint(path) != fingerprint:
-                self.discard(path)
-                return None
-            item = IndexedSource(fingerprint, entry, text, normalize_query(text), candidates, decks)
-            self.discard(path)
-            self.index[path] = item
-            self.index_bytes += item.size
-            while self.index_bytes > MAX_INDEX_BYTES:
-                oldest = next(iter(self.index))
-                self.discard(oldest)
-            return item
-        except (OSError, ValueError):
-            self.discard(path)
-            return None
+    def refresh_documents(self, *, stop=None):
+        root = self.config.root
+        sources = self.documents.qmd_sources()
+        links = self.index.refresh("document", sources, self.load_source, normalize_query,
+                                   max_bytes=MAX_SEARCH_BYTES, stop=stop)
+        owners = {}
+        if stop is not None and stop.is_set():
+            return owners
+        generated = root / "build" / "artefakte"
+        if generated.is_dir():
+            folders = {}
+            for source in sources:
+                relative = source.relative_to(root)
+                folder = generated / relative.parent
+                if folder not in folders:
+                    folders[folder] = folder.is_dir()
+                if folders[folder]:
+                    deck = folder / source.with_suffix(".excalidraw").name
+                    if deck.is_file():
+                        owners[deck] = relative.as_posix()
+        for source, candidates in links.items():
+            for candidate in candidates:
+                deck = root / candidate
+                if deck.is_file():
+                    owners[deck] = source
+        decks = sorted(set(self.documents.catalog.sources(".excalidraw")) | owners.keys())
+        self.index.refresh("deck", decks, self.load_deck, normalize_query,
+                           max_bytes=MAX_SEARCH_BYTES, stop=stop)
+        return owners
 
-    def discard(self, path: Path) -> None:
-        previous = self.index.pop(path, None)
-        if previous:
-            self.index_bytes -= previous.size
+    def registered_pdfs(self):
+        base = self.pdf_manifest.parent
+        manifest = self.config.safe_visible_path(str(self.pdf_manifest))
+        if not manifest.is_relative_to(base):
+            raise InvalidInput("Erschließungsmanifest liegt außerhalb von wissen/.")
+        stamp = file_stamp(manifest.stat())
+        if self.pdf_stamp != stamp:
+            paths = set()
+            for record in read_manifest(manifest)["eintraege"].values():
+                relative = record.get("pfad") if isinstance(record, dict) else None
+                if not isinstance(relative, str):
+                    continue
+                path = Path(relative)
+                if path.is_absolute() or any(part.startswith(".") for part in path.parts):
+                    continue
+                if path.suffix.lower() == ".pdf":
+                    paths.add(base / path)
+            self.pdf_paths = sorted(paths)
+            self.pdf_stamp = stamp
+        return self.pdf_paths
+
+    def load_pdf(self, path):
+        base = self.pdf_manifest.parent
+        if not path.is_relative_to(base) or path.suffix.lower() != ".pdf":
+            raise ValueError("Original-PDF liegt außerhalb von wissen/.")
+        parts = path.relative_to(base).parts
+        grade = self.documents.grade_part(parts)
+        subject = parts[1] if parts[0] == "arbeitsblatt" and grade and len(parts) > 3 else parts[0]
+        name = path.relative_to(self.config.root).as_posix()
+        title = path.stem.replace("_", " ").replace("-", " ")
+        entry = {"path": name, "pdf": name, "title": title, "kind": "Original-PDF",
+                 "area": "wissen", "subject": subject, "grade": grade, "mtime": path.stat().st_mtime}
+        return entry, [(0, title), *enumerate(page_texts(path), start=1)], ()
+
+    def search_pdfs(self, query, filters):
+        terms = query_terms(query)
+        if filters["pdf"] == "without-pdf" or filters["solution"] or filters["tags"]:
+            return []
+        if filters["area"] not in ("", "wissen") or filters["kind"] not in ("", "Original-PDF"):
+            return []
+        best = {}
+        base = self.pdf_manifest.parent
+        with self.lock, self.index.transaction():
+            self.index.refresh("pdf", self.registered_pdfs(), self.load_pdf, normalize_query)
+            for name, entry, page, body, normalized in self.index.hits(("pdf",), terms):
+                if any(filters[key] and entry[key] != filters[key] for key in ("subject", "grade")):
+                    continue
+                prev = best.get(entry["path"])
+                if prev and not terms:
+                    continue
+                try:
+                    path = self.config.safe_visible_path(name)
+                except (OSError, ValueError):
+                    continue
+                if not path.is_relative_to(base) or path.suffix.lower() != ".pdf":
+                    continue
+                score = sum(normalized.count(term) for term in terms)
+                if prev and (prev["score"], bool(prev["snippet"]), -prev["page"]) >= (score, page > 0, -(page or 1)):
+                    continue
+                best[entry["path"]] = {
+                    **entry, "page": page or 1, "score": score,
+                    "snippet": self.snippet(body, terms) if page and terms else "",
+                }
+        return self.sort_results(list(best.values()), filters["sort"])[:MAX_RESULTS]
 
     def search(self, query: str, subject: str = "", grade: str = "", kind: str = "", tags: str = "",
                pdf: str = "", area: str = "", solution: bool = False, sort: str = "relevance",
@@ -223,80 +283,60 @@ class SearchService:
         if pdf not in {"", "with-pdf", "without-pdf"} or sort not in {"relevance", "title", "recent"}:
             raise InvalidInput("Unbekannter Suchfilter oder Sortierung.")
         results = []
-        source_paths = self.documents.qmd_sources()
-        linked_decks: dict[Path, dict[str, Any]] = {}
-        live_paths = set()
-        for path in source_paths:
-            item = self.indexed_source(path)
-            if item is None:
-                continue
-            live_paths.add(path.resolve())
-            entry = dict(item.entry)
-            # Generated decks are addressed directly, never by walking build/.
-            relative = path.relative_to(self.config.root)
-            candidates = [self.config.root / "build" / "artefakte" / relative.with_suffix(".excalidraw")]
-            for candidate in item.deck_candidates:
-                try:
-                    candidates.append(self.config.safe_visible_path(str(candidate)))
-                except InvalidInput:
-                    pass
-            for deck in candidates:
-                if deck.is_file():
-                    linked_decks[deck] = entry
-            self.append_match(results, path, item, entry, terms, subject, grade, kind, required_tags, pdf, area, solution)
-        for path in sorted(set(self.deck_sources()) | linked_decks.keys()):
-            item = self.indexed_source(path)
-            if item is None:
-                continue
-            live_paths.add(path.resolve())
-            entry = dict(item.entry)
-            owner = linked_decks.get(path)
-            if owner:
-                entry.update({key: owner.get(key, "") for key in ("subject", "grade", "area", "tags", "solution")})
-                entry["source_path"] = owner["path"]
-            self.append_match(results, path, item, entry, terms, subject, grade, kind, required_tags, pdf, area, solution)
-        with self.lock:
-            for path in list(self.index):
-                if path not in live_paths:
-                    self.discard(path)
-        # Treffer registrierter Such-Quellen (Plugins) vor dem Sortieren und Limit einhaengen.
         filters = {"subject": subject, "grade": grade, "kind": kind, "tags": tags,
                    "pdf": pdf, "area": area, "solution": solution, "sort": sort}
+        with self.lock, self.index.transaction():
+            owners = self.refresh_documents()
+            for name, entry, _, body, normalized in self.index.hits(("document", "deck"), terms):
+                path = self.config.root / name
+                owner = owners.get(path)
+                if owner:
+                    source = self.index.metadata("document", owner)
+                    entry.update({key: source.get(key, "") for key in ("subject", "grade", "area", "tags", "solution")})
+                    entry["source_path"] = source.get("path")
+                if not self.matches_facets(entry, filters, required_tags):
+                    continue
+                try:
+                    path = self.config.safe_visible_path(name)
+                    entry["pdf"] = self.current_pdf(entry) if path.suffix == ".qmd" else None
+                except (OSError, ValueError):
+                    continue
+                if (pdf == "with-pdf" and not entry["pdf"]) or (pdf == "without-pdf" and entry["pdf"]):
+                    continue
+                line, snippet = self.first_match(body, terms) if terms else (None, "")
+                score = sum(normalized.count(term) for term in terms)
+                results.append(self.result(entry, path, score, snippet, line))
+        # Treffer registrierter Such-Quellen (Plugins) vor dem Sortieren und Limit einhaengen.
         provider_results, errors = self._run_providers(query, filters)
         if _provider_errors is not None:
             _provider_errors.extend(errors)
         results.extend(provider_results)
+        return self.sort_results(results, sort)[:MAX_RESULTS]
+
+    @staticmethod
+    def sort_results(results, sort):
         if sort == "recent":
             results.sort(key=lambda item: (-item["mtime"], -item["score"], item["path"]))
         elif sort == "title":
             results.sort(key=lambda item: (normalize_query(item["title"]), -item["score"], item["path"]))
         else:
             results.sort(key=lambda item: (-item["score"], item["path"]))
-        # All candidates, including decks, participate before the result limit.
-        return results[:MAX_RESULTS]
+        return results
 
-    def append_match(self, results, path, item, entry, terms, subject, grade, kind, tags, pdf, area, solution):
-        if any(value and entry.get(key) != value for key, value in (("subject", subject), ("grade", grade), ("kind", kind), ("area", area))):
-            return
-        if solution and not entry.get("solution"):
-            return
-        if tags and not all(any(tag_path_matches(tag, scope) for tag in entry.get("tags", [])) for scope in tags):
-            return
-        if not all(term in item.normalized for term in terms):
-            return
-        if path.suffix == ".qmd":
-            try:
-                entry["pdf"] = self.config.relative(next((candidate for candidate in item.pdf_candidates if candidate.suffix.lower() == ".pdf" and candidate.is_file()), None))
-            except (OSError, ValueError):
-                return
-        if (pdf == "with-pdf" and not entry.get("pdf")) or (pdf == "without-pdf" and entry.get("pdf")):
-            return
-        line, snippet = self.first_match(item.text, terms) if terms else (None, "")
-        score = sum(item.normalized.count(term) for term in terms)
-        results.append(self.result(entry, path, score, snippet, line))
+    @staticmethod
+    def matches_facets(entry, filters, tags):
+        return (
+            all(not filters[key] or entry.get(key) == filters[key] for key in ("subject", "grade", "kind", "area"))
+            and (not filters["solution"] or entry.get("solution"))
+            and all(any(tag_path_matches(tag, scope) for tag in entry.get("tags", [])) for scope in tags)
+        )
 
-    def deck_sources(self) -> list[Path]:
-        return self.documents.catalog.sources(".excalidraw")
+    def current_pdf(self, entry):
+        for name in entry.get("pdf_candidates", ()):
+            path = self.config.root / name
+            if path.suffix.lower() == ".pdf" and path.is_file():
+                return self.config.relative(self.config.safe_visible_path(name))
+        return None
 
     def deck_entry(self, path: Path) -> dict[str, Any]:
         relative = self.config.relative(path) or ""

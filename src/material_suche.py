@@ -12,12 +12,11 @@ OCR (``inv wissen-ocr``) und bleiben hier stumm.
 from __future__ import annotations
 
 import json
-import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
-import pymupdf
+from material_core.pdf_sources import MANIFEST_NAME, page_texts, read_manifest
 
 INDEX_NAME = "material-index.json"
 
@@ -27,23 +26,15 @@ def index_pfad(root: Path) -> Path:
     return root / "build" / INDEX_NAME
 
 
-def _normalisieren(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
-
-
 def baue_index(wissen_root: Path, ziel: Path | None = None) -> dict:
     """Texte aller erschlossenen PDFs extrahieren und den Index schreiben."""
-    registry_pfad = wissen_root / "_pdf-erschliessung.json"
-    eintraege = json.loads(registry_pfad.read_text(encoding="utf-8"))["eintraege"]
+    eintraege = read_manifest(wissen_root / MANIFEST_NAME)["eintraege"]
     dokumente: dict[str, dict] = {}
     for _pruefsumme, eintrag in sorted(eintraege.items(), key=lambda paar: paar[1]["pfad"]):
         pfad = wissen_root / eintrag["pfad"]
         if not pfad.is_file():
             continue
-        seiten: list[str] = []
-        with pymupdf.open(pfad) as dokument:
-            for page in dokument:
-                seiten.append(_normalisieren(page.get_text()))
+        seiten = page_texts(pfad)
         dokumente[eintrag["pfad"]] = {
             "seiten": seiten,
             "erschlossen": eintrag.get("erschlossen"),

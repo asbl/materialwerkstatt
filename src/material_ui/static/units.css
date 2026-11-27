@@ -93,8 +93,8 @@
 .unit-lernstand fieldset { margin-block: .5rem; }
 .unit-lernstand fieldset label { display: block; margin-block: .25rem; }
 .unit-lernstand button { margin: .25rem; }
-.unit-lernstand-dialog { width: min(1100px, 90vw); max-height: 85vh; box-sizing: border-box; overflow: auto; padding: 1.5rem; border: 1px solid var(--border, #cbd5db); border-radius: .5rem; background: var(--surface, #fff); color: var(--text, #172d36); }
-.unit-lernstand-dialog::backdrop { background: #172d3680; }
+.unit-lernstand-dialog, #linkWorksheetDialog { width: min(1100px, 90vw); max-height: 85vh; box-sizing: border-box; overflow: auto; padding: 1.5rem; border: 1px solid var(--border, #cbd5db); border-radius: .5rem; background: var(--surface, #fff); color: var(--text, #172d36); }
+.unit-lernstand-dialog::backdrop, #linkWorksheetDialog::backdrop { background: #172d3680; }
 .unit-lernstand input[type=checkbox] { display: inline-block; width: auto; margin-right: .5rem; }
 .unit-lernstand-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: 1rem; }
 .unit-lernstand-toolbar [role=status]:empty { display: none; }
@@ -146,9 +146,9 @@
 .units-view .unit-plan-boundary { margin: 1rem 0 .5rem; padding-top: .4rem; border-top: 2px solid var(--accent); color: var(--accent); font-size: .8rem; font-weight: 600; }
 .units-view .unit-plan-marker { border-color: var(--marker-color); color: var(--marker-color); }
 .units-view .unit-plan-marker button { background: transparent; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.unit-marker-dialog { width: min(25rem, calc(100vw - 2rem)); padding: 1.2rem; }
-.unit-marker-dialog label { display: grid; gap: .3rem; margin: .7rem 0; }
-.unit-marker-dialog input, .unit-marker-dialog select { min-width: 0; width: 100%; box-sizing: border-box; }
+.unit-marker-dialog, #linkWorksheetDialog { width: min(25rem, calc(100vw - 2rem)); padding: 1.2rem; }
+.unit-marker-dialog label, #linkWorksheetDialog label { display: grid; gap: .3rem; margin: .7rem 0; }
+.unit-marker-dialog input, .unit-marker-dialog select, #linkWorksheetDialog :is(input, select) { min-width: 0; width: 100%; box-sizing: border-box; }
 .unit-marker-dialog input[type=color] { width: 4rem; height: 2.2rem; }
 .unit-marker-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 
