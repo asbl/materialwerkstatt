@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "material-datenbank"
-version = "0.1.1"
+version = "0.2.0"
 description = "Unterrichtsmaterial-Werkzeuge: Quarto-Arbeitsblaetter, Material-UI und course-sync (H5P-Kurse fuer Moodle)."
 readme = "README.md"
 license = { text = "MIT" }
