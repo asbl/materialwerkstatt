@@ -56,13 +56,8 @@ def ensure_miniworlds_packages(
     packages: list[str] | tuple[str, ...],
     *,
     source: str = "",
-) -> list[str | dict[str, object]]:
-    """Return packages suitable for H5P PythonQuestion pyodideOptions.packages.
-
-    miniworlds is emitted as ``{"package": "miniworlds", "remote": false}`` so that
-    the PythonRunner loads it from the locally-bundled path instead of trying to
-    fetch it from the Pyodide CDN. sqlite3 is no longer auto-added.
-    """
+) -> list[str]:
+    """Return canonical package names, adding miniworlds where it is required."""
     normalized: list[str] = []
     seen: set[str] = set()
     for package in packages:
@@ -83,7 +78,7 @@ def ensure_miniworlds_packages(
         return normalized
 
     if MINIWORLDS_PACKAGE not in seen:
-        normalized.append({"package": MINIWORLDS_PACKAGE, "remote": False})
+        normalized.append(MINIWORLDS_PACKAGE)
         seen.add(MINIWORLDS_PACKAGE)
     for package in (MINIWORLDS_ROBOT_PACKAGE, MINIWORLDS_TURTLE_PACKAGE):
         if package in required_packages and package not in seen:
@@ -98,27 +93,15 @@ def ensure_miniworlds_packages(
 
 def packages_for_h5p_content(
     packages: list[str | dict[str, object]],
-) -> list[str | dict[str, object]]:
-    """Convert all ``"miniworlds"`` strings in *packages* to the H5P object form.
+) -> list[str]:
+    """Return *packages* as unique names for ``pyodideOptions.packages``.
 
-    H5P PythonQuestion requires miniworlds as
-    ``{"package": "miniworlds", "remote": false}`` so that the runner uses the
-    locally-bundled version instead of attempting to fetch it from the CDN.
-    Deduplication is applied so that only one entry per package name remains.
+    The PythonQuestion semantics declare a list of selects, so every entry must be a
+    plain string. Moodle aborts with "Cannot access offset of type stdClass" when it
+    validates an object entry such as ``{"package": "miniworlds", "remote": false}``.
     """
-    result: list[str | dict[str, object]] = []
-    seen: set[str] = set()
-    for pkg in packages:
-        name = _package_name(pkg)
-        name = _canonical_package_name(name)
-        if name == MINIWORLDS_PACKAGE:
-            if MINIWORLDS_PACKAGE not in seen:
-                result.append({"package": MINIWORLDS_PACKAGE, "remote": False})
-                seen.add(MINIWORLDS_PACKAGE)
-        elif name and name not in seen:
-            result.append(pkg)
-            seen.add(name)
-    return result
+    names = (_canonical_package_name(_package_name(package)) for package in packages)
+    return list(dict.fromkeys(name for name in names if name))
 
 
 def resolve_python_runner(

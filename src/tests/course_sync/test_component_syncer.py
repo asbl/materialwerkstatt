@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import unittest
 
+from course_sync.classes.python_runner_policy import packages_for_h5p_content
 from course_sync.classes.component_sync.component_syncer import ComponentSyncer
 from course_sync.classes.models import PythonQuestionBlock
 
@@ -106,16 +107,15 @@ class TestBuildDefaultPythonQuestionContent(unittest.TestCase):
         content = syncer._build_default_python_question_content(q)
         self.assertEqual(content["pythonRunner"], "skulpt")
 
-    def test_packages_mapped_to_h5p_object_format(self) -> None:
+    def test_packages_mapped_to_plain_names(self) -> None:
         syncer = _make_syncer()
         q = _make_question(packages=["miniworlds", "numpy"])
         content = syncer._build_default_python_question_content(q)
-        # miniworlds must be emitted as an H5P package object with remote:false
-        # so that the PythonRunner uses the locally-bundled version (not the CDN).
+        # the H5P select list only accepts package names
         # sqlite3 is no longer auto-added.
         self.assertEqual(
             content["pyodideOptions"]["packages"],  # type: ignore[index]
-            [{"package": "miniworlds", "remote": False}, "numpy"],
+            ["miniworlds", "numpy"],
         )
 
     def test_miniworlds_extensions_include_core_and_use_distribution_names(self) -> None:
@@ -129,7 +129,7 @@ class TestBuildDefaultPythonQuestionContent(unittest.TestCase):
             [
                 "miniworlds-robot",
                 "miniworlds-turtle",
-                {"package": "miniworlds", "remote": False},
+                "miniworlds",
             ],
         )
 
@@ -385,3 +385,9 @@ class TestJsxExpressionToJson(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_object_package_entries_are_reduced_to_names() -> None:
+    packages = [{"package": "miniworlds", "remote": False}, "miniworlds-data", "miniworlds"]
+
+    assert packages_for_h5p_content(packages) == ["miniworlds", "miniworlds-data"]
