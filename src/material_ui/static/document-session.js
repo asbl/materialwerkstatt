@@ -25,7 +25,13 @@ export function createDocumentSession({ documentState, state, elements, api, get
 
   function checkExternalChanges() {
     if (!state.qmdPath || !state.revision || (state.course.kursMode && !state.course.kursActivity)) return Promise.resolve();
-    if (changeCheck?.session === state.session) return changeCheck.promise;
+    if (changeCheck?.session === state.session) {
+      // Der laufende Abruf kann den Dateistand vor einer inzwischen erfolgten externen
+      // Änderung gelesen haben: danach genau einmal nachprüfen statt sein Ergebnis zu übernehmen.
+      // Hat er schon einen Konflikt gezeigt (false), bleibt es dabei.
+      changeCheck.followUp ??= changeCheck.promise.then(result => (result === false ? false : checkExternalChanges()));
+      return changeCheck.followUp;
+    }
     const session = state.session;
     const activity = state.course.kursMode && state.course.kursActivity;
     const endpoint = activity
