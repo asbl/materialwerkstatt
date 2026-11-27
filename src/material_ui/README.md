@@ -417,13 +417,14 @@ umgebungsweise ersetzt `MATERIAL_UI_PLUGIN_PATHS` (os.pathsep-Liste) alle Suchor
 Der Host laedt aktivierende Plugins beim Start: Registerfehler eines Plugins landen als
 Statuseintrag `error` mit Meldung in `GET /api/plugins`, ohne den Start des Kerns zu
 stoppen. Eingebaute Plugins sind standardmaessig aktiv (ausser mit `defaultEnabled: false`),
-extern installierte erst nach Bestaetigung; der Zustand liegt dauerhaft unter `.material-ui/plugins.json` und wirkt erst
+extern installierte erst nach Bestaetigung; der Zustand liegt dauerhaft unter `daten/plugins.json` und wirkt erst
 nach einem Serverneustart (`inv plugin-list`, `inv plugin-enable <id>`, `inv
 plugin-disable <id>` oder `POST /api/plugins/<id>/enabled`, Antwort `restartRequired`).
 Plugins erhalten einen versionierten Plugin-Kontext: `register_routes(blueprint)` ohne
 Prefix-Erzwingung (Routenpfade waehlt das Plugin selbst, z. B. `/api/kurse/…` oder
 `/api/plugins/<id>/…`), eigenen Speicher und Einstellungen unter
-`.material-ui/plugins/<id>/` (0600-JSON; `password`-Felder werden mit der Maske
+`.material-ui/plugins/<id>/` (rechnerlokal, `storage.path`) bzw.
+`daten/plugins/<id>/` (mitsynchronisiert, `storage.shared_path`) (0600-JSON; `password`-Felder werden mit der Maske
 `••••` ausgeliefert, und eine Rueckgabe der Maske behaelt den gespeicherten Wert),
 `jobs.channel(name)` als exklusiven Ausführungskanal auf der zentralen Auftragsregistrierung
 mit SSE-Strom, `lifecycle.on_start/on_shutdown`, eine `runtime`-Referenz fuer
@@ -514,7 +515,7 @@ Diese Rückabwicklung ist keine Wiederherstellung nach Stromausfall oder SIGKILL
   — verletzt die eingebaute Version eine Bedingung, ist das ein Konflikt.
 - Deinstallieren ist nur für Benutzer-Plugins (`source=user`) möglich; hängt noch ein
   installiertes Plugin davon ab, wird mit 409 abgelehnt (Dependenten-Liste in der Meldung,
-  `force` umgeht). Ohne `purge` bleiben die Daten unter `.material-ui/plugins/<id>/` erhalten.
+  `force` umgeht). Ohne `purge` bleiben die Daten unter `.material-ui/plugins/<id>/` und `daten/plugins/<id>/` erhalten.
 - API-Fähigkeit `plugin-marketplace` (Vertrag apiVersion 4).
 
 Das Frontend laedt `static/plugins/loader.js` nach dem Protokollabgleich: Er ruft

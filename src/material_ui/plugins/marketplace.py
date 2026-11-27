@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
 
+from material_core.state import SHARED_DIR, shared_file
 from material_core.filesystem import atomic_write_text
 from material_ui.errors import InvalidInput, MarketplaceUnavailable, PluginConflict
 from material_ui.plugins.manifest import (
@@ -416,7 +417,7 @@ class Marketplace:
         self.user_dir = Path(user_dir) if user_dir is not None else user_plugin_dir()
         self.catalog_root = Path(catalog_root) if catalog_root is not None else catalog_dir()
         self.repo_url = repo_url or catalog_repo_url()
-        self.enabled_store = enabled_store or PluginEnabledStore(self.root / ".material-ui" / "plugins.json")
+        self.enabled_store = enabled_store or PluginEnabledStore(shared_file(self.root, "plugins.json"))
         self.lock = lock or LockFile(self.root / ".material-ui" / "plugins.lock.json")
 
     @contextmanager
@@ -491,14 +492,17 @@ class Marketplace:
                 f"„{plugin_id}“ wird noch von folgenden Plugins benötigt: {', '.join(dependents)}. "
                 "Deinstallation blockiert (force umgeht die Sperre).")
         state = self.root / ".material-ui" / "plugins" / plugin_id
-        paths = [target, self.lock.path, self.enabled_store.path] + ([state] if purge else [])
+        shared = self.root / SHARED_DIR / "plugins" / plugin_id
+        paths = [target, self.lock.path, self.enabled_store.path] + ([state, shared] if purge else [])
         try:
             with rollback_paths(paths):
                 shutil.rmtree(target)
                 self.lock.remove(plugin_id)
                 self.enabled_store.set_enabled(plugin_id, False)
-                if purge and state.exists():
-                    shutil.rmtree(state)
+                if purge:
+                    for directory in (state, shared):
+                        if directory.exists():
+                            shutil.rmtree(directory)
         except BaseException:
             self.lock.data = LockFile(self.lock.path).data
             raise

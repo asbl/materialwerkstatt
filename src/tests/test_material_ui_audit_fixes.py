@@ -7,6 +7,7 @@ import threading
 import pytest
 
 from material_core.metadata import set_template
+from material_ui.plugins.storage import PluginEnabledStore
 from material_ui.app import create_app
 from material_ui.config import AppConfig
 from material_ui.jobs import JobBusy, JobRegistry, ResourceJobQueue
@@ -149,12 +150,23 @@ def test_resource_jobs_are_bounded_coalesced_and_closed():
         queue.start("d", "slides-ensure", lambda: {})
 
 
-def test_catalog_shares_discovery_and_metadata_after_a_save(application, tmp_path, monkeypatch):
+@pytest.fixture
+def application_without_workers(tmp_path):
+    """Ohne Kalender und Erinnerungen: deren Hintergrundthread durchsucht dieselben Ordner."""
+    store = PluginEnabledStore(tmp_path / "daten" / "plugins.json")
+    for plugin_id in ("kalender", "erinnerungen"):
+        store.set_enabled(plugin_id, False)
+    app = create_app(config=AppConfig(tmp_path))
+    app.testing = True
+    yield app
+    app.extensions["material_runtime"].close()
+
+
+def test_catalog_shares_discovery_and_metadata_after_a_save(application_without_workers, tmp_path, monkeypatch):
     import material_ui.catalog as catalog_module
+    application = application_without_workers
     for name in ("a.qmd", "b.qmd"):
         (tmp_path / name).write_text("---\ntitle: Blatt\n---\nWurzel\n")
-    # Initialize the default tag settings before counting source discovery.
-    application.extensions["material_runtime"].services.documents.root_tags()
     application.extensions["material_runtime"].services.documents.invalidate_qmd_cache()
     client = application.test_client()
     walks, reads = [], []

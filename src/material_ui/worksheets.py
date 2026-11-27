@@ -8,6 +8,7 @@ import uuid
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 
+from material_core.state import shared_file
 from material_core.filesystem import atomic_write_text
 from material_ui.config import AppConfig
 from material_ui.errors import InvalidInput
@@ -18,7 +19,7 @@ class WorksheetStore:
     def __init__(self, config: AppConfig):
         self.config = config
         self.root = config.root
-        self.links_path = self.root / '.material-ui' / 'worksheet-solutions.json'
+        self.links_path = shared_file(self.root, 'worksheet-solutions.json')
         self.lock = deck_lock(self.links_path)
 
     def _safe(self, path):

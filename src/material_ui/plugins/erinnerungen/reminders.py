@@ -117,7 +117,7 @@ class ReminderNotifier:
 
     def tick(self, items, *, today: date) -> list[dict[str, Any]]:
         day = today.isoformat()
-        path = self.storage.path("reminders.json")
+        path = self.storage.shared_path("reminders.json")
         data = self.storage.read_json(path, default={})
         if not isinstance(data, dict):
             data = {}
@@ -132,7 +132,9 @@ class ReminderNotifier:
             sent.append(item)
         cutoff = (today - timedelta(days=REMINDER_RETENTION_DAYS)).isoformat()
         pruned = {key: value for key, value in data.items() if isinstance(key, str) and key >= cutoff}
-        pruned[day] = sorted(notified)
+        # Ohne Erinnerung keinen leeren Tag anlegen: sonst schreibt jeder Rechner taeglich.
+        if notified:
+            pruned[day] = sorted(notified)
         # Nur schreiben, wenn sich etwas geaendert hat (neue Erinnerung oder Aufraeumen).
         # private=True (0600): Keys koennen als Fallback Termintitel enthalten.
         if sent or pruned != data:
@@ -140,7 +142,7 @@ class ReminderNotifier:
         return sent
 
     def sent_on(self, today: date) -> list[str]:
-        data = self.storage.read_json(self.storage.path("reminders.json"), default={})
+        data = self.storage.read_json(self.storage.shared_path("reminders.json"), default={})
         if not isinstance(data, dict):
             return []
         return [str(key) for key in data.get(today.isoformat()) or []]

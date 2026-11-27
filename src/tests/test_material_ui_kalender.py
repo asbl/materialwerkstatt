@@ -644,7 +644,7 @@ def test_unit_date_without_group_default_occupies_lesson(app_with_kalender):
         ('05C MA', '2026-11-25'), ('05C MA', '2026-11-26'),
         ('05C DE', '2026-11-25'), ('06C MA', '2026-11-25'),
     ])]
-    service.storage.write_json(service.storage.path('local-events.json'), events)
+    service.storage.write_json(service.storage.shared_path('local-events.json'), events)
     linked = client.get('/api/plugins/kalender/events?from=2026-11-25&to=2026-11-26').get_json()['events']
     assert len(linked) == 4
     for event in linked:
@@ -1797,7 +1797,7 @@ def test_edit_local_entry_moves_to_hidden_calendar(app_with_kalender, monkeypatc
     assert len(saved) == 1
     assert saved[0][0] == 'Persönlich'
     service = app_with_kalender.extensions['material_runtime'].plugins.contexts['kalender'].service
-    assert service.storage.read_json(service.storage.path('local-events.json'), default=[]) == []
+    assert service.storage.read_json(service.storage.shared_path('local-events.json'), default=[]) == []
 
 
 @pytest.mark.parametrize('move,fail_delete', [(False, False), (True, False), (True, True)])
@@ -1855,7 +1855,7 @@ def test_completed_tasks_remain_only_on_completion_day(app_with_kalender):
     assert result['completedTasks'][0]['title'] == 'Abhaken'
     assert result['completedTasks'][0]['status'] == 'COMPLETED'
     service = app_with_kalender.extensions['material_runtime'].plugins.contexts['kalender'].service
-    path = service.storage.path('completed-tasks.json')
+    path = service.storage.shared_path('completed-tasks.json')
     completed = service.storage.read_json(path, default={})
     completed[task['id']]['completedDate'] = '2000-01-01'
     service.storage.write_json(path, completed)
@@ -2014,7 +2014,7 @@ def test_lesson_cancellation_is_local_persistent_and_reversible(app_with_kalende
     service = app_with_kalender.extensions['material_runtime'].plugins.contexts['kalender'].service
     event = source_event(title='05C MA', uid='series')
     other = source_event(key='other', title='05C MA', uid='series', start='2026-11-11T08:00:00+01:00', startDate='2026-11-11', endDate='2026-11-11')
-    service.storage.write_json(service.storage.path('local-events.json'), [event, other])
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [event, other])
     client = app_with_kalender.test_client()
     url = '/api/plugins/kalender/events?from=2026-11-10&to=2026-11-10'
     lesson = client.get(url).get_json()['events'][0]
@@ -2023,7 +2023,7 @@ def test_lesson_cancellation_is_local_persistent_and_reversible(app_with_kalende
     assert client.post('/api/plugins/kalender/lesson-cancellation', json=payload).status_code == 200
     assert client.get(url).get_json()['events'][0]['cancelled'] is True
     assert client.get(url.replace('2026-11-10', '2026-11-11')).get_json()['events'][0]['cancelled'] is False
-    assert service.storage.read_json(service.storage.path('local-events.json'), default=[]) == [event, other]
+    assert service.storage.read_json(service.storage.shared_path('local-events.json'), default=[]) == [event, other]
     payload['cancelled'] = False
     assert client.post('/api/plugins/kalender/lesson-cancellation', json=payload).status_code == 200
     assert client.get(url).get_json()['events'][0]['cancelled'] is False
@@ -2046,7 +2046,7 @@ def test_browser_unit_planning_creates_and_cancels_lesson(app_with_kalender):
     service.save_group_defaults([])
     first_year = date.today().year - (date.today().month < 8)
     last_lesson = f'{first_year + 1}-07-30'
-    service.storage.write_json(service.storage.path('local-events.json'), [source_event(
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [source_event(
         title='05C MA', start=f'{day}T08:00:00+01:00', end=f'{day}T09:00:00+01:00', startDate=day, endDate=day),
         source_event(key='later-other-class', title='10C MA', start=f'{last_lesson}T08:00:00+02:00',
                      end=f'{last_lesson}T09:00:00+02:00', startDate=last_lesson, endDate=last_lesson)])
@@ -2081,7 +2081,7 @@ def test_browser_unit_planning_creates_and_cancels_lesson(app_with_kalender):
         tomorrow = (date.today() + timedelta(days=1)).isoformat()
         assigned = source_event(title='05C MA', start=f'{day}T08:00:00+01:00',
                                 end=f'{day}T09:00:00+01:00', startDate=day, endDate=day)
-        service.storage.write_json(service.storage.path('local-events.json'), [assigned, *[source_event(
+        service.storage.write_json(service.storage.shared_path('local-events.json'), [assigned, *[source_event(
             key=f'free-{hour}', title='05C MA', start=f'{tomorrow}T{hour}:00:00+01:00',
             end=f'{tomorrow}T10:00:00+01:00', startDate=tomorrow, endDate=tomorrow,
         ) for hour in ['08', '09']]])
@@ -2099,7 +2099,7 @@ def test_browser_unit_planning_creates_and_cancels_lesson(app_with_kalender):
             'accounts': [], 'holidayCalendar': {'account': '', 'name': 'Ferien'},
             'selectedEventCalendars': [{'account': '', 'name': 'Stundenplan'}],
         }).status_code == 200
-        local_path = service.storage.path('local-events.json')
+        local_path = service.storage.shared_path('local-events.json')
         lessons = service.storage.read_json(local_path, default=[])
         service.storage.write_json(local_path, [*lessons, source_event(
             key='holiday', title='Ferien', calendar='Ferien', allDay=True,
@@ -2157,7 +2157,7 @@ def test_browser_unit_planning_creates_and_cancels_lesson(app_with_kalender):
 
 def test_holidays_automatically_detect_loaded_holiday_calendar(app_with_kalender):
     service = app_with_kalender.extensions['material_runtime'].plugins.contexts['kalender'].service
-    service.storage.write_json(service.storage.path('local-events.json'), [source_event(
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [source_event(
         key='christmas', calendar='Ferien und Feiertage', title='Weihnachtsferien 2026 Hessen',
         allDay=True, startDate='2026-12-23', endDate='2027-01-12', start='2026-12-23', end='2027-01-12',
     )])
@@ -2321,7 +2321,7 @@ def test_browser_assigns_existing_unit_to_free_lesson_and_undoes(app_with_kalend
             'fach': 'mathematik', 'klasse': '05', 'thema': 'Zahlen', 'titel': title, 'datum': datum,
         }).status_code == 201
     service = app.extensions['material_runtime'].plugins.contexts['kalender'].service
-    service.storage.write_json(service.storage.path('local-events.json'), [
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [
         source_event(title='05C MA', start=f'{day}T08:00:00+01:00', end=f'{day}T09:00:00+01:00', startDate=day, endDate=day),
         source_event(key='free', title='05C MA', start=f'{tomorrow}T08:00:00+01:00',
                      end=f'{tomorrow}T09:00:00+01:00', startDate=tomorrow, endDate=tomorrow)])
@@ -2376,7 +2376,7 @@ def test_browser_drags_unit_onto_free_lesson(app_with_kalender):
             'fach': 'mathematik', 'klasse': '05', 'thema': 'Zahlen', 'titel': title, 'datum': datum,
         }).status_code == 201
     service = app.extensions['material_runtime'].plugins.contexts['kalender'].service
-    service.storage.write_json(service.storage.path('local-events.json'), [
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [
         source_event(title='05C MA', start=f'{day}T08:00:00+01:00', end=f'{day}T09:00:00+01:00', startDate=day, endDate=day),
         source_event(key='free', title='05C MA', start=f'{tomorrow}T08:00:00+01:00',
                      end=f'{tomorrow}T09:00:00+01:00', startDate=tomorrow, endDate=tomorrow)])
@@ -2440,7 +2440,7 @@ def test_browser_drag_scrolls_at_the_edge_and_never_undoes_an_existing_assignmen
         day = (date.today() + timedelta(days=offset)).isoformat()
         events.append(source_event(key=f'free-{offset}', title='05C MA', start=f'{day}T08:00:00+01:00',
                                    end=f'{day}T09:00:00+01:00', startDate=day, endDate=day))
-    service.storage.write_json(service.storage.path('local-events.json'), events)
+    service.storage.write_json(service.storage.shared_path('local-events.json'), events)
     try:
         with LiveServer(app, free_port()) as url, sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
@@ -2494,7 +2494,7 @@ def _planning_app(app):
             'fach': 'mathematik', 'klasse': '05', 'thema': 'Zahlen', 'titel': title, 'datum': datum,
         }).status_code == 201
     service = app.extensions['material_runtime'].plugins.contexts['kalender'].service
-    service.storage.write_json(service.storage.path('local-events.json'), [
+    service.storage.write_json(service.storage.shared_path('local-events.json'), [
         source_event(title='05C MA', start=f'{day}T08:00:00+01:00', end=f'{day}T09:00:00+01:00', startDate=day, endDate=day),
         source_event(key='free', title='05C MA', start=f'{tomorrow}T08:00:00+01:00',
                      end=f'{tomorrow}T09:00:00+01:00', startDate=tomorrow, endDate=tomorrow)])

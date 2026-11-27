@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from material_core.state import shared_file
 from material_ui.assets import normalize_tag_path, parse_tags, tag_path_matches
 from material_ui.errors import InvalidInput
 from material_ui.metadata import read_metadata, set_fields
@@ -95,7 +96,7 @@ class TagService:
 
 
     def _tag_settings_path(self) -> Path:
-        return self.config.root / ".material-ui" / "tag-settings.json"
+        return shared_file(self.config.root, "tag-settings.json")
 
 
     def _load_tag_settings(self) -> dict[str, Any]:
@@ -131,7 +132,10 @@ class TagService:
             folder_names = subject_folder_names(self.config.root)
             top_segments = {tag.split("/", 1)[0] for entry in self.documents.qmd_entries_cached() for tag in entry.get("tags", [])}
             stored = sorted(segment for segment in top_segments if segment.lower() in folder_names)
-            self._save_tag_settings({**settings, "rootTags": stored})
+            # Eine leere Vorbelegung nicht festhalten: Auf einem noch nicht fertig
+            # synchronisierten Rechner wuerde sie die vorhandenen Einstellungen verdraengen.
+            if stored:
+                self._save_tag_settings({**settings, "rootTags": stored})
             return stored
         return [tag for tag in stored if tag in available]
 
